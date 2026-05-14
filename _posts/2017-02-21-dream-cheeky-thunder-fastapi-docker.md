@@ -72,4 +72,8 @@ The catch is that the attachment doesn't survive reboots. usbipd v4+ added a pol
 
 ---
 
-<img src="https://cdn.simpleicons.org/github" width="16" style="vertical-align: middle; margin-right: 4px;" /> The project is [on GitHub](https://github.com/guillaumedelre/dream-cheeky-thunder). Pull requests welcome, especially if you have a better angle calibration approach.
+<div style="border: 1px solid #e8e8e8; padding: 16px; margin-top: 2em; border-radius: 3px;">
+  <img src="https://cdn.simpleicons.org/github" width="20" style="vertical-align: middle; margin-right: 8px;" />
+  <strong><a href="https://github.com/guillaumedelre/dream-cheeky-thunder">guillaumedelre/dream-cheeky-thunder</a></strong>
+  <p style="margin: 8px 0 0; color: #828282; font-size: 14px;">FastAPI + Docker + PyUSB — HTTP control for the Dream Cheeky Thunder USB missile launcher. Pull requests welcome, especially if you have a better angle calibration approach.</p>
+</div>

@@ -1,0 +1,63 @@
+---
+---
+
+$background-color:  #151515;
+$text-color:        #eaeaea;
+$brand-color:       #b5e853;
+$grey-color:        #999;
+$grey-color-light:  #2a2a2a;
+$grey-color-dark:   #ccc;
+
+$base-font-family:  "Lucida Console", Monaco, "Courier New", monospace;
+$code-font-family:  "Lucida Console", Monaco, "Courier New", monospace;
+
+@import "minima";
+
+// Header
+.site-header {
+  background-color: #151515;
+  border-top: none;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.site-title,
+.site-title:visited {
+  color: $brand-color;
+}
+
+.site-nav .page-link {
+  color: $brand-color;
+}
+
+// Links
+a, a:visited {
+  color: $brand-color;
+}
+
+a:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+// Code
+pre, code {
+  background-color: #1a1a1a;
+  border-color: #2a2a2a;
+  color: $brand-color;
+}
+
+// Blockquote
+blockquote {
+  color: #aaa;
+  border-left-color: #555;
+}
+
+// Footer
+.site-footer {
+  border-top-color: #2a2a2a;
+  color: $grey-color;
+}
+
+.footer-col-wrapper {
+  color: $grey-color;
+}

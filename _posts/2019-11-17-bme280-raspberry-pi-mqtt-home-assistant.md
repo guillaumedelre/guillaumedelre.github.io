@@ -69,6 +69,12 @@ Second, as of early 2025, [PR #94][pr94] reports undefined behavior in `bme280_g
 
 None of this is a reason to avoid the chip — the hardware is excellent. But it's a reminder that reference code from a manufacturer is a starting point, not ground truth. Implementing the compensation algorithm from the datasheet directly, rather than wrapping the official C library, meant I understood every line of it. When something reads wrong, there's no black box to blame.
 
+<div style="border: 1px solid #e8e8e8; padding: 16px; margin-top: 2em; border-radius: 3px;">
+  <img src="https://cdn.simpleicons.org/github" width="20" style="vertical-align: middle; margin-right: 8px;" />
+  <strong><a href="https://github.com/guillaumedelre/bme280">guillaumedelre/bme280</a></strong>
+  <p style="margin: 8px 0 0; color: #828282; font-size: 14px;">Python driver for the BME280 sensor — temperature, humidity, and pressure over I²C, with MQTT publishing and Home Assistant integration.</p>
+</div>
+
 [datasheet]: https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme280-ds002.pdf
 [repo]: https://github.com/guillaumedelre/bme280
 [bosch-api]: https://github.com/boschsensortec/BME280_SensorAPI

@@ -3,20 +3,27 @@
 
 @import "hacker_colors";
 
-$background-color:  #151515;
-$text-color:        #eaeaea;
-$brand-color:       #b5e853;
+// Minima variable overrides
+$background-color:  $cod-grey;
+$text-color:        $gallery;
+$brand-color:       #63c0f5;
 $grey-color:        #999;
 $grey-color-light:  #2a2a2a;
 $grey-color-dark:   #ccc;
 
-$base-font-family:  "Lucida Console", Monaco, "Courier New", monospace;
-$code-font-family:  "Lucida Console", Monaco, "Courier New", monospace;
+$base-font-family:  Monaco, "Bitstream Vera Sans Mono", "Lucida Console", Terminal, monospace;
+$code-font-family:  Monaco, "Bitstream Vera Sans Mono", "Lucida Console", Terminal, monospace;
 
 $content-width:     100%;
 $spacing-unit:      30px;
 
 @import "minima";
+
+// --- Layout ---
+
+body {
+  background: $cod-grey url("/assets/images/bkg.png") 0 0;
+}
 
 .wrapper {
   max-width: 100%;
@@ -24,33 +31,64 @@ $spacing-unit:      30px;
   padding-right: 2 * $spacing-unit;
 }
 
-// Header
+// --- Header ---
+
 .site-header {
-  background-color: #151515;
+  background: rgba(0, 0, 0, 0.1);
   border-top: none;
-  border-bottom: 1px solid #2a2a2a;
+  border-bottom: 1px dashed $conifer;
+  padding: 20px 0;
 }
 
 .site-title,
 .site-title:visited {
-  color: $brand-color;
+  color: $conifer;
+  font-weight: bold;
+  letter-spacing: -1px;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1),
+               0 0 5px rgba(181, 232, 83, 0.1),
+               0 0 10px rgba(181, 232, 83, 0.1);
+
+  &::before {
+    content: "./ ";
+    font-size: 0.8em;
+  }
 }
 
 .site-nav .page-link {
-  color: $brand-color;
+  color: $conifer;
 }
 
-// Links
-a, a:visited {
-  color: $brand-color;
+// --- Links ---
+
+a {
+  color: #63c0f5;
+  text-shadow: 0 0 5px rgba(104, 182, 255, 0.5);
+
+  &:visited {
+    color: #63c0f5;
+  }
+
+  &:hover {
+    color: #fff;
+    text-decoration: underline;
+    text-shadow: none;
+  }
 }
 
-a:hover {
-  color: #fff;
-  text-decoration: underline;
+// --- Headings ---
+
+h1, h2, h3, h4, h5, h6 {
+  color: $conifer;
+  font-weight: normal;
+  letter-spacing: -0.03em;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1),
+               0 0 5px rgba(181, 232, 83, 0.1),
+               0 0 10px rgba(181, 232, 83, 0.1);
 }
 
-// Code blocks — hacker theme exact styles
+// --- Code blocks ---
+
 pre {
   background: rgba(0, 0, 0, 0.9);
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -72,11 +110,11 @@ code.highlighter-rouge {
   border-radius: 2px;
 }
 
-// Syntax highlighting — hacker theme rouge-base16-dark
+// --- Syntax highlighting (hacker rouge-base16-dark) ---
+
 .highlight {
   background: rgba(0, 0, 0, 0.9);
   border-radius: 2px;
-
   color: $alto;
 
   table td { padding: 5px; }
@@ -101,15 +139,29 @@ code.highlighter-rouge {
   .ss { color: $chelsea-cucumber; }
 }
 
-// Blockquote
-blockquote {
-  color: #aaa;
-  border-left-color: #555;
+// --- Tables ---
+
+th {
+  border-bottom: 1px dashed $conifer;
 }
 
-// Footer
+hr {
+  border: 0;
+  border-bottom: 1px dashed $conifer;
+  color: $conifer;
+}
+
+// --- Blockquote ---
+
+blockquote {
+  color: $silver-chalice;
+  border-left: 1px dotted $dove-grey;
+}
+
+// --- Footer ---
+
 .site-footer {
-  border-top-color: #2a2a2a;
+  border-top: 1px dashed $conifer;
   color: $grey-color;
 }
 

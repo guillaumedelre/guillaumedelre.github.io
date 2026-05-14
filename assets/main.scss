@@ -108,12 +108,23 @@ code.highlighter-rouge {
 }
 
 // --- Syntax highlighting (hacker rouge-base16-dark) ---
+// Use .highlighter-rouge .highlight to beat minima's specificity (0,2,0)
 
-.highlight {
+.highlight,
+.highlighter-rouge .highlight {
   background: rgba(0, 0, 0, 0.9);
   border-radius: 2px;
   color: $alto;
+}
 
+// Remove background from code inside pre (minima sets background-color on code)
+pre > code {
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.highlight {
   table td { padding: 5px; }
   table pre { margin: 0; }
   .w  { color: $alto; }

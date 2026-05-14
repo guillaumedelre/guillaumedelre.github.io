@@ -107,45 +107,6 @@ code.highlighter-rouge {
   border-radius: 2px;
 }
 
-// --- Syntax highlighting (hacker rouge-base16-dark) ---
-// Use .highlighter-rouge .highlight to beat minima's specificity (0,2,0)
-
-.highlight,
-.highlighter-rouge .highlight {
-  background: rgba(0, 0, 0, 0.9);
-  border-radius: 2px;
-  color: $alto;
-}
-
-// Remove background from code inside pre (minima sets background-color on code)
-pre > code {
-  background: none;
-  border: none;
-  padding: 0;
-}
-
-.highlight {
-  table td { padding: 5px; }
-  table pre { margin: 0; }
-  .w  { color: $alto; }
-  .err { color: $cod-grey; background-color: $apple-blossom; }
-  .c, .cd, .cm, .c1, .cs { color: $grey; }
-  .cp { color: $rajah; }
-  .o, .ow { color: $rajah; }
-  .p, .pi { color: $alto; }
-  .gi { color: $chelsea-cucumber; }
-  .gd { color: $apple-blossom; }
-  .gh { color: $hippie-blue; font-weight: bold; }
-  .k, .kn, .kp, .kr, .kv { color: $bouquet; }
-  .kc, .kt, .kd { color: $raw-sienna; }
-  .s, .sb, .sc, .sd, .s2, .sh, .sx, .s1 { color: $chelsea-cucumber; }
-  .sr { color: $gulf-stream; }
-  .si, .se { color: $potters-clay; }
-  .nt, .nn, .nc, .no { color: $rajah; }
-  .na { color: $hippie-blue; }
-  .m, .mf, .mh, .mi, .il, .mo, .mb, .mx { color: $chelsea-cucumber; }
-  .ss { color: $chelsea-cucumber; }
-}
 
 // --- Tables ---
 

@@ -33,7 +33,7 @@ The BME280 doesn't give you `21.5°C` directly. It gives you raw ADC values — 
 
 The compensation algorithm for temperature alone takes the raw value, applies a quadratic correction using three calibration constants, and produces a value in hundredths of degrees Celsius. Pressure depends on the corrected temperature. Humidity depends on both.
 
-None of this is guesswork — it's straight from the [Bosch datasheet][datasheet]. But it means the driver isn't trivial. It's not a library import; it's implementing a spec.
+None of this is guesswork — it's straight from the <a href="https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme280-ds002.pdf" target="_blank" rel="noopener noreferrer">Bosch datasheet</a>. But it means the driver isn't trivial. It's not a library import; it's implementing a spec.
 
 ## :globe_with_meridians: Making it network-accessible
 
@@ -47,7 +47,7 @@ The MQTT discovery mechanism made the Home Assistant side almost frictionless. O
 BME280  ──I²C──►  bme280.py  ──►  Flask API  ──MQTT──►  Home Assistant
 ```
 
-The full setup guide is [in the repo][repo].
+The full setup guide is <a href="https://github.com/guillaumedelre/bme280" target="_blank" rel="noopener noreferrer">in the repo</a>.
 
 ## :bulb: What I didn't expect
 
@@ -61,21 +61,17 @@ The room is now 21.4°C and 47% humidity. I know this without opening anything.
 
 ## :warning: A note on the official Bosch SensorAPI
 
-While writing the driver I looked at the [official Bosch SensorAPI][bosch-api] for reference. Two things stood out.
+While writing the driver I looked at the <a href="https://github.com/boschsensortec/BME280_SensorAPI" target="_blank" rel="noopener noreferrer">official Bosch SensorAPI</a> for reference. Two things stood out.
 
 First, the Linux userspace example in the repo doesn't work on a Raspberry Pi as shipped. Several contributors independently discovered the same bug: `ioctl` is called before `dev_addr` is assigned, so the I²C device address is never properly set. The fix is straightforward, and multiple PRs documented it — but they sat open for years before corrected versions were eventually merged. The original PRs are still open.
 
-Second, as of early 2025, [PR #94][pr94] reports undefined behavior in `bme280_get_sensor_mode()`: the left operand of a bitwise `&` is an uninitialized variable, caught by static analysis. It's still open.
+Second, as of early 2025, <a href="https://github.com/boschsensortec/BME280_SensorAPI/pull/94" target="_blank" rel="noopener noreferrer">PR #94</a> reports undefined behavior in `bme280_get_sensor_mode()`: the left operand of a bitwise `&` is an uninitialized variable, caught by static analysis. It's still open.
 
 None of this is a reason to avoid the chip — the hardware is excellent. But it's a reminder that reference code from a manufacturer is a starting point, not ground truth. Implementing the compensation algorithm from the datasheet directly, rather than wrapping the official C library, meant I understood every line of it. When something reads wrong, there's no black box to blame.
 
 <div style="border: 1px solid #e8e8e8; padding: 16px; margin-top: 2em; border-radius: 3px;">
   <img src="https://cdn.simpleicons.org/github" width="20" style="vertical-align: middle; margin-right: 8px;" />
-  <strong><a href="https://github.com/guillaumedelre/bme280">guillaumedelre/bme280</a></strong>
+  <strong><a href="https://github.com/guillaumedelre/bme280" target="_blank" rel="noopener noreferrer">guillaumedelre/bme280</a></strong>
   <p style="margin: 8px 0 0; color: #828282; font-size: 14px;">Python driver for the BME280 sensor — temperature, humidity, and pressure over I²C, with MQTT publishing and Home Assistant integration.</p>
 </div>
 
-[datasheet]: https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme280-ds002.pdf
-[repo]: https://github.com/guillaumedelre/bme280
-[bosch-api]: https://github.com/boschsensortec/BME280_SensorAPI
-[pr94]: https://github.com/boschsensortec/BME280_SensorAPI/pull/94

@@ -7,7 +7,7 @@ tags: [symfony, messenger, architecture, rabbitmq, amqp]
 description: "Swarrot and Symfony Messenger both handle RabbitMQ in PHP. Here is why we kept Swarrot after seriously evaluating a migration."
 ---
 
-We migrated a media microservices platform to Symfony 6 at the start of 2022. Twelve services, most of them consuming messages from RabbitMQ via [Swarrot][swarrot]. Symfony 6 made [Messenger][messenger] more central than ever, and during the migration planning a developer asked the obvious question: why not switch at the same time?
+We migrated a media microservices platform to Symfony 6 at the start of 2022. Twelve services, most of them consuming messages from RabbitMQ via <a href="https://github.com/swarrot/swarrot" target="_blank" rel="noopener noreferrer">Swarrot</a>. Symfony 6 made <a href="https://symfony.com/doc/current/messenger.html" target="_blank" rel="noopener noreferrer">Messenger</a> more central than ever, and during the migration planning a developer asked the obvious question: why not switch at the same time?
 
 It ships with the framework. It has retry logic, native AMQP support, first-party documentation. Our setup looked artisanal by comparison.
 
@@ -50,7 +50,7 @@ Three entries per logical message type: main queue, retry queue, dead-letter que
 
 ## :package: When the class name becomes the route
 
-[Symfony Messenger][messenger] operates a level higher. You define a message class, a handler, and a transport. The library handles serialization, routing, retry, and failure queues automatically.
+<a href="https://symfony.com/doc/current/messenger.html" target="_blank" rel="noopener noreferrer">Symfony Messenger</a> operates a level higher. You define a message class, a handler, and a transport. The library handles serialization, routing, retry, and failure queues automatically.
 
 ```php
 class IngestContent
@@ -120,5 +120,3 @@ Swarrot isn't legacy to migrate away from. For now, it's the right fit: AMQP rou
 
 That could change. A shared contracts package, a new broker requirement, a greenfield service that starts without the existing topology weight: any of these could tip the balance toward Messenger. The library isn't wrong for this platform. It may just be the right answer for a future version of it.
 
-[swarrot]: https://github.com/swarrot/swarrot
-[messenger]: https://symfony.com/doc/current/messenger.html

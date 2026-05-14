@@ -9,11 +9,11 @@ description: "How we wired a USB foam missile launcher to the CI pipeline — an
 
 The rule was simple: whoever breaks the CI build owes the team a coffee. It worked fine for a while. Then someone suggested we needed something with more immediate feedback. Something physical. Something that fires.
 
-A [Dream Cheeky Thunder](http://www.dreamcheeky.com/thunder-missile-launcher) appeared on a desk shortly after. Four foam missiles, a USB cable, and a very clear team consensus: hook it to the cluster, wire it to the build pipeline, and let the CI decide who deserves a volley.
+A <a href="http://www.dreamcheeky.com/thunder-missile-launcher" target="_blank" rel="noopener noreferrer">Dream Cheeky Thunder</a> appeared on a desk shortly after. Four foam missiles, a USB cable, and a very clear team consensus: hook it to the cluster, wire it to the build pipeline, and let the CI decide who deserves a volley.
 
 The launcher needed to respond to HTTP calls from anywhere on the network. No driver, no GUI, no manual aiming. Just an endpoint that makes it shoot in the direction of the guilty party's desk.
 
-This is the story of [dream-cheeky-thunder](https://github.com/guillaumedelre/dream-cheeky-thunder).
+This is the story of <a href="https://github.com/guillaumedelre/dream-cheeky-thunder" target="_blank" rel="noopener noreferrer">dream-cheeky-thunder</a>.
 
 ![Dream Cheeky Thunder](https://raw.githubusercontent.com/guillaumedelre/dream-cheeky-thunder/develop/docs/Dream-Cheeky-Thunder.jpg)
 
@@ -37,7 +37,7 @@ curl -X POST "http://localhost:8000/fire?shots=2"
 
 The `/park` call matters more than it looks. Since the launcher has no position feedback, the server estimates the current angle by tracking how long the motors have been running. That estimate drifts. Bumping the hardware, interrupting a command, or just the imprecision of time-based tracking — they all accumulate. Parking drives both motors against the physical hard stops at full sweep, which guarantees alignment regardless of what the server thinks it knows. Skip it, and your aim is a guess.
 
-The full API reference is [in the repo](https://github.com/guillaumedelre/dream-cheeky-thunder/blob/develop/docs/api.md). There's also a web UI if you prefer clicking over `curl`.
+The full API reference is <a href="https://github.com/guillaumedelre/dream-cheeky-thunder/blob/develop/docs/api.md" target="_blank" rel="noopener noreferrer">in the repo</a>. There's also a web UI if you prefer clicking over `curl`.
 
 ## :whale: Docker knows nothing about USB
 
@@ -52,13 +52,13 @@ devices:
 
 That's not enough. The first run returned `USBError: [Errno 13] Access denied`. The device node exists in the container, but the permissions are inherited from the host — and on the host, only root can open it by default.
 
-The fix is a udev rule. One file dropped into `/etc/udev/rules.d/` tells the kernel to set the correct group and permissions when the device is plugged in. After that, the container user can open it without elevated privileges. The rule ships with the project — setup instructions are [in the docs](https://github.com/guillaumedelre/dream-cheeky-thunder/blob/develop/docs/setup-linux.md).
+The fix is a udev rule. One file dropped into `/etc/udev/rules.d/` tells the kernel to set the correct group and permissions when the device is plugged in. After that, the container user can open it without elevated privileges. The rule ships with the project — setup instructions are <a href="https://github.com/guillaumedelre/dream-cheeky-thunder/blob/develop/docs/setup-linux.md" target="_blank" rel="noopener noreferrer">in the docs</a>.
 
 ## :window: WSL2 made it interesting
 
 Half the team runs Windows with Docker Desktop on WSL2. That's where things got more creative.
 
-WSL2 doesn't have access to USB devices by default — the Windows kernel holds them. The `devices` mount alone does nothing because WSL2 simply doesn't see the hardware. The solution is [usbipd-win](https://github.com/dorssel/usbipd-win), which forwards the USB device from Windows into the WSL2 kernel over IP. Once attached, the Linux path works identically: udev rule, `devices` mount, done.
+WSL2 doesn't have access to USB devices by default — the Windows kernel holds them. The `devices` mount alone does nothing because WSL2 simply doesn't see the hardware. The solution is <a href="https://github.com/dorssel/usbipd-win" target="_blank" rel="noopener noreferrer">usbipd-win</a>, which forwards the USB device from Windows into the WSL2 kernel over IP. Once attached, the Linux path works identically: udev rule, `devices` mount, done.
 
 The catch is that the attachment doesn't survive reboots. usbipd v4+ added a policy mechanism that automates reconnection, which solved the "it worked yesterday" problem that plagued the first few days of testing.
 
@@ -74,6 +74,6 @@ The catch is that the attachment doesn't survive reboots. usbipd v4+ added a pol
 
 <div style="border: 1px solid #e8e8e8; padding: 16px; margin-top: 2em; border-radius: 3px;">
   <img src="https://cdn.simpleicons.org/github" width="20" style="vertical-align: middle; margin-right: 8px;" />
-  <strong><a href="https://github.com/guillaumedelre/dream-cheeky-thunder">guillaumedelre/dream-cheeky-thunder</a></strong>
+  <strong><a href="https://github.com/guillaumedelre/dream-cheeky-thunder" target="_blank" rel="noopener noreferrer">guillaumedelre/dream-cheeky-thunder</a></strong>
   <p style="margin: 8px 0 0; color: #828282; font-size: 14px;">FastAPI + Docker + PyUSB — HTTP control for the Dream Cheeky Thunder USB missile launcher. Pull requests welcome, especially if you have a better angle calibration approach.</p>
 </div>

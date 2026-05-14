@@ -12,7 +12,7 @@ This is the story of [dream-cheeky-thunder](https://github.com/guillaumedelre/dr
 
 ![Dream Cheeky Thunder](https://raw.githubusercontent.com/guillaumedelre/dream-cheeky-thunder/develop/docs/Dream-Cheeky-Thunder.jpg)
 
-## The hardware
+## :wrench: The hardware
 
 The Dream Cheeky Thunder is a small USB missile launcher with two motorized axes:
 
@@ -22,7 +22,7 @@ The Dream Cheeky Thunder is a small USB missile launcher with two motorized axes
 
 It speaks USB HID. The vendor ID is `0x2123`, the product ID is `0x1010`. You send raw USB control messages to move the motors and trigger the firing mechanism. No official SDK, no documentation — just a vendored Python script from 2012 floating around the internet, and a lot of reverse engineering notes in forum threads.
 
-## The API
+## :electric_plug: The API
 
 Rather than a one-off script, I wanted something I could call from anywhere: a browser, a shell alias, a cron job, another service. FastAPI was the right tool.
 
@@ -30,14 +30,14 @@ The server exposes these endpoints:
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/status` | Current state (connected, missiles, yaw, pitch) |
-| POST | `/park` | Drive to home position (hard stop) |
-| POST | `/move/{direction}` | Raw move: `up`, `down`, `left`, `right` |
-| POST | `/yaw/{angle}` | Rotate to horizontal angle |
-| POST | `/pitch/{angle}` | Tilt to vertical angle |
-| POST | `/fire` | Fire N shots |
-| POST | `/led` | Toggle the LED ring |
-| POST | `/reload` | Reset missile count after manual reload |
+| GET | `/status` | :bar_chart: Current state (connected, missiles, yaw, pitch) |
+| POST | `/park` | :house: Drive to home position (hard stop) |
+| POST | `/move/{direction}` | :joystick: Raw move: `up`, `down`, `left`, `right` |
+| POST | `/yaw/{angle}` | :left_right_arrow: Rotate to horizontal angle |
+| POST | `/pitch/{angle}` | :arrow_up_down: Tilt to vertical angle |
+| POST | `/fire` | :rocket: Fire N shots |
+| POST | `/led` | :bulb: Toggle the LED ring |
+| POST | `/reload` | :arrows_counterclockwise: Reset missile count after manual reload |
 
 A typical targeting sequence looks like this:
 
@@ -50,7 +50,7 @@ curl -X POST "http://localhost:8000/fire?shots=2"
 
 The web UI at `http://localhost:8000` gives you buttons and sliders for the same operations, for the less terminal-inclined.
 
-## Angle tracking: time-based and honest about it
+## :triangular_ruler: Angle tracking: time-based and honest about it
 
 The launcher has no encoders. There is no way to read back the actual motor position. Angle tracking is entirely time-based: the server records how long each motor ran and estimates the current angle from that duration.
 
@@ -58,7 +58,7 @@ This works well enough for casual use. It degrades if the launcher is physically
 
 Call `/park` before any precision targeting sequence.
 
-## Docker and USB access
+## :whale: Docker and USB access
 
 The tricky part of packaging this in Docker is USB access. By default, Docker containers do not see host USB devices.
 
@@ -78,7 +78,7 @@ sudo udevadm control --reload-rules && sudo udevadm trigger
 
 Without the udev rule, the container hits `USBError: [Errno 13] Access denied` even with the `devices` mount in place. The rule sets the device group and permissions so the container user can open it.
 
-## The WSL2 problem
+## :window: The WSL2 problem
 
 On Windows with Docker Desktop using the WSL2 backend, the `devices` mount alone is not enough. WSL2 does not have access to USB devices by default — the Windows kernel holds them.
 
@@ -117,16 +117,16 @@ usbipd policy add --effect Allow --vid 2123 --pid 1010
 
 After that, the Linux path (udev rule + Docker `devices` mount) works exactly the same in WSL2 as on a native Linux machine.
 
-## What I learned
+## :bulb: What I learned
 
 A few things that surprised me:
 
-**udev rules are not optional.** I initially thought the `devices` mount would be enough. It is not — the device node permissions are set at the OS level, and Docker inherits whatever the host has. The udev rule is the correct place to fix this, not running the container as root.
+:lock: **udev rules are not optional.** I initially thought the `devices` mount would be enough. It is not — the device node permissions are set at the OS level, and Docker inherits whatever the host has. The udev rule is the correct place to fix this, not running the container as root.
 
-**Time-based positioning is surprisingly usable.** Given that there are no encoders, I expected the angle tracking to be useless. In practice, it is accurate enough for targeting if you `/park` first and don't bump the hardware.
+:dart: **Time-based positioning is surprisingly usable.** Given that there are no encoders, I expected the angle tracking to be useless. In practice, it is accurate enough for targeting if you `/park` first and don't bump the hardware.
 
-**FastAPI + pyusb is a good combination for hardware APIs.** FastAPI gives you async, automatic OpenAPI docs, and a clean routing model. pyusb handles the USB layer. The two fit together cleanly: USB commands run in a thread pool executor so they don't block the event loop.
+:zap: **FastAPI + pyusb is a good combination for hardware APIs.** FastAPI gives you async, automatic OpenAPI docs, and a clean routing model. pyusb handles the USB layer. The two fit together cleanly: USB commands run in a thread pool executor so they don't block the event loop.
 
 ---
 
-The project is [on GitHub](https://github.com/guillaumedelre/dream-cheeky-thunder). Pull requests welcome, especially if you have a more precise angle calibration method.
+:octocat: The project is [on GitHub](https://github.com/guillaumedelre/dream-cheeky-thunder). Pull requests welcome, especially if you have a more precise angle calibration method.

@@ -13,7 +13,6 @@ minima:
 header_pages:
   - about.md
   - categories.md
-  - tags.md
 
 show_excerpts: true
 

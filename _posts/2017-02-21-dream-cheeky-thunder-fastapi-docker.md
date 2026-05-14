@@ -72,4 +72,4 @@ The catch is that the attachment doesn't survive reboots. usbipd v4+ added a pol
 
 ---
 
-:octocat: The project is [on GitHub](https://github.com/guillaumedelre/dream-cheeky-thunder). Pull requests welcome, especially if you have a better angle calibration approach.
+<img src="https://cdn.simpleicons.org/github" width="16" style="vertical-align: middle; margin-right: 4px;" /> The project is [on GitHub](https://github.com/guillaumedelre/dream-cheeky-thunder). Pull requests welcome, especially if you have a better angle calibration approach.

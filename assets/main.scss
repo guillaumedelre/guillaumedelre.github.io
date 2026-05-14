@@ -14,8 +14,7 @@ $grey-color-dark:   #ccc;
 $base-font-family:  Monaco, "Bitstream Vera Sans Mono", "Lucida Console", Terminal, monospace;
 $code-font-family:  Monaco, "Bitstream Vera Sans Mono", "Lucida Console", Terminal, monospace;
 
-$content-width:     100%;
-$spacing-unit:      30px;
+$content-width:     1000px;
 
 @import "minima";
 
@@ -26,9 +25,7 @@ body {
 }
 
 .wrapper {
-  max-width: 100%;
-  padding-left:  2 * $spacing-unit;
-  padding-right: 2 * $spacing-unit;
+  width: 90%;
 }
 
 // --- Header ---

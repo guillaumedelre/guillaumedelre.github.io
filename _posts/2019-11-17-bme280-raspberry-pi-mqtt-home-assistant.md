@@ -2,7 +2,7 @@
 layout: post
 title: "From a €10 sensor to a Home Assistant dashboard with a Raspberry Pi and MQTT"
 date: 2019-11-17
-categories: [python, iot, home-assistant]
+categories: [iot]
 tags: [raspberry-pi, bme280, mqtt, flask, i2c]
 ---
 

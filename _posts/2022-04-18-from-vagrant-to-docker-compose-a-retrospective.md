@@ -2,7 +2,7 @@
 layout: post
 title: "From Vagrant to Docker Compose: a retrospective"
 date: 2022-04-18
-categories: [devops, docker]
+categories: [devops]
 tags: [docker, vagrant, docker-compose, devops]
 ---
 

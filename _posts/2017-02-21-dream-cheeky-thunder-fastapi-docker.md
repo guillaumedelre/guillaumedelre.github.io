@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Controlling a USB missile launcher over HTTP with FastAPI and Docker"
-date: 2026-05-14
+date: 2017-02-21
 categories: [python, docker, hardware]
 tags: [fastapi, usb, docker, wsl2, pyusb]
 ---

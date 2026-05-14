@@ -22,7 +22,7 @@ I write about tech experiments on this blog — PHP internals, dev tooling, and 
 <ul style="list-style: none; padding: 0; margin-top: 1.5em;">
   <li>
     <a href="https://github.com/guillaumedelre">
-      <img src="https://cdn.simpleicons.org/github" width="16" style="vertical-align: middle; margin-right: 6px;" />
+      <img src="https://cdn.simpleicons.org/github/white" width="16" style="vertical-align: middle; margin-right: 6px;" />
       Github
     </a>
   </li>
@@ -34,7 +34,7 @@ I write about tech experiments on this blog — PHP internals, dev tooling, and 
   </li>
   <li>
     <a href="https://symfonycasts.com/u/guillaumedelre">
-      <img src="https://cdn.simpleicons.org/symfony" width="16" style="vertical-align: middle; margin-right: 6px;" />
+      <img src="https://cdn.simpleicons.org/symfony/white" width="16" style="vertical-align: middle; margin-right: 6px;" />
       SymfonyCasts
     </a>
   </li>

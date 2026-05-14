@@ -1,6 +1,8 @@
 ---
 ---
 
+@import "hacker_colors";
+
 $background-color:  #151515;
 $text-color:        #eaeaea;
 $brand-color:       #b5e853;
@@ -48,11 +50,55 @@ a:hover {
   text-decoration: underline;
 }
 
-// Code
-pre, code {
-  background-color: #1a1a1a;
-  border-color: #2a2a2a;
-  color: $brand-color;
+// Code blocks — hacker theme exact styles
+pre {
+  background: rgba(0, 0, 0, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 10px;
+  font-size: 16px;
+  color: $conifer;
+  border-radius: 2px;
+  word-wrap: normal;
+  overflow: auto;
+  overflow-y: hidden;
+}
+
+code.highlighter-rouge {
+  background: rgba(0, 0, 0, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 0px 3px;
+  margin: 0px -3px;
+  color: $bouquet;
+  border-radius: 2px;
+}
+
+// Syntax highlighting — hacker theme rouge-base16-dark
+.highlight {
+  background: rgba(0, 0, 0, 0.9);
+  border-radius: 2px;
+
+  color: $alto;
+
+  table td { padding: 5px; }
+  table pre { margin: 0; }
+  .w  { color: $alto; }
+  .err { color: $cod-grey; background-color: $apple-blossom; }
+  .c, .cd, .cm, .c1, .cs { color: $grey; }
+  .cp { color: $rajah; }
+  .o, .ow { color: $rajah; }
+  .p, .pi { color: $alto; }
+  .gi { color: $chelsea-cucumber; }
+  .gd { color: $apple-blossom; }
+  .gh { color: $hippie-blue; font-weight: bold; }
+  .k, .kn, .kp, .kr, .kv { color: $bouquet; }
+  .kc, .kt, .kd { color: $raw-sienna; }
+  .s, .sb, .sc, .sd, .s2, .sh, .sx, .s1 { color: $chelsea-cucumber; }
+  .sr { color: $gulf-stream; }
+  .si, .se { color: $potters-clay; }
+  .nt, .nn, .nc, .no { color: $rajah; }
+  .na { color: $hippie-blue; }
+  .m, .mf, .mh, .mi, .il, .mo, .mb, .mx { color: $chelsea-cucumber; }
+  .ss { color: $chelsea-cucumber; }
 }
 
 // Blockquote

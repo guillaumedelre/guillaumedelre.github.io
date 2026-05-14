@@ -9,4 +9,5 @@ PHP developer passionate about Symfony, API Platform, and open source.
 I write about tech experiments, dev and whatever I find interesting.
 
 - GitHub: [guillaumedelre](https://github.com/guillaumedelre)
+- LinkedIn: [guillaumedelre](https://www.linkedin.com/in/guillaumedelre/)
 - Blog: [guillaumedelre.github.io](https://guillaumedelre.github.io)

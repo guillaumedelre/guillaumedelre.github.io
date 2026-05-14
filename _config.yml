@@ -1,0 +1,23 @@
+title: Guillaume Delre
+description: Tech articles about PHP, Symfony, API Platform and more.
+url: "https://guillaumedelre.github.io"
+author:
+  name: Guillaume Delre
+  email: delre.guillaume@gmail.com
+
+theme: minima
+
+minima:
+  skin: dark
+
+header_pages:
+  - about.md
+
+show_excerpts: true
+
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+  - jekyll-sitemap
+
+permalink: /:year/:month/:day/:title/

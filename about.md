@@ -2,6 +2,7 @@
 layout: page
 title: About
 permalink: /about/
+description: "PHP developer passionate about Symfony, API Platform, and open source. Tech experiments, dev stories, and whatever I find interesting."
 ---
 
 PHP developer passionate about Symfony, API Platform, and open source.

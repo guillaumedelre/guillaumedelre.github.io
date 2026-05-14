@@ -4,6 +4,7 @@ title: "From Vagrant to Docker Compose: a retrospective"
 date: 2022-04-18
 categories: [devops]
 tags: [docker, vagrant, docker-compose, devops]
+description: "Why we replaced Vagrant with Docker Compose: the real friction points, the migration path, and what we'd do differently."
 ---
 
 I ran Vagrant for years. A Vagrantfile per project, a shared base box, a provision script that worked on Tuesday but not on Thursday. The promise was simple: reproducible environments for everyone on the team. The reality was more complicated.

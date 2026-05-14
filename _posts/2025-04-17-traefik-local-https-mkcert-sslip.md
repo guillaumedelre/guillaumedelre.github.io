@@ -4,6 +4,7 @@ title: "Local HTTPS with Traefik: traefik.me is dead, long live sslip.io"
 date: 2025-04-17
 categories: [devops]
 tags: [docker, traefik, mkcert, tls, devops]
+description: "traefik.me's wildcard cert was revoked in 2025. Here's how to replace it with sslip.io, mkcert, and a local Traefik setup."
 ---
 
 The setup seemed perfect. Point `*.traefik.me` at 127.0.0.1, download a wildcard certificate from the same domain, drop it into Traefik, and every local service gets a clean HTTPS URL with no IP in the address bar. No Let's Encrypt rate limits, no `mkcert` to explain to teammates, no self-signed warnings to click through. Just `https://myapp.traefik.me` and a green padlock.

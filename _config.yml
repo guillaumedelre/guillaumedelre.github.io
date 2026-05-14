@@ -5,10 +5,9 @@ author:
   name: Guillaume Delré
   email: delre.guillaume@gmail.com
 
-theme: minima
+theme: jekyll-theme-hacker
 
-minima:
-  skin: dark
+image: /assets/images/og-default.jpg
 
 header_pages:
   - about.md

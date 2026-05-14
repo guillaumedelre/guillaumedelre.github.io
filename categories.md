@@ -2,6 +2,7 @@
 layout: page
 title: Categories
 permalink: /categories/
+description: "All articles grouped by category: development, devops, and IoT."
 ---
 
 {% for category in site.categories %}

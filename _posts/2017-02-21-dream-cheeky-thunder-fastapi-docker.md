@@ -2,7 +2,7 @@
 layout: post
 title: "Controlling a USB missile launcher over HTTP with FastAPI and Docker"
 date: 2017-02-21
-categories: [python, docker, hardware]
+categories: [iot]
 tags: [fastapi, usb, docker, wsl2, pyusb]
 description: "How we wired a USB foam missile launcher to the CI pipeline — and what Docker, udev, and WSL2 had to say about it."
 ---

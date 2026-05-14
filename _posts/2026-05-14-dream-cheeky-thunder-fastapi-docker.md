@@ -10,6 +10,8 @@ A few years ago I rescued a [Dream Cheeky Thunder](http://www.dreamcheeky.com/th
 
 This is the story of [dream-cheeky-thunder](https://github.com/guillaumedelre/dream-cheeky-thunder).
 
+![Dream Cheeky Thunder](https://raw.githubusercontent.com/guillaumedelre/dream-cheeky-thunder/develop/docs/Dream-Cheeky-Thunder.jpg)
+
 ## The hardware
 
 The Dream Cheeky Thunder is a small USB missile launcher with two motorized axes:

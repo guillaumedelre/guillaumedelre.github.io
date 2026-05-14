@@ -27,4 +27,10 @@ I write about tech experiments, dev and whatever I find interesting.
       guillaumedelre.github.io
     </a>
   </li>
+  <li>
+    <a href="https://symfonycasts.com/u/guillaumedelre">
+      <img src="https://cdn.simpleicons.org/symfony" width="16" style="vertical-align: middle; margin-right: 6px;" />
+      symfonycasts.com
+    </a>
+  </li>
 </ul>

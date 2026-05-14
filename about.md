@@ -2,14 +2,24 @@
 layout: page
 title: About
 permalink: /about/
-description: "PHP developer passionate about Symfony, API Platform, and open source. Tech experiments, dev stories, and whatever I find interesting."
+description: "Technical Lead and PHP developer since 2004. Symfony, API Platform, microservices. Based in Provence, France."
 ---
 
-PHP developer since 2004. I work at **France Médias Monde** in Paris, building backend systems with Symfony and API Platform.
+PHP developer since 2004, currently **Technical Lead** at [France Médias Monde](https://www.francemediasmonde.fr) — the group behind FRANCE 24, RFI, and Monte Carlo Doualiya. I design and build the middleware that handles content ingestion and distribution across the group's digital platforms: microservices, CQRS, Symfony, API Platform, 25 million visits a month.
 
-I write about tech experiments — PHP internals, dev tooling, and the occasional hardware project that probably shouldn't work but does.
+Before that: France Télévisions, Aramisauto, Solocal Group, Publicis — backend PHP across media, automotive, and advertising, mostly in Paris.
 
-<ul style="list-style: none; padding: 0;">
+I care about code quality, clean architecture, and the kind of team dynamic where people push each other to do better work.
+
+**Stack:** PHP · Symfony · API Platform · PostgreSQL · RabbitMQ · Docker · Redis  
+**Observability:** Blackfire · Grafana · Kibana · Prometheus · Varnish · Akamai  
+**Certifications:** Symfony Security, Symfony REST, API Platform (SymfonyCasts, 2020)
+
+I contribute to open source projects I use at work — mainly [API Platform](https://github.com/api-platform/core), [SncRedisBundle](https://github.com/snc/SncRedisBundle), and a handful of PHP libraries.
+
+I write about tech experiments on this blog — PHP internals, dev tooling, and the occasional hardware project that probably shouldn't work but does.
+
+<ul style="list-style: none; padding: 0; margin-top: 1.5em;">
   <li>
     <a href="https://github.com/guillaumedelre">
       <img src="https://cdn.simpleicons.org/github" width="16" style="vertical-align: middle; margin-right: 6px;" />
@@ -25,7 +35,7 @@ I write about tech experiments — PHP internals, dev tooling, and the occasiona
   <li>
     <a href="https://symfonycasts.com/u/guillaumedelre">
       <img src="https://cdn.simpleicons.org/symfony" width="16" style="vertical-align: middle; margin-right: 6px;" />
-      Certifications
+      SymfonyCasts
     </a>
   </li>
 </ul>

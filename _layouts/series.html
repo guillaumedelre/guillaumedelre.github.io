@@ -7,17 +7,21 @@ layout: default
 
   {{ content }}
 
-  {%- assign series_meta = site.data.series[page.series_id] -%}
   {%- assign series_posts = site.posts | where: "series", page.series_id | sort: "part" -%}
 
-  <ol>
+  <ul class="post-list">
     {%- for post in series_posts -%}
-    <li style="margin-bottom: 1em;">
-      <a href="{{ post.url | relative_url }}"><strong>{{ post.title | escape }}</strong></a>
+    <li>
+      <span class="post-meta">Part {{ post.part }}</span>
+      <h3>
+        <a class="post-link" href="{{ post.url | relative_url }}">
+          {{ post.title | escape }}
+        </a>
+      </h3>
       {%- if post.description -%}
-        <br><span style="color: #828282; font-size: 0.9em;">{{ post.description }}</span>
+        <p>{{ post.description }}</p>
       {%- endif -%}
     </li>
     {%- endfor -%}
-  </ol>
+  </ul>
 </div>

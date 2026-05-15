@@ -189,39 +189,17 @@ final class PurgeRevisionCommand extends Command
 
 The `--delay` option is worth noting: on a busy database, hammering a hundred `DELETE` statements back-to-back can cause lock contention. A small sleep between iterations keeps the purge from competing with production traffic.
 
-Scheduling uses Symfony's Scheduler component rather than an external cron. The platform runs on a multi-pod cluster, and using an external cron would mean either picking one pod arbitrarily or running the purge on every pod simultaneously. The Scheduler solves that with a lock:
+The command runs behind two crontab entries with different thresholds:
 
-```php
-#[AsSchedule(name: 'purge')]
-final class PurgeSchedule implements ScheduleProviderInterface
-{
-    public function __construct(private LockFactory $lockFactory) {}
+```
+# Hourly: keep 30 revisions per IRI, process 100 IRIs per run
+0 * * * * php bin/console app:purge:revision --max-revisions 30 --limit 100
 
-    public function getSchedule(): Schedule
-    {
-        $schedule = new Schedule();
-
-        // Hourly: keep 30 revisions per IRI, process 100 IRIs per run
-        $schedule->add(RecurringMessage::every('1 hour',
-            new RunCommandMessage('app:purge:revision --max-revisions 30 --limit 100')
-        ));
-
-        // Nightly: for content untouched for a year, keep only 3
-        $schedule->add(RecurringMessage::cron('#midnight',
-            new RunCommandMessage('app:purge:revision --max-revisions 3 --limit 100 --retencyDay 365')
-        ));
-
-        // Only one pod in the cluster picks up the scheduled messages
-        $schedule->lock($this->lockFactory->createLock('purge'));
-
-        return $schedule;
-    }
-}
+# Nightly: for content untouched for a year, keep only 3
+0 0 * * * php bin/console app:purge:revision --max-revisions 3 --limit 100 --retencyDay 365
 ```
 
-There are two schedules running in parallel with different thresholds. The hourly job keeps 30 revisions per IRI: a reasonable ceiling for actively-edited content. The nightly job targets only IRIs not updated in over a year, and keeps just 3. An article that hasn't moved in twelve months doesn't need thirty versions in its history.
-
-The `schedule->lock()` call ensures only one worker picks up each scheduled message, regardless of how many pods are running. Without it, a deploy with six replicas would run six simultaneous purges at midnight.
+The two-level strategy matters. The hourly job keeps 30 revisions per IRI, which is a reasonable ceiling for actively-edited content. The nightly job targets only IRIs not updated in over a year and keeps just 3. An article that hasn't moved in twelve months doesn't need thirty versions in its history.
 
 ## What it looks like in practice
 

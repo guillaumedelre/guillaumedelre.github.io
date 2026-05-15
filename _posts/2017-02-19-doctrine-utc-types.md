@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "When `datetime` is no longer really `datetime`"
+title: "Enforcing UTC in Doctrine without touching your entities"
 date: 2017-02-19
 categories: [development]
 tags: [php, symfony, doctrine, types]

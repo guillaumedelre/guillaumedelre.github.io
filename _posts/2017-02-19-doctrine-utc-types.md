@@ -11,7 +11,7 @@ A timestamp coming back from the database one hour off. Not every time. Only whe
 
 The problem isn't in the business logic. It's in what Doctrine quietly does with dates.
 
-## What Doctrine does by default
+## <img src="https://cdn.simpleicons.org/doctrine" width="20" style="vertical-align: middle; margin-right: 6px;" />What Doctrine does by default
 
 When you declare a `datetime` field in a Doctrine entity, the conversion between PHP and the database goes through `DateTimeType`. That class calls `format()` on your `DateTime` object to write to the database, and `DateTime::createFromFormat()` to read it back. No mention of timezone anywhere.
 

@@ -70,8 +70,6 @@ The attachment doesn't survive reboots, though. usbipd v4+ added a policy mechan
 
 :laughing: **The coffee rule was never the same after this.** Once the launcher was wired to the pipeline, broken builds suddenly became a lot more motivating to fix.
 
----
-
 <div style="border: 1px solid #e8e8e8; padding: 16px; margin-top: 2em; border-radius: 3px;">
   <img src="https://cdn.simpleicons.org/github" width="20" style="vertical-align: middle; margin-right: 8px;" />
   <strong><a href="https://github.com/guillaumedelre/dream-cheeky-thunder" target="_blank" rel="noopener noreferrer">guillaumedelre/dream-cheeky-thunder</a></strong>

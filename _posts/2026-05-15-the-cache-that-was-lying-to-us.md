@@ -2,6 +2,8 @@
 layout: post
 title: "The Cache That Was Lying to Us"
 date: 2026-05-15
+series: kubernetes-migration
+part: 1
 categories: [development]
 tags: [symfony, cloud, redis, cache, kubernetes, 12factor]
 description: "How a single config line blocked horizontal scaling across 13 Symfony microservices, and what the twelve-factor app had to say about it."
@@ -120,14 +122,3 @@ Before scaling a Symfony service horizontally, four questions are worth answerin
 - Is anything in your code path that needs to be mutually exclusive across pods? (if yes, that's a job for the <a href="https://symfony.com/doc/current/components/lock.html" target="_blank" rel="noopener noreferrer">Symfony Lock component</a> backed by Redis, not a local mutex)
 
 If the answers all point to shared backing services, you're ready. If any of them points to the local filesystem, production will find the pod that built its cache three hours ago and serve it to the user who least expects it.
-
----
-
-**This series on migrating a Symfony platform to Kubernetes:**
-
-1. **The Cache That Was Lying to Us** — Factors VI, VIII, IV *(you are here)*
-2. [No Witnesses](/2026/05/15/no-witnesses/) — Factors XI, IX
-3. [Layers Remember Everything](/2026/05/15/layers-remember-everything/) — Factors III, V
-4. [The Job That Never Exits](/2026/05/15/the-job-that-never-exits/) — Factors XII, IX
-5. [Three Adapters, One Variable](/2026/05/15/three-adapters-one-variable/) — Factors IV, VI
-6. [Ready Is Not the Same as Started](/2026/05/15/ready-is-not-the-same-as-started/) — Factors IX, XII

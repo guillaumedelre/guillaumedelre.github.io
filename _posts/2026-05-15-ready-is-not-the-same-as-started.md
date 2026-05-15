@@ -2,6 +2,8 @@
 layout: post
 title: "Ready Is Not the Same as Started"
 date: 2026-05-15
+series: kubernetes-migration
+part: 6
 categories: [development]
 tags: [symfony, cloud, kubernetes, docker, 12factor]
 description: "The entrypoint script that works perfectly in Docker Compose has five jobs. In Kubernetes, each of those jobs belongs somewhere else."
@@ -112,14 +114,3 @@ The issue is the assumption that the same script works equally well in Kubernete
 The series of migrations this codebase went through — [cache adapters](/2026/05/15/the-cache-that-was-lying-to-us/), [log handlers](/2026/05/15/no-witnesses/), [image secrets](/2026/05/15/layers-remember-everything/), [scheduler coordination](/2026/05/15/the-job-that-never-exits/), [media storage](/2026/05/15/three-adapters-one-variable/) — all of them were changes to application code or configuration. This one is different. It requires the infrastructure to gain awareness of what "ready" means for this application, and it requires the entrypoint to give up responsibilities it currently owns.
 
 That's a harder conversation. But the startupProbe is waiting for it.
-
----
-
-**This series on migrating a Symfony platform to Kubernetes:**
-
-1. [The Cache That Was Lying to Us](/2026/05/15/the-cache-that-was-lying-to-us/) — Factors VI, VIII, IV
-2. [No Witnesses](/2026/05/15/no-witnesses/) — Factors XI, IX
-3. [Layers Remember Everything](/2026/05/15/layers-remember-everything/) — Factors III, V
-4. [The Job That Never Exits](/2026/05/15/the-job-that-never-exits/) — Factors XII, IX
-5. [Three Adapters, One Variable](/2026/05/15/three-adapters-one-variable/) — Factors IV, VI
-6. **Ready Is Not the Same as Started** — Factors IX, XII *(you are here)*

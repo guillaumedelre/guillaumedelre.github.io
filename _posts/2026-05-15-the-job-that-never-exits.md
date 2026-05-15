@@ -2,6 +2,8 @@
 layout: post
 title: "The Job That Never Exits"
 date: 2026-05-15
+series: kubernetes-migration
+part: 4
 categories: [development]
 tags: [symfony, cloud, kubernetes, 12factor, messenger, scheduler]
 description: "Symfony Scheduler versus Kubernetes CronJob: not a choice between two tools, but a choice of where coordination should live."
@@ -123,14 +125,3 @@ Six of the ten use environment-driven cron expressions, letting the schedule var
 The migration plan for Kubernetes keeps all ten as Deployments. Each gets a `terminationGracePeriodSeconds` matching its worst-case duration. Each already has the Redis lock. The coordination that made this platform survive multi-pod deployments in Docker Compose is the same coordination that will make it correct in Kubernetes — because it was never in the infrastructure to begin with.
 
 That is what the choice was really about.
-
----
-
-**This series on migrating a Symfony platform to Kubernetes:**
-
-1. [The Cache That Was Lying to Us](/2026/05/15/the-cache-that-was-lying-to-us/) — Factors VI, VIII, IV
-2. [No Witnesses](/2026/05/15/no-witnesses/) — Factors XI, IX
-3. [Layers Remember Everything](/2026/05/15/layers-remember-everything/) — Factors III, V
-4. **The Job That Never Exits** — Factors XII, IX *(you are here)*
-5. [Three Adapters, One Variable](/2026/05/15/three-adapters-one-variable/) — Factors IV, VI
-6. [Ready Is Not the Same as Started](/2026/05/15/ready-is-not-the-same-as-started/) — Factors IX, XII

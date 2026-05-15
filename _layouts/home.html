@@ -1,0 +1,57 @@
+---
+layout: default
+---
+
+<div class="home">
+  {%- if page.title -%}
+    <h1 class="page-heading">{{ page.title }}</h1>
+  {%- endif -%}
+
+  {{ content }}
+
+  {%- assign series_ids = site.posts | map: "series" | uniq | compact -%}
+
+  {%- if series_ids.size > 0 -%}
+    <h2 class="post-list-heading">Series</h2>
+    {%- for series_id in series_ids -%}
+      {%- assign series_meta = site.data.series[series_id] -%}
+      {%- assign series_posts = site.posts | where: "series", series_id | sort: "part" -%}
+      <div style="margin-bottom: 1.5em;">
+        <strong>
+          <a href="/series/{{ series_id }}/">{{ series_meta.title | default: series_id }}</a>
+        </strong>
+        <span style="color: #828282; font-size: 0.9em;"> &mdash; {{ series_posts.size }} parts</span>
+        <ol style="margin: 0.4em 0 0; padding-left: 1.4em; font-size: 0.9em;">
+          {%- for post in series_posts -%}
+            <li><a href="{{ post.url | relative_url }}">{{ post.title | escape }}</a></li>
+          {%- endfor -%}
+        </ol>
+      </div>
+    {%- endfor -%}
+  {%- endif -%}
+
+  {%- if site.posts.size > 0 -%}
+    <h2 class="post-list-heading">{{ page.list_title | default: "Posts" }}</h2>
+    <ul class="post-list">
+      {%- assign date_format = site.minima.date_format | default: "%b %-d, %Y" -%}
+      {%- for post in site.posts -%}
+        {%- unless post.series -%}
+        <li>
+          <span class="post-meta">{{ post.date | date: date_format }}</span>
+          <h3>
+            <a class="post-link" href="{{ post.url | relative_url }}">
+              {{ post.title | escape }}
+            </a>
+          </h3>
+          {%- if site.show_excerpts -%}
+            {{ post.excerpt }}
+          {%- endif -%}
+        </li>
+        {%- endunless -%}
+      {%- endfor -%}
+    </ul>
+
+    <p class="rss-subscribe">subscribe <a href="{{ "/feed.xml" | relative_url }}">via RSS</a></p>
+  {%- endif -%}
+
+</div>

@@ -2,6 +2,8 @@
 layout: post
 title: "No Witnesses"
 date: 2026-05-15
+series: kubernetes-migration
+part: 2
 categories: [development]
 tags: [symfony, cloud, monolog, kubernetes, 12factor, observability]
 description: "A service crashed in production and left no logs behind. Here is why fingers_crossed and cloud deployments do not mix well."
@@ -164,14 +166,3 @@ Factor XI and Factor IX meet at the same point: a process dying mid-request. [Th
 The rule for production Monolog is blunt: if it doesn't reach stdout or stderr before the process exits, it doesn't exist. A file handler inside a container is invisible to the log collector and dies with the pod. A `fingers_crossed` buffer is invisible to the log collector and dies with the process.
 
 Production tends to create the conditions where you need logs the most — OOM pressure, cascading failures, bad deploys — and those are exactly the conditions where both of these patterns fail you simultaneously. Write to stdout, default to a level that doesn't require buffering, and make the override available for when you actually need to debug something. The logs will be there. They won't be waiting for an error threshold that never fires.
-
----
-
-**This series on migrating a Symfony platform to Kubernetes:**
-
-1. [The Cache That Was Lying to Us](/2026/05/15/the-cache-that-was-lying-to-us/) — Factors VI, VIII, IV
-2. **No Witnesses** — Factors XI, IX *(you are here)*
-3. [Layers Remember Everything](/2026/05/15/layers-remember-everything/) — Factors III, V
-4. [The Job That Never Exits](/2026/05/15/the-job-that-never-exits/) — Factors XII, IX
-5. [Three Adapters, One Variable](/2026/05/15/three-adapters-one-variable/) — Factors IV, VI
-6. [Ready Is Not the Same as Started](/2026/05/15/ready-is-not-the-same-as-started/) — Factors IX, XII

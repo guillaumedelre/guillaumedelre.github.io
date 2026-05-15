@@ -2,6 +2,8 @@
 layout: post
 title: "Layers Remember Everything"
 date: 2026-05-15
+series: kubernetes-migration
+part: 3
 categories: [development]
 tags: [symfony, cloud, docker, kubernetes, 12factor, security]
 description: "How dev credentials end up inside production Docker images, and why Factor III and V are harder to follow than they look."
@@ -115,14 +117,3 @@ That property breaks as soon as environment-specific values are compiled in. An 
 The first two articles in this series — [the filesystem cache](/2026/05/15/the-cache-that-was-lying-to-us/) and [the log buffer](/2026/05/15/no-witnesses/) — described processes that worked fine on one instance and fell apart when multiplied. This is the same pattern at the image level: it works fine when you're deploying to one environment, and the seams appear when you try to promote across them.
 
 The image should be dumb about credentials. The infrastructure should be smart about injecting them. That's the division of responsibility Factor III and Factor V are pointing at — and `dump-env prod`, used correctly, is perfectly compatible with both.
-
----
-
-**This series on migrating a Symfony platform to Kubernetes:**
-
-1. [The Cache That Was Lying to Us](/2026/05/15/the-cache-that-was-lying-to-us/) — Factors VI, VIII, IV
-2. [No Witnesses](/2026/05/15/no-witnesses/) — Factors XI, IX
-3. **Layers Remember Everything** — Factors III, V *(you are here)*
-4. [The Job That Never Exits](/2026/05/15/the-job-that-never-exits/) — Factors XII, IX
-5. [Three Adapters, One Variable](/2026/05/15/three-adapters-one-variable/) — Factors IV, VI
-6. [Ready Is Not the Same as Started](/2026/05/15/ready-is-not-the-same-as-started/) — Factors IX, XII

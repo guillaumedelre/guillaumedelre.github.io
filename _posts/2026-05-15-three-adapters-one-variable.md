@@ -2,6 +2,8 @@
 layout: post
 title: "Three Adapters, One Variable"
 date: 2026-05-15
+series: kubernetes-migration
+part: 5
 categories: [development]
 tags: [symfony, cloud, flysystem, s3, kubernetes, 12factor]
 description: "How Flysystem's lazy adapter made moving media storage from a shared Docker volume to S3 a one-line config change — and why the abstraction was already there."
@@ -126,14 +128,3 @@ For `media`, the Flysystem adapters already point to cloud storage — the volum
 Unlike the `.dockerignore` in [the secrets article](/2026/05/15/layers-remember-everything/), where the right instinct arrived one step too late, here the abstraction was built before any pressure to use it. The abstraction was built before the migration was planned. That's not common. Usually the decision to go cloud comes first, the abstraction comes under pressure, and the code shows the seams. Here the seams are clean because Flysystem's adapter model is exactly the right shape for this problem: one interface, multiple backends, no business logic that cares which one is active.
 
 The shared volumes in Docker Compose were not a design mistake. They were a reasonable choice for an environment where only one host was running. The mistake would have been assuming that a shared volume is a permanent architecture rather than a local convenience. The lazy adapter is what makes the difference: when the volume is no longer the right answer, the application doesn't need to be told. The environment variable is.
-
----
-
-**This series on migrating a Symfony platform to Kubernetes:**
-
-1. [The Cache That Was Lying to Us](/2026/05/15/the-cache-that-was-lying-to-us/) — Factors VI, VIII, IV
-2. [No Witnesses](/2026/05/15/no-witnesses/) — Factors XI, IX
-3. [Layers Remember Everything](/2026/05/15/layers-remember-everything/) — Factors III, V
-4. [The Job That Never Exits](/2026/05/15/the-job-that-never-exits/) — Factors XII, IX
-5. **Three Adapters, One Variable** — Factors IV, VI *(you are here)*
-6. [Ready Is Not the Same as Started](/2026/05/15/ready-is-not-the-same-as-started/) — Factors IX, XII

@@ -8,11 +8,19 @@ on:
 jobs:
   check-versions:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Download known-versions artifact from last run
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          name: known-versions
+          if_no_artifact_found: ignore
+          path: ./artifact/
+
+      - name: Initialize if no artifact found
+        run: |
+          mkdir -p ./artifact
+          [ -f ./artifact/known-versions.json ] || echo '{}' > ./artifact/known-versions.json
 
       - name: Check PHP latest stable
         id: php
@@ -55,9 +63,9 @@ jobs:
         run: |
           minor() { echo "$1" | cut -d. -f1-2; }
 
-          KNOWN_PHP=$(jq -r '.php // ""' .github/known-versions.json)
-          KNOWN_SYMFONY=$(jq -r '.symfony // ""' .github/known-versions.json)
-          KNOWN_APIPLATFORM=$(jq -r '.apiplatform // ""' .github/known-versions.json)
+          KNOWN_PHP=$(jq -r '.php // ""' ./artifact/known-versions.json)
+          KNOWN_SYMFONY=$(jq -r '.symfony // ""' ./artifact/known-versions.json)
+          KNOWN_APIPLATFORM=$(jq -r '.apiplatform // ""' ./artifact/known-versions.json)
 
           PHP_NEW="${{ steps.php.outputs.version }}"
           SYMFONY_NEW="${{ steps.symfony.outputs.version }}"
@@ -66,13 +74,13 @@ jobs:
           CHANGES=""
 
           if [ -n "$PHP_NEW" ] && [ "$(minor "$PHP_NEW")" != "$(minor "$KNOWN_PHP")" ]; then
-            CHANGES="${CHANGES}\n- PHP: ${KNOWN_PHP:-unknown} → ${PHP_NEW}"
+            CHANGES="${CHANGES}\n- PHP: ${KNOWN_PHP:-unknown} -> ${PHP_NEW}"
           fi
           if [ -n "$SYMFONY_NEW" ] && [ "$(minor "$SYMFONY_NEW")" != "$(minor "$KNOWN_SYMFONY")" ]; then
-            CHANGES="${CHANGES}\n- Symfony: ${KNOWN_SYMFONY:-unknown} → ${SYMFONY_NEW}"
+            CHANGES="${CHANGES}\n- Symfony: ${KNOWN_SYMFONY:-unknown} -> ${SYMFONY_NEW}"
           fi
           if [ -n "$APIPLATFORM_NEW" ] && [ "$(minor "$APIPLATFORM_NEW")" != "$(minor "$KNOWN_APIPLATFORM")" ]; then
-            CHANGES="${CHANGES}\n- API Platform: ${KNOWN_APIPLATFORM:-unknown} → ${APIPLATFORM_NEW}"
+            CHANGES="${CHANGES}\n- API Platform: ${KNOWN_APIPLATFORM:-unknown} -> ${APIPLATFORM_NEW}"
           fi
 
           if [ -n "$CHANGES" ]; then
@@ -104,17 +112,18 @@ jobs:
 
             Good time to write an article about it on https://guillaumedelre.github.io !
 
-      - name: Update known-versions.json
-        if: steps.compare.outputs.has_changes == 'true'
+      - name: Save known-versions artifact
         run: |
           jq -n \
             --arg php "${{ steps.php.outputs.version }}" \
             --arg symfony "${{ steps.symfony.outputs.version }}" \
             --arg apiplatform "${{ steps.apiplatform.outputs.version }}" \
             '{php: $php, symfony: $symfony, apiplatform: $apiplatform}' \
-            > .github/known-versions.json
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add .github/known-versions.json
-          git commit -m "chore: update known library versions"
-          git push
+            > ./artifact/known-versions.json
+
+      - name: Upload known-versions artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: known-versions
+          path: ./artifact/known-versions.json
+          retention-days: 400

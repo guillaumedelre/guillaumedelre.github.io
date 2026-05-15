@@ -1,14 +1,15 @@
 {% if page.series %}
   {% assign series_meta = site.data.series[page.series] %}
   {% assign series_posts = site.posts | where: "series", page.series | sort: "part" %}
-  <aside class="series-nav" style="border-top: 1px solid #e8e8e8; margin-top: 2em; padding-top: 1.2em;">
-    <p style="font-size: 0.9em; color: #828282; margin-bottom: 0.5em;">
+  <hr>
+  <aside class="series-nav">
+    <p class="post-meta">
       Part {{ page.part }} of {{ series_meta.total }} &mdash;
       <a href="/series/{{ page.series }}/">{{ series_meta.title }}</a>
     </p>
-    <ol style="font-size: 0.9em; margin: 0; padding-left: 1.4em;">
+    <ol>
       {% for post in series_posts %}
-        <li style="margin-bottom: 0.2em;">
+        <li>
           {% if post.url == page.url %}
             <strong>{{ post.title }}</strong>
           {% else %}

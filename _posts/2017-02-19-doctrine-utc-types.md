@@ -27,7 +27,7 @@ The other option: register the custom type under the name `datetime`. Doctrine r
 
 That's what we just shipped across our PHP microservices platform. Here's what it looks like.
 
-## The shared trait
+## <img src="https://cdn.simpleicons.org/php" width="20" style="vertical-align: middle; margin-right: 6px;" />The shared trait
 
 Both types (`date` and `datetime`) share the same conversion logic through a trait:
 
@@ -138,7 +138,7 @@ class UTCDateType extends DateType
 
 The `postConvert()` method resets the time to `00:00:00` after parsing. Without it, a `date` field might come back with `23:59:59` or `00:00:00+02:00` depending on the server's timezone, which breaks comparisons and ordering.
 
-## Registering in Symfony
+## <img src="https://cdn.simpleicons.org/symfony" width="20" style="vertical-align: middle; margin-right: 6px;" />Registering in Symfony
 
 The decisive part: declaring the types under their built-in names in `config/packages/doctrine.yaml`.
 

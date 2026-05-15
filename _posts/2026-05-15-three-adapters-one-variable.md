@@ -17,7 +17,7 @@ volumes:
 
 These volumes were mounted on several services simultaneously. The `bam` service wrote files to `share_storage`. The `media` service read from `share_media` and wrote thumbnails back to it. The `conversion` service needed both. In Docker Compose, this is invisible — a named volume is just a directory on the host, shared transparently between containers.
 
-In <img src="https://cdn.simpleicons.org/kubernetes" width="16" style="vertical-align: middle;" /> Kubernetes, a volume shared between multiple pods requires a `ReadWriteMany` PersistentVolumeClaim. Not every storage provider supports it. When they do, it tends to be expensive and slow. When they don't, you find out at the worst possible time.
+In Kubernetes, a volume shared between multiple pods requires a `ReadWriteMany` PersistentVolumeClaim. Not every storage provider supports it. When they do, it tends to be expensive and slow. When they don't, you find out at the worst possible time.
 
 But before any of that became a problem, someone had already built the escape hatch.
 
@@ -52,7 +52,7 @@ flysystem:
                 source: '%env(APP__FLYSYSTEM_MEDIA_STORAGE)%'
 ```
 
-Three concrete adapters — local filesystem, <img src="https://cdn.simpleicons.org/amazons3" width="16" style="vertical-align: middle;" /> AWS S3, Azure Blob — and one `lazy` adapter on top of them. The lazy adapter doesn't do anything itself; it delegates to whichever adapter the environment variable names.
+Three concrete adapters — local filesystem, AWS S3, Azure Blob — and one `lazy` adapter on top of them. The lazy adapter doesn't do anything itself; it delegates to whichever adapter the environment variable names.
 
 All application code depends on `media.storage`. It doesn't know, and doesn't need to know, whether its files live on the filesystem, in S3, or in Azure Blob Storage. That decision lives in a single environment variable:
 

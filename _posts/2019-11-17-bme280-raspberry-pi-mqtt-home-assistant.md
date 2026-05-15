@@ -13,7 +13,7 @@ A Raspberry Pi was already running on the shelf. A BME280 sensor costs around �
 
 It mostly was, except for the part where I assumed reading a temperature sensor meant reading a register.
 
-## :electric_plug: Four wires and a chip
+## Four wires and a chip
 
 The Bosch BME280 measures temperature, humidity, and atmospheric pressure over I²C. Four wires to the Raspberry Pi GPIO pins, enable I²C in `raspi-config`, and the sensor shows up at address `0x77` on the bus:
 
@@ -23,7 +23,7 @@ i2cdetect -y 1
 
 That's the easy part. The catch is what happens next.
 
-## :abacus: You don't just read the temperature
+## You don't just read the temperature
 
 The BME280 doesn't hand you `21.5°C`. It gives you raw ADC values: 20-bit integers that mean absolutely nothing by themselves. To get an actual temperature, you have to:
 
@@ -35,7 +35,7 @@ The temperature compensation alone takes the raw value, applies a quadratic corr
 
 It's all straight from the <a href="https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme280-ds002.pdf" target="_blank" rel="noopener noreferrer">Bosch datasheet</a>, nothing clever. But it does mean the driver isn't a five-liner. It's implementing a spec, not importing a library.
 
-## :globe_with_meridians: Making it network-accessible
+## Making it network-accessible
 
 Once the driver worked, the next question was how to get those values into Home Assistant. The simplest path: a Flask API with two endpoints.
 
@@ -49,7 +49,7 @@ BME280  ──I²C──►  bme280.py  ──►  Flask API  ──MQTT──�
 
 The full setup guide is <a href="https://github.com/guillaumedelre/bme280" target="_blank" rel="noopener noreferrer">in the repo</a>.
 
-## :bulb: What I didn't expect
+## What I didn't expect
 
 :thermometer: **The Bosch calibration is non-negotiable.** I started by reading the raw temperature register directly and scaling it naively. The result was numbers that looked almost plausible and were completely wrong. The compensation algorithm isn't optional decoration, it's what makes the output mean anything.
 
@@ -59,7 +59,7 @@ The full setup guide is <a href="https://github.com/guillaumedelre/bme280" targe
 
 The room is now 21.4°C and 47% humidity. I know this without opening anything.
 
-## :warning: A note on the official Bosch SensorAPI
+## A note on the official Bosch SensorAPI
 
 While writing the driver I peeked at the <a href="https://github.com/boschsensortec/BME280_SensorAPI" target="_blank" rel="noopener noreferrer">official Bosch SensorAPI</a> for reference. Two things caught my attention.
 

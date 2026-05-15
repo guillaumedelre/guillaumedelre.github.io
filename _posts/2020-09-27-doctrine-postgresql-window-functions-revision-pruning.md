@@ -21,7 +21,7 @@ A time-based strategy (one revision per calendar day) has the opposite problem: 
 
 Neither strategy can express "keep more detail for recent content, less for old content." That relationship is logarithmic.
 
-## <img src="https://cdn.simpleicons.org/postgresql" width="20" style="vertical-align: middle; margin-right: 6px;" />The scoring idea
+## The scoring idea
 
 The algorithm assigns each revision a score based on its age, then keeps only one revision per score bucket. The score formula produces high, widely-spaced values for recent revisions and small, clustered values for old ones.
 
@@ -43,7 +43,7 @@ Cast to an integer, the effect is this: a revision saved 10 minutes ago might sc
 
 The result is automatic: recent saves are all kept because each has a distinct score; old saves are thinned because many share the same score.
 
-## <img src="https://cdn.simpleicons.org/doctrine" width="20" style="vertical-align: middle; margin-right: 6px;" />The DQL attempt that didn't ship
+## The DQL attempt that didn't ship
 
 Window functions aren't part of DQL. Doctrine's query language has no syntax for `OVER`, `PARTITION BY`, or `ROW_NUMBER()`. Before going to raw SQL, the team tried to add them.
 
@@ -146,7 +146,7 @@ public function getIrisWithMoreRevisionThan(int $maxRevisionsCount, int $limit =
 
 The two methods run together in a scheduled cleanup: find the IRIs over the threshold, prune each one.
 
-## <img src="https://cdn.simpleicons.org/symfony" width="20" style="vertical-align: middle; margin-right: 6px;" />Wiring it to a scheduled command
+## Wiring it to a scheduled command
 
 The pruning query doesn't run in a request. It runs behind a Symfony command, called on a schedule.
 

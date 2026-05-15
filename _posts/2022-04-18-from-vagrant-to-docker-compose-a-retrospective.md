@@ -9,7 +9,7 @@ description: "Why we replaced Vagrant with Docker Compose: the real friction poi
 
 I ran Vagrant for years. A Vagrantfile per project, a shared base box, a provision script that worked on Tuesday but not on Thursday. The promise was simple: reproducible environments for everyone on the team. The reality was more complicated.
 
-## :inbox_tray: The Vagrant years
+## The Vagrant years
 
 The setup made sense at the time. One VM per project, provisioned with shell scripts or Ansible, shared via a versioned Vagrantfile. Onboarding was theoretically `vagrant up` and you're done.
 
@@ -19,7 +19,7 @@ The VM itself was the other problem. Booting took time. Running took memory and 
 
 We lived with it because everyone did. Vagrant was the standard for local PHP development, and the alternative (each developer managing their own LAMP stack) was clearly worse.
 
-## :whale: The project that changed the model
+## The project that changed the model
 
 The shift wasn't a decision we made. It was a project that arrived already containerized.
 
@@ -29,7 +29,7 @@ The contrast with our Vagrant setup was immediate. Not faster by a percentage: f
 
 We migrated everything. Not gradually, all at once, over a sprint. Every project got a `docker-compose.yml`. Every Vagrantfile was deleted. The transition was the most painful three weeks of infrastructure work I remember, and also the most clearly worth it.
 
-## :toolbox: What docker-compose actually changed
+## What docker-compose actually changed
 
 Beyond the speed, Compose changed the mental model. Vagrant abstracted a machine. Compose abstracted a set of processes. The distinction matters: with Compose, you can stop the database without stopping the application server, scale a worker service independently, swap the PostgreSQL image for a newer version without touching anything else.
 
@@ -37,7 +37,7 @@ The `services` declaration also replaced the VM provisioning problem entirely. I
 
 CI/CD got simpler too. The same `docker-compose.yml` that ran locally could run in the pipeline. The environment parity that Vagrant promised but rarely delivered was actually real with Compose.
 
-## :ghost: The quiet deprecation
+## The quiet deprecation
 
 For years, the command was `docker-compose`: a separate binary, installed independently from Docker itself, written in Python, versioned independently. We used it, it worked, nobody thought much about it.
 
@@ -47,7 +47,7 @@ We had been using v1 for two years after v2 shipped. Our CI scripts, our Makefil
 
 The migration was trivial: a hyphen removed from every script, a few aliases updated. The lesson was less trivial. Infrastructure tooling evolves without ceremony. The announcement happened, the blog posts were written, the deprecation notices were there. We just weren't paying attention.
 
-## :bulb: The actual retrospective
+## The actual retrospective
 
 Looking back across Vagrant → `docker-compose` → `docker compose`, the pattern is less about the tools and more about the defaults.
 

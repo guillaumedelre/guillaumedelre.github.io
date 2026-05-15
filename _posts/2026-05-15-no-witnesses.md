@@ -60,7 +60,7 @@ when@prod:
 
 The `excluded_http_codes: [404]` line is itself a tell: without it, every 404 from a scanner or crawler triggers a full buffer flush, dumping megabytes of debug logs for malformed URLs. Someone had already learned that the hard way.
 
-`fingers_crossed` is a well-known <img src="https://cdn.simpleicons.org/symfony" width="16" style="vertical-align: middle;" /> Monolog pattern. The idea is elegant: don't flood production logs with debug noise, but if something goes wrong, retroactively show what happened before the error. The handler buffers every log record in memory. The moment it sees an `error`, it flushes the entire buffer to the nested handler — giving you the full context leading up to the failure.
+`fingers_crossed` is a well-known Monolog pattern. The idea is elegant: don't flood production logs with debug noise, but if something goes wrong, retroactively show what happened before the error. The handler buffers every log record in memory. The moment it sees an `error`, it flushes the entire buffer to the nested handler — giving you the full context leading up to the failure.
 
 The problem is what happens when the failure isn't a logged error. It's an OOM kill. A SIGKILL from the orchestrator. A segfault. A process that stops responding and gets forcibly terminated.
 

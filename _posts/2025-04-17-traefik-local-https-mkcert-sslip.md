@@ -11,7 +11,7 @@ The setup seemed perfect. Point `*.traefik.me` at 127.0.0.1, download a wildcard
 
 Then in March 2025, Let's Encrypt revoked the certificate. The wildcard cert for traefik.me is gone and it's not coming back.
 
-## :label: What traefik.me was actually selling
+## What traefik.me was actually selling
 
 traefik.me is a wildcard DNS resolver. Type `anything.traefik.me` and it resolves to 127.0.0.1. Type `anything.10.0.0.1.traefik.me` and it resolves to 10.0.0.1. No account, no configuration, no infrastructure to maintain. The DNS part still works fine, by the way.
 
@@ -23,7 +23,7 @@ The CA/Browser Forum Baseline Requirements, section 9.6.3, require subscribers t
 
 The cert had already been revoked twice before 2025. Third time was the last.
 
-## :twisted_rightwards_arrows: sslip.io does the same thing, differently
+## sslip.io does the same thing, differently
 
 sslip.io is also a wildcard DNS resolver, with one difference: the IP is encoded in the hostname rather than resolved from a fallback. `10-0-0-1.sslip.io` resolves to `10.0.0.1`. `myapp.192-168-1-10.sslip.io` resolves to `192.168.1.10`. IPv6 works too.
 
@@ -42,7 +42,7 @@ Strip away the certificate story and the comparison is pretty straightforward:
 
 traefik.me's only remaining advantage is the 127.0.0.1 fallback: URLs without an IP segment. That matters if you really want `myapp.traefik.me` instead of `myapp.127-0-0-1.sslip.io`. Whether that difference is worth the infrastructure uncertainty is a short conversation.
 
-## :key: mkcert fills the gap
+## mkcert fills the gap
 
 mkcert creates a local certificate authority, installs it in the system trust store and whatever browsers it finds, then issues certificates signed by that CA. Browsers see a trusted chain. No warning, no click-through, no "proceed anyway".
 
@@ -60,7 +60,7 @@ mkcert "*.127-0-0-1.sslip.io"
 
 The limitation is that mkcert's CA is local. Other machines on the network won't trust it by default. For a solo dev setup that's fine. For a shared team environment, you'd need to distribute the CA root, which is essentially the same operational problem traefik.me was trying to avoid, just smaller in scope.
 
-## :whale: The Traefik configuration
+## The Traefik configuration
 
 The setup is the same regardless of which DNS service you pick. Traefik needs the certificate mounted as a volume and a static file provider pointing at a TLS configuration file.
 
@@ -159,7 +159,7 @@ mkcert "*.traefik.me"
 
 The DNS fallback to 127.0.0.1 handles the rest.
 
-## :bulb: What the traefik.me story actually teaches
+## What the traefik.me story actually teaches
 
 The certificate distribution model was always fragile. A "public-private key pair" is a contradiction in terms. Every revocation was a warning that the next one could be permanent. Eventually it was.
 

@@ -7,7 +7,7 @@ tags: [symfony, cloud, redis, cache, kubernetes, 12factor]
 description: "How a single config line blocked horizontal scaling across 13 Symfony microservices, and what the twelve-factor app had to say about it."
 ---
 
-The first time we ran two replicas of the same <img src="https://cdn.simpleicons.org/symfony" width="16" style="vertical-align: middle;" /> Symfony service behind a load balancer, everything looked fine. Health checks passed. Traffic split cleanly. Response times were good.
+The first time we ran two replicas of the same Symfony service behind a load balancer, everything looked fine. Health checks passed. Traffic split cleanly. Response times were good.
 
 Then someone noticed the rate limiter was acting strange. Hit the API five times, get blocked. Hit it five more times on the next request, get through. Depending on which pod answered, you were a different person.
 
@@ -15,7 +15,7 @@ That was the cache talking. One config line, replicated across thirteen services
 
 ## One config file, thirteen times
 
-We were preparing a platform of thirteen Symfony microservices to move to <img src="https://cdn.simpleicons.org/kubernetes" width="16" style="vertical-align: middle;" /> Kubernetes. The stack was already in good shape: FrankenPHP for the HTTP server, multi-stage Dockerfiles, a GitLab CI that pushed tagged images to a cloud registry. The pieces were there. We just needed to verify nothing would break when we started scaling pods horizontally.
+We were preparing a platform of thirteen Symfony microservices to move to Kubernetes. The stack was already in good shape: FrankenPHP for the HTTP server, multi-stage Dockerfiles, a GitLab CI that pushed tagged images to a cloud registry. The pieces were there. We just needed to verify nothing would break when we started scaling pods horizontally.
 
 A good checklist for that kind of audit is the <a href="https://12factor.net" target="_blank" rel="noopener noreferrer">twelve-factor app methodology</a> — twelve principles for building software that runs cleanly in cloud environments. Most factors were already covered without us doing anything deliberate about it.
 
@@ -47,7 +47,7 @@ Every instance of every service was writing its cache to the local filesystem. W
 
 The rate limiter was the most visible symptom because it had a counter. But the same divergence affected every piece of data we were caching: serializer metadata, route collections, Doctrine result caches. Two users sending identical requests could get different responses depending on which node happened to pick up the connection.
 
-## <img src="https://cdn.simpleicons.org/redis" width="16" style="vertical-align: middle;" /> Redis was already there
+## Redis was already there
 
 This is the part that stings a little. Redis was already in the stack. Every service had it configured via SncRedisBundle:
 

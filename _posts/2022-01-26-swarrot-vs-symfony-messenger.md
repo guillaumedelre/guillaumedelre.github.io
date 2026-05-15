@@ -13,7 +13,7 @@ It ships with the framework. It has retry logic, native AMQP support, first-part
 
 Fair question. We took it seriously. Here's what we found.
 
-## :wrench: Wiring the topology by hand
+## Wiring the topology by hand
 
 Swarrot is a consumer library that wraps the PECL AMQP extension. It reads bytes from a queue, runs them through a chain of processors (their term for middleware), and lets your code decide what to do with the payload. That's really it.
 
@@ -48,7 +48,7 @@ messages_types:
 
 Three entries per logical message type: main queue, retry queue, dead-letter queue. Everything that exists on the broker is named right here. The config is verbose but honest: no inference, no convention over configuration. If a queue exists in RabbitMQ, you can trace it to a single line of YAML.
 
-## :package: When the class name becomes the route
+## When the class name becomes the route
 
 <a href="https://symfony.com/doc/current/messenger.html" target="_blank" rel="noopener noreferrer">Symfony Messenger</a> operates one level higher. You define a message class, a handler, and a transport. The library handles serialization, routing, retry, and failure queues automatically.
 
@@ -79,7 +79,7 @@ Messenger serializes the object, puts it on the transport, and deserializes it o
 
 That last sentence is exactly where things got complicated for us.
 
-## :electric_plug: Where typing becomes coupling
+## Where typing becomes coupling
 
 Messenger assumes that the producer and the consumer share a PHP class definition. That's fine for a single app, or for services that share a dedicated contracts package. In a monorepo of independent Symfony applications, it creates coupling that simply doesn't exist today.
 
@@ -94,7 +94,7 @@ Neither is free. The shared package approach inverts the ownership model: the me
 
 The root difference is what a message represents. Messenger is designed for **typed commands**: an object that carries meaning and dispatches to a specific handler. Swarrot treats messages as **opaque data**: bytes that flow through a topology, processed by whatever consumer happens to be listening. If your messages are data, the extra abstraction Messenger adds doesn't help you. It creates friction.
 
-## :no_entry: The blocker
+## The blocker
 
 The serialization problem was the decisive one. In a monorepo where services are autonomous, sharing PHP classes between them isn't architecturally neutral: it's a coupling decision that makes future changes harder. We would have been trading a nominally "legacy" library for a more modern one while introducing exactly the kind of tight coupling we'd spent years avoiding.
 
@@ -102,7 +102,7 @@ There were secondary concerns too. The PECL AMQP extension gives direct access t
 
 But the serialization issue alone would have been enough.
 
-## :bulb: Data or commands: that's the question
+## Data or commands: that's the question
 
 The choice isn't about library quality. Messenger is well-maintained, well-documented, and integrates cleanly into the Symfony ecosystem.
 

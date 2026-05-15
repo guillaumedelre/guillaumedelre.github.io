@@ -17,13 +17,13 @@ This is the story of <a href="https://github.com/guillaumedelre/dream-cheeky-thu
 
 ![Dream Cheeky Thunder](https://raw.githubusercontent.com/guillaumedelre/dream-cheeky-thunder/develop/docs/Dream-Cheeky-Thunder.jpg)
 
-## :wrench: No SDK, no docs, no problem
+## No SDK, no docs, no problem
 
 Dream Cheeky never published a protocol spec. The launcher speaks raw USB HID, and the only starting point was a vendored Python script from 2012 floating around in forum threads. Vendor ID `0x2123`, product ID `0x1010`, and a handful of control bytes that someone had reverse engineered years before.
 
 That was enough. The protocol is simple: send a byte sequence to move the motors, send another to fire. The tricky part is that the launcher has no position feedback. No encoders, no limit switches beyond the physical hard stops at the extremes. You drive it blind.
 
-## :electric_plug: From USB to HTTP
+## From USB to HTTP
 
 The CI pipeline needed to trigger the launcher over the network. A local script wasn't going to cut it — the launcher had to be reachable from any machine on the cluster, including the build server. So: a REST API.
 
@@ -39,7 +39,7 @@ The `/park` call matters more than it looks. Since the launcher has no position 
 
 The full API reference is <a href="https://github.com/guillaumedelre/dream-cheeky-thunder/blob/develop/docs/api.md" target="_blank" rel="noopener noreferrer">in the repo</a>. There's also a web UI if you prefer clicking over `curl`.
 
-## :whale: Docker knows nothing about USB
+## Docker knows nothing about USB
 
 Running this in a Docker container on the cluster was where the fun really started: containers don't see USB devices by default.
 
@@ -54,7 +54,7 @@ Not enough. First run came back with `USBError: [Errno 13] Access denied`. The d
 
 The fix is a udev rule. Drop one file into `/etc/udev/rules.d/`, and the kernel sets the right group and permissions when the device plugs in. After that, the container user can open it without needing elevated privileges. The rule ships with the project, setup instructions are <a href="https://github.com/guillaumedelre/dream-cheeky-thunder/blob/develop/docs/setup-linux.md" target="_blank" rel="noopener noreferrer">in the docs</a>.
 
-## :window: WSL2 made it interesting
+## WSL2 made it interesting
 
 Half the team runs Windows with Docker Desktop on WSL2. That's where things got creative.
 
@@ -62,7 +62,7 @@ WSL2 has no access to USB devices by default: the Windows kernel holds them, and
 
 The attachment doesn't survive reboots, though. usbipd v4+ added a policy mechanism that automates reconnection, which killed the "it worked yesterday" mystery that had been annoying us for days.
 
-## :bulb: What actually surprised us
+## What actually surprised us
 
 :dart: **Time-based positioning works well enough.** No encoders meant we went in expecting the angle tracking to be basically useless. Turns out, parking before every sequence kept it accurate enough to reliably aim at a specific desk. Not millimeter precision, but foam missile precision is fine.
 

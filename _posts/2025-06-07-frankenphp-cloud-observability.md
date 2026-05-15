@@ -9,13 +9,13 @@ description: "Moving 14 PHP microservices to the cloud meant needing observabili
 
 When you run workloads on-premise, you can get away with almost no observability. You have SSH. You have `top`. You have someone who knows that the authentication service always spikes on Monday mornings. Institutional knowledge substitutes for instrumentation, and nobody budgets the time to replace it.
 
-Then you migrate ☁️ to the cloud. The institutional knowledge doesn't follow. The SSH access is gone or inconvenient. And for the first time, you're staring at fourteen FrankenPHP <img src="https://cdn.simpleicons.org/php" width="16" style="vertical-align: middle;" /> containers with no idea what they're actually doing.
+Then you migrate to the cloud. The institutional knowledge doesn't follow. The SSH access is gone or inconvenient. And for the first time, you're staring at fourteen FrankenPHP containers with no idea what they're actually doing.
 
 That's the moment you need metrics. Not eventually. Before the migration is done.
 
 ## The problem with doing it properly
 
-The correct way to instrument a PHP service for <img src="https://cdn.simpleicons.org/prometheus" width="16" style="vertical-align: middle;" /> Prometheus: add a client library, write counters and histograms around what you care about, expose a `/metrics` route, update the scrape config. For one service, that's a reasonable afternoon. For fourteen services mid-migration, it's a multi-sprint project that competes with everything else that needs to move.
+The correct way to instrument a PHP service for Prometheus: add a client library, write counters and histograms around what you care about, expose a `/metrics` route, update the scrape config. For one service, that's a reasonable afternoon. For fourteen services mid-migration, it's a multi-sprint project that competes with everything else that needs to move.
 
 The calculation is awkward. You need metrics to trust that the migration is going well. But adding metrics to everything before the migration means the migration takes longer. And the longer it takes, the more you need metrics to know where you stand.
 
@@ -38,7 +38,7 @@ environment:
 
 `admin 0.0.0.0:2019` binds the admin API to all network interfaces - the default is localhost-only, which is unreachable from a Prometheus container on the same network. `metrics` enables the endpoint.
 
-After that, every <img src="https://cdn.simpleicons.org/docker" width="16" style="vertical-align: middle;" /> container responds to `GET :2019/metrics` with a full Prometheus payload. Request counts labeled by status code, latency histograms, active connections. No route added to the application. No `composer require`. No Dockerfile change.
+After that, every container responds to `GET :2019/metrics` with a full Prometheus payload. Request counts labeled by status code, latency histograms, active connections. No route added to the application. No `composer require`. No Dockerfile change.
 
 One environment variable, added to each service definition in a single commit. Fourteen scrape targets, all producing data.
 
@@ -58,9 +58,9 @@ scrape_configs:
               # all 14 services
 ```
 
-<img src="https://cdn.simpleicons.org/grafana" width="16" style="vertical-align: middle;" /> Grafana sits on top of Prometheus. The Caddy community dashboard gives you request rates, error rates, and latency percentiles per service, per endpoint, per status code. Within a day of the migration landing in the new environment, there was something meaningful to look at.
+Grafana sits on top of Prometheus. The Caddy community dashboard gives you request rates, error rates, and latency percentiles per service, per endpoint, per status code. Within a day of the migration landing in the new environment, there was something meaningful to look at.
 
-The data tier follows the same logic: exporters for <img src="https://cdn.simpleicons.org/postgresql" width="16" style="vertical-align: middle;" /> PostgreSQL, <img src="https://cdn.simpleicons.org/redis" width="16" style="vertical-align: middle;" /> Redis, and <img src="https://cdn.simpleicons.org/rabbitmq" width="16" style="vertical-align: middle;" /> RabbitMQ scrape at the infrastructure level without touching application code. Community dashboards exist for all of them.
+The data tier follows the same logic: exporters for PostgreSQL, Redis, and RabbitMQ scrape at the infrastructure level without touching application code. Community dashboards exist for all of them.
 
 ## What this baseline actually covers
 

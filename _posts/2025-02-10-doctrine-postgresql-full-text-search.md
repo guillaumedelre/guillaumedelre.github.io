@@ -13,7 +13,7 @@ PostgreSQL has had built-in full-text search for over fifteen years. The platfor
 
 A community library, <a href="https://github.com/martin-georgiev/postgresql-for-doctrine" target="_blank" rel="noopener noreferrer">postgresql-for-doctrine</a>, covers part of that gap. It registers basic DQL functions like `TO_TSQUERY`, `TO_TSVECTOR`, and the `@@` match operator as separate atomic pieces. The foundation was there. Three things still had to be built on top.
 
-## <img src="https://cdn.simpleicons.org/doctrine" width="20" style="vertical-align: middle; margin-right: 6px;" />The type Doctrine has never seen
+## The type Doctrine has never seen
 
 <a href="https://www.postgresql.org/docs/current/datatype-textsearch.html" target="_blank" rel="noopener noreferrer">PostgreSQL's full-text search</a> is built around two types: `tsvector` (a pre-processed list of normalized tokens) and `tsquery` (a search expression). You maintain a `tsvector` column, index it with GIN, and query with the `@@` match operator.
 
@@ -113,7 +113,7 @@ Before every persist and update, the subscriber concatenates the fields that sho
 
 One subtlety: the PHP-side value is `"title caption"`, not the actual tsvector output. The database shows `'caption' 'title'` (sorted tokens), but the entity holds a plain string. That's expected: the conversion is a DBAL responsibility, not a PHP one. It can be confusing to debug until you remember where the boundary is.
 
-## <img src="https://cdn.simpleicons.org/postgresql" width="20" style="vertical-align: middle; margin-right: 6px;" />Extending DQL with FTS operators
+## Extending DQL with FTS operators
 
 Doctrine's DQL covers common SQL operations, but anything PostgreSQL-specific is out of scope. That's where `postgresql-for-doctrine` starts: it registers `TO_TSQUERY`, `TO_TSVECTOR`, and `TSMATCH` as individual DQL functions. Writing a full-text query in DQL without it would mean dropping to native SQL entirely.
 
@@ -180,7 +180,7 @@ doctrine:
 
 `websearch_to_tsquery` is the right choice for user-facing search: spaces become AND, quoted strings become phrases, `-word` excludes a term. No need to teach users to type `interview & president`. It was added in PostgreSQL 11. On older versions, `plainto_tsquery` is the closest equivalent.
 
-## <img src="https://cdn.simpleicons.org/symfony" width="20" style="vertical-align: middle; margin-right: 6px;" />The API Platform filter and the GIN index
+## The API Platform filter and the GIN index
 
 With the DQL functions registered, the API Platform filter is straightforward. A custom `AbstractFilter` calls the DQL function directly in the `QueryBuilder`:
 

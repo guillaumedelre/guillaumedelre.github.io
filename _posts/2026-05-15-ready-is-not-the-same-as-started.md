@@ -13,7 +13,7 @@ For the next forty seconds — out of a possible sixty — that container was po
 
 Requests that landed on it during that window got errors. Not many — the window was short — but enough to show up as noise in the monitoring. The kind of noise that gets dismissed as a transient network issue and filed nowhere. The deploy succeeded. The pod eventually became ready. The mechanism that caused it was still there, waiting for the next deploy.
 
-The entrypoint script does five things before FrankenPHP starts: copy a version file, verify the vendor directory, wait up to sixty seconds for the database, run pending migrations, install assets and set filesystem permissions. In Docker Compose, this is invisible. In <img src="https://cdn.simpleicons.org/kubernetes" width="16" style="vertical-align: middle;" /> Kubernetes, the gap becomes traffic.
+The entrypoint script does five things before FrankenPHP starts: copy a version file, verify the vendor directory, wait up to sixty seconds for the database, run pending migrations, install assets and set filesystem permissions. In Docker Compose, this is invisible. In Kubernetes, the gap becomes traffic.
 
 ## The gap between started and ready
 

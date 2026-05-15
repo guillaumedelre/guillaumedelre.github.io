@@ -15,7 +15,7 @@ php bin/console messenger:consume scheduler_purge
 
 In Docker Compose, this works exactly as it looks: a container starts, runs `messenger:consume`, and stays alive indefinitely. The Symfony Scheduler fires tasks at the configured times, the consumer picks them up, they run. The container never exits unless told to.
 
-Moving this to <img src="https://cdn.simpleicons.org/kubernetes" width="16" style="vertical-align: middle;" /> Kubernetes raises a question that Docker Compose never asked: where should the scheduling coordination live?
+Moving this to Kubernetes raises a question that Docker Compose never asked: where should the scheduling coordination live?
 
 ## Two places to put the same logic
 

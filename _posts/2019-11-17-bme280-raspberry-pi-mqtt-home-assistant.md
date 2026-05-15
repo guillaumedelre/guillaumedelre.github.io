@@ -25,15 +25,15 @@ That's the easy part. The catch is what happens next.
 
 ## :abacus: You don't just read the temperature
 
-The BME280 doesn't give you `21.5°C` directly. It gives you raw ADC values — 20-bit integers with no physical meaning by themselves. To get an actual temperature, you have to:
+The BME280 doesn't hand you `21.5°C`. It gives you raw ADC values: 20-bit integers that mean absolutely nothing by themselves. To get an actual temperature, you have to:
 
-1. Read the calibration coefficients that Bosch burned into the chip's EEPROM at the factory (registers `0x88`, `0xA1`, `0xE1`)
-2. Apply Bosch's compensation formulas — double-precision floating point arithmetic that uses those coefficients to convert raw values into real measurements
-3. Wait for the measurement to complete by polling the status register
+1. Read the calibration coefficients Bosch burned into the chip's EEPROM at the factory (registers `0x88`, `0xA1`, `0xE1`)
+2. Apply Bosch's compensation formulas: double-precision floating point arithmetic that uses those coefficients to turn raw values into real measurements
+3. Wait for the measurement to finish by polling the status register
 
-The compensation algorithm for temperature alone takes the raw value, applies a quadratic correction using three calibration constants, and produces a value in hundredths of degrees Celsius. Pressure depends on the corrected temperature. Humidity depends on both.
+The temperature compensation alone takes the raw value, applies a quadratic correction with three calibration constants, and spits out a value in hundredths of degrees Celsius. Pressure depends on the corrected temperature. Humidity depends on both.
 
-None of this is guesswork — it's straight from the <a href="https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme280-ds002.pdf" target="_blank" rel="noopener noreferrer">Bosch datasheet</a>. But it means the driver isn't trivial. It's not a library import; it's implementing a spec.
+It's all straight from the <a href="https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme280-ds002.pdf" target="_blank" rel="noopener noreferrer">Bosch datasheet</a>, nothing clever. But it does mean the driver isn't a five-liner. It's implementing a spec, not importing a library.
 
 ## :globe_with_meridians: Making it network-accessible
 
@@ -51,23 +51,23 @@ The full setup guide is <a href="https://github.com/guillaumedelre/bme280" targe
 
 ## :bulb: What I didn't expect
 
-:thermometer: **The Bosch calibration is non-negotiable.** I initially tried reading the raw temperature register directly and scaling it naively. The result was plausible-looking garbage. The compensation algorithm exists because the sensor's raw output is meaningless without it.
+:thermometer: **The Bosch calibration is non-negotiable.** I started by reading the raw temperature register directly and scaling it naively. The result was numbers that looked almost plausible and were completely wrong. The compensation algorithm isn't optional decoration, it's what makes the output mean anything.
 
-:clock1: **Polling beats events here.** The sensor doesn't push data — you ask it for a reading. A cron job every minute is all you need for environmental monitoring. Real-time streaming would be overkill and would wear out the sensor faster.
+:clock1: **Polling beats events here.** The sensor doesn't push data, you ask it for a reading. A cron job every minute is all you need for room monitoring. Real-time streaming would be overkill and would probably wear out the sensor faster.
 
-:house: **MQTT discovery is underrated.** Manually declaring sensors in `configuration.yaml` works, but discovering them automatically feels like the right abstraction. Publish a config payload once, and Home Assistant handles the rest. Adding a new sensor type later takes thirty seconds.
+:house: **MQTT discovery is underrated.** Manually declaring sensors in `configuration.yaml` works, but auto-discovery just feels right. Publish a config payload once, and Home Assistant takes it from there. Adding a new sensor type later takes about thirty seconds.
 
 The room is now 21.4°C and 47% humidity. I know this without opening anything.
 
 ## :warning: A note on the official Bosch SensorAPI
 
-While writing the driver I looked at the <a href="https://github.com/boschsensortec/BME280_SensorAPI" target="_blank" rel="noopener noreferrer">official Bosch SensorAPI</a> for reference. Two things stood out.
+While writing the driver I peeked at the <a href="https://github.com/boschsensortec/BME280_SensorAPI" target="_blank" rel="noopener noreferrer">official Bosch SensorAPI</a> for reference. Two things caught my attention.
 
-First, the Linux userspace example in the repo doesn't work on a Raspberry Pi as shipped. Several contributors independently discovered the same bug: `ioctl` is called before `dev_addr` is assigned, so the I²C device address is never properly set. The fix is straightforward, and multiple PRs documented it — but they sat open for years before corrected versions were eventually merged. The original PRs are still open.
+The Linux userspace example doesn't actually work on a Raspberry Pi out of the box. Several contributors tripped over the same bug independently: `ioctl` is called before `dev_addr` is assigned, so the I²C device address never gets set properly. The fix is obvious once you see it, and multiple PRs documented it, but they sat open for years. Some still are.
 
-Second, as of early 2025, <a href="https://github.com/boschsensortec/BME280_SensorAPI/pull/94" target="_blank" rel="noopener noreferrer">PR #94</a> reports undefined behavior in `bme280_get_sensor_mode()`: the left operand of a bitwise `&` is an uninitialized variable, caught by static analysis. It's still open.
+Then there's <a href="https://github.com/boschsensortec/BME280_SensorAPI/pull/94" target="_blank" rel="noopener noreferrer">PR #94</a> (still open as of early 2025), reporting undefined behavior in `bme280_get_sensor_mode()`: the left operand of a bitwise `&` is an uninitialized variable, caught by static analysis.
 
-None of this is a reason to avoid the chip — the hardware is excellent. But it's a reminder that reference code from a manufacturer is a starting point, not ground truth. Implementing the compensation algorithm from the datasheet directly, rather than wrapping the official C library, meant I understood every line of it. When something reads wrong, there's no black box to blame.
+The chip itself is great. But manufacturer reference code is a starting point, not gospel. Implementing the compensation algorithm straight from the datasheet meant I understood every line of it. When a reading looks weird, there's no mystery C library to blame.
 
 <div style="border: 1px solid #e8e8e8; padding: 16px; margin-top: 2em; border-radius: 3px;">
   <img src="https://cdn.simpleicons.org/github" width="20" style="vertical-align: middle; margin-right: 8px;" />

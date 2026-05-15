@@ -41,7 +41,7 @@ The full API reference is <a href="https://github.com/guillaumedelre/dream-cheek
 
 ## :whale: Docker knows nothing about USB
 
-Running this in a Docker container on the cluster introduced the first real obstacle: Docker containers don't see USB devices by default.
+Running this in a Docker container on the cluster was where the fun really started: containers don't see USB devices by default.
 
 The `devices` mount in `compose.yaml` exposes the USB bus to the container:
 
@@ -50,25 +50,25 @@ devices:
   - /dev/bus/usb:/dev/bus/usb
 ```
 
-That's not enough. The first run returned `USBError: [Errno 13] Access denied`. The device node exists in the container, but the permissions are inherited from the host — and on the host, only root can open it by default.
+Not enough. First run came back with `USBError: [Errno 13] Access denied`. The device node is there inside the container, but it inherits permissions from the host, and on the host only root can open it by default.
 
-The fix is a udev rule. One file dropped into `/etc/udev/rules.d/` tells the kernel to set the correct group and permissions when the device is plugged in. After that, the container user can open it without elevated privileges. The rule ships with the project — setup instructions are <a href="https://github.com/guillaumedelre/dream-cheeky-thunder/blob/develop/docs/setup-linux.md" target="_blank" rel="noopener noreferrer">in the docs</a>.
+The fix is a udev rule. Drop one file into `/etc/udev/rules.d/`, and the kernel sets the right group and permissions when the device plugs in. After that, the container user can open it without needing elevated privileges. The rule ships with the project, setup instructions are <a href="https://github.com/guillaumedelre/dream-cheeky-thunder/blob/develop/docs/setup-linux.md" target="_blank" rel="noopener noreferrer">in the docs</a>.
 
 ## :window: WSL2 made it interesting
 
-Half the team runs Windows with Docker Desktop on WSL2. That's where things got more creative.
+Half the team runs Windows with Docker Desktop on WSL2. That's where things got creative.
 
-WSL2 doesn't have access to USB devices by default — the Windows kernel holds them. The `devices` mount alone does nothing because WSL2 simply doesn't see the hardware. The solution is <a href="https://github.com/dorssel/usbipd-win" target="_blank" rel="noopener noreferrer">usbipd-win</a>, which forwards the USB device from Windows into the WSL2 kernel over IP. Once attached, the Linux path works identically: udev rule, `devices` mount, done.
+WSL2 has no access to USB devices by default: the Windows kernel holds them, and the `devices` mount alone does nothing because WSL2 simply doesn't see the hardware. The fix is <a href="https://github.com/dorssel/usbipd-win" target="_blank" rel="noopener noreferrer">usbipd-win</a>, which forwards the USB device from Windows into the WSL2 kernel over IP. Once that's done, the Linux path works exactly the same: udev rule, `devices` mount, done.
 
-The catch is that the attachment doesn't survive reboots. usbipd v4+ added a policy mechanism that automates reconnection, which solved the "it worked yesterday" problem that plagued the first few days of testing.
+The attachment doesn't survive reboots, though. usbipd v4+ added a policy mechanism that automates reconnection, which killed the "it worked yesterday" mystery that had been annoying us for days.
 
 ## :bulb: What actually surprised us
 
-:dart: **Time-based positioning works well enough.** No encoders meant we expected the angle tracking to be useless. In practice, parking before every sequence kept it accurate enough to reliably aim at a specific desk. Not millimeter precision, but foam missile precision.
+:dart: **Time-based positioning works well enough.** No encoders meant we went in expecting the angle tracking to be basically useless. Turns out, parking before every sequence kept it accurate enough to reliably aim at a specific desk. Not millimeter precision, but foam missile precision is fine.
 
-:lock: **The `devices` mount is necessary but not sufficient.** The permission error was confusing because the device was clearly visible inside the container. The udev rule is the piece most tutorials skip.
+:lock: **The `devices` mount is necessary but not sufficient.** The permission error was confusing precisely because the device was clearly visible inside the container. The udev rule is the bit most tutorials quietly skip.
 
-:laughing: **The coffee rule was never the same after this.** Once the launcher was wired to the pipeline, broken builds became significantly more motivating to fix.
+:laughing: **The coffee rule was never the same after this.** Once the launcher was wired to the pipeline, broken builds suddenly became a lot more motivating to fix.
 
 ---
 

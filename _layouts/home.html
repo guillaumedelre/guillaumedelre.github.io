@@ -9,6 +9,7 @@ layout: default
 
   {{ content }}
 
+  {%- assign date_format = site.minima.date_format | default: "%b %-d, %Y" -%}
   {%- assign series_ids = site.posts | map: "series" | uniq | compact -%}
 
   {%- if series_ids.size > 0 -%}
@@ -17,8 +18,9 @@ layout: default
       {%- for series_id in series_ids -%}
         {%- assign series_meta = site.data.series[series_id] -%}
         {%- assign series_posts = site.posts | where: "series", series_id | sort: "part" -%}
+        {%- assign series_first = series_posts | first -%}
         <li>
-          <span class="post-meta">{{ series_posts.size }} parts</span>
+          <span class="post-meta">{{ series_first.date | date: date_format }} &mdash; {{ series_posts.size }} parts</span>
           <h3>
             <a class="post-link" href="/series/{{ series_id }}/">
               {{ series_meta.title | default: series_id | escape }}
@@ -35,7 +37,6 @@ layout: default
   {%- if site.posts.size > 0 -%}
     <h2 class="post-list-heading">{{ page.list_title | default: "Posts" }}</h2>
     <ul class="post-list">
-      {%- assign date_format = site.minima.date_format | default: "%b %-d, %Y" -%}
       {%- for post in site.posts -%}
         {%- unless post.series -%}
         <li>

@@ -1,0 +1,120 @@
+name: Library version monitor
+
+on:
+  schedule:
+    - cron: '0 8 * * 5'  # Every Friday at 8:00 UTC
+  workflow_dispatch:      # Manual trigger for testing
+
+jobs:
+  check-versions:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check PHP latest stable
+        id: php
+        run: |
+          VERSION=$(curl -s \
+            -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
+            'https://api.github.com/repos/php/php-src/releases?per_page=30' \
+            | jq -r '[.[] | select(.prerelease == false and .draft == false)
+                          | .tag_name
+                          | select(test("^php-[0-9]+\\.[0-9]+\\.[0-9]+$"))]
+                     | sort | last | ltrimstr("php-")')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Check Symfony latest stable
+        id: symfony
+        run: |
+          VERSION=$(curl -s \
+            -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
+            'https://api.github.com/repos/symfony/symfony/releases?per_page=30' \
+            | jq -r '[.[] | select(.prerelease == false and .draft == false)
+                          | .tag_name
+                          | select(test("^v[0-9]+\\.[0-9]+\\.[0-9]+$"))]
+                     | sort | last | ltrimstr("v")')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Check API Platform latest stable
+        id: apiplatform
+        run: |
+          VERSION=$(curl -s \
+            -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
+            'https://api.github.com/repos/api-platform/core/releases?per_page=30' \
+            | jq -r '[.[] | select(.prerelease == false and .draft == false)
+                          | .tag_name
+                          | select(test("^v[0-9]+\\.[0-9]+\\.[0-9]+$"))]
+                     | sort | last | ltrimstr("v")')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Compare with known versions
+        id: compare
+        run: |
+          minor() { echo "$1" | cut -d. -f1-2; }
+
+          KNOWN_PHP=$(jq -r '.php // ""' .github/known-versions.json)
+          KNOWN_SYMFONY=$(jq -r '.symfony // ""' .github/known-versions.json)
+          KNOWN_APIPLATFORM=$(jq -r '.apiplatform // ""' .github/known-versions.json)
+
+          PHP_NEW="${{ steps.php.outputs.version }}"
+          SYMFONY_NEW="${{ steps.symfony.outputs.version }}"
+          APIPLATFORM_NEW="${{ steps.apiplatform.outputs.version }}"
+
+          CHANGES=""
+
+          if [ -n "$PHP_NEW" ] && [ "$(minor "$PHP_NEW")" != "$(minor "$KNOWN_PHP")" ]; then
+            CHANGES="${CHANGES}\n- PHP: ${KNOWN_PHP:-unknown} → ${PHP_NEW}"
+          fi
+          if [ -n "$SYMFONY_NEW" ] && [ "$(minor "$SYMFONY_NEW")" != "$(minor "$KNOWN_SYMFONY")" ]; then
+            CHANGES="${CHANGES}\n- Symfony: ${KNOWN_SYMFONY:-unknown} → ${SYMFONY_NEW}"
+          fi
+          if [ -n "$APIPLATFORM_NEW" ] && [ "$(minor "$APIPLATFORM_NEW")" != "$(minor "$KNOWN_APIPLATFORM")" ]; then
+            CHANGES="${CHANGES}\n- API Platform: ${KNOWN_APIPLATFORM:-unknown} → ${APIPLATFORM_NEW}"
+          fi
+
+          if [ -n "$CHANGES" ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            printf "changes<<EOF\n%b\nEOF\n" "$CHANGES" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send email notification
+        if: steps.compare.outputs.has_changes == 'true'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.GMAIL_USERNAME }}
+          password: ${{ secrets.GMAIL_APP_PASSWORD }}
+          subject: "[guillaumedelre.github.io] New library versions available"
+          to: ${{ secrets.GMAIL_USERNAME }}
+          from: GitHub Actions <${{ secrets.GMAIL_USERNAME }}>
+          body: |
+            New minor or major versions detected:
+            ${{ steps.compare.outputs.changes }}
+
+            Current versions:
+              PHP:          ${{ steps.php.outputs.version }}
+              Symfony:      ${{ steps.symfony.outputs.version }}
+              API Platform: ${{ steps.apiplatform.outputs.version }}
+
+            Good time to write an article about it on https://guillaumedelre.github.io !
+
+      - name: Update known-versions.json
+        if: steps.compare.outputs.has_changes == 'true'
+        run: |
+          jq -n \
+            --arg php "${{ steps.php.outputs.version }}" \
+            --arg symfony "${{ steps.symfony.outputs.version }}" \
+            --arg apiplatform "${{ steps.apiplatform.outputs.version }}" \
+            '{php: $php, symfony: $symfony, apiplatform: $apiplatform}' \
+            > .github/known-versions.json
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .github/known-versions.json
+          git commit -m "chore: update known library versions"
+          git push

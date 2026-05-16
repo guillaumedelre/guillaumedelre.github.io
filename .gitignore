@@ -1,7 +1,7 @@
 CLAUDE.md
 TODO.md
-_site/
-.sass-cache/
-.jekyll-cache/
-.jekyll-metadata
-Gemfile.lock
+SEO.md
+RSS.md
+public/
+.hugo_build.lock
+resources/_gen/

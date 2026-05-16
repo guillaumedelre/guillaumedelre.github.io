@@ -1,0 +1,152 @@
+baseURL: https://guillaumedelre.github.io/
+title: Guillaume Delré
+theme: PaperMod
+
+defaultContentLanguage: en
+defaultContentLanguageInSubdir: false
+
+languages:
+  en:
+    languageName: English
+    languageCode: en
+    weight: 1
+    contentDir: content/en
+    params:
+      profileMode:
+        enabled: true
+        title: Guillaume Delré
+        subtitle: "Tech articles about PHP, Symfony, API Platform and experiments."
+        imageUrl: /assets/images/og-default.jpg
+        imageWidth: 120
+        imageHeight: 120
+        imageTitle: Guillaume Delré
+        buttons:
+          - name: Blog
+            url: /posts/
+          - name: Series
+            url: /series/
+    menu:
+      main:
+        - name: Blog
+          url: /posts/
+          weight: 5
+        - name: Series
+          url: /series/
+          weight: 10
+        - name: Categories
+          url: /categories/
+          weight: 20
+        - name: Search
+          url: /search/
+          weight: 25
+      footer:
+        - name: Tags
+          url: /tags/
+          weight: 10
+        - name: Archives
+          url: /archives/
+          weight: 20
+        - name: RSS
+          url: /index.xml
+          weight: 30
+  fr:
+    languageName: Français
+    languageCode: fr-FR
+    weight: 2
+    contentDir: content/fr
+    params:
+      profileMode:
+        enabled: true
+        title: Guillaume Delré
+        subtitle: "Articles techniques sur PHP, Symfony, API Platform et expérimentations."
+        imageUrl: /assets/images/og-default.jpg
+        imageWidth: 120
+        imageHeight: 120
+        imageTitle: Guillaume Delré
+        buttons:
+          - name: Blog
+            url: /fr/posts/
+          - name: Séries
+            url: /fr/series/
+    menu:
+      main:
+        - name: Blog
+          url: /fr/posts/
+          weight: 5
+        - name: Séries
+          url: /fr/series/
+          weight: 10
+        - name: Catégories
+          url: /fr/categories/
+          weight: 20
+        - name: Recherche
+          url: /fr/search/
+          weight: 25
+      footer:
+        - name: Tags
+          url: /fr/tags/
+          weight: 10
+        - name: Archives
+          url: /fr/archives/
+          weight: 20
+        - name: RSS
+          url: /fr/index.xml
+          weight: 30
+
+description: Tech articles about PHP, Symfony, API Platform and experiments.
+
+googleAnalytics: G-KJ5HF5SY3R
+
+taxonomies:
+  category: categories
+  tag: tags
+  series: series
+
+pagination:
+  pagerSize: 10
+
+params:
+  env: production
+  author: Guillaume Delré
+
+  schema:
+    publisherType: Person
+    sameAs:
+      - "https://github.com/guillaumedelre"
+      - "https://www.linkedin.com/in/guillaumedelre/"
+
+  socialIcons:
+    - name: github
+      url: https://github.com/guillaumedelre
+    - name: linkedin
+      url: https://www.linkedin.com/in/guillaumedelre/
+    - name: rss
+      url: /index.xml
+
+  ShowReadingTime: true
+  ShowShareButtons: false
+  ShowPostNavLinks: true
+  ShowBreadCrumbs: true
+  ShowCodeCopyButtons: true
+  ShowFullTextinRSS: true
+  ShowSeriesNavigation: true
+
+  defaultTheme: auto
+  disableThemeToggle: false
+
+  assets:
+    favicon: /assets/images/og-default.jpg
+
+markup:
+  goldmark:
+    renderer:
+      unsafe: true
+
+permalinks:
+  posts: /:year/:month/:day/:slug/
+
+outputs:
+  home:
+    - HTML
+    - RSS
+    - JSON

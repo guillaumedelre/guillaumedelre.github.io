@@ -1,0 +1,5 @@
+{{- $icon_url := .Get "icon_url" | default (printf "https://cdn.simpleicons.org/%s" (.Get "icon")) -}}
+<a href="{{ .Get "url" }}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 6px; margin-right: 1.5em; text-decoration: none;">
+  <img src="{{ $icon_url }}" width="16" alt="" style="vertical-align: middle;" />
+  {{- .Get "name" -}}
+</a>

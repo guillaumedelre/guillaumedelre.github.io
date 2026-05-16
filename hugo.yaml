@@ -120,6 +120,8 @@ params:
       url: https://github.com/guillaumedelre
     - name: linkedin
       url: https://www.linkedin.com/in/guillaumedelre/
+    - name: email
+      url: mailto:delre.guillaume@gmail.com
     - name: rss
       url: /index.xml
 

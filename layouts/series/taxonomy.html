@@ -1,0 +1,34 @@
+{{- define "main" }}
+
+{{- if .Title }}
+<header class="page-header">
+  {{- partial "breadcrumbs.html" . }}
+  <h1>{{ .Title }}</h1>
+  {{- if .Description }}
+  <div class="post-description">
+    {{ .Description | markdownify }}
+  </div>
+  {{- end }}
+</header>
+{{- end }}
+
+{{- range .Data.Terms.Alphabetical }}
+<article class="post-entry">
+  <header class="entry-header">
+    <h2>{{ .Page.Title }}</h2>
+  </header>
+  {{- if .Page.Description }}
+  <div class="entry-content">
+    <p>{{ .Page.Description }}</p>
+  </div>
+  {{- end }}
+  <footer class="entry-footer">
+    {{- $author := partial "author.html" .Page }}
+    <span>{{ .Count }}&nbsp;article{{ if ne .Count 1 }}s{{ end }}</span>
+    {{- with $author }}&nbsp;·&nbsp;<span>{{ . }}</span>{{- end }}
+  </footer>
+  <a class="entry-link" aria-label="series link to {{ .Page.Title | plainify }}" href="{{ .Page.Permalink }}"></a>
+</article>
+{{- end }}
+
+{{- end }}

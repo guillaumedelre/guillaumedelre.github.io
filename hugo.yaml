@@ -39,9 +39,6 @@ languages:
         - name: Search
           url: /search/
           weight: 25
-        - name: About
-          url: /about/
-          weight: 30
       footer:
         - name: Tags
           url: /tags/
@@ -85,9 +82,6 @@ languages:
         - name: Recherche
           url: /fr/search/
           weight: 25
-        - name: À propos
-          url: /fr/about/
-          weight: 30
       footer:
         - name: Tags
           url: /fr/tags/

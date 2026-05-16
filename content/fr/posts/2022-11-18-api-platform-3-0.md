@@ -8,7 +8,7 @@ tags: [api-platform, php, symfony, openapi]
 description: "API Platform 3.0 a remplacé les DataProviders et DataPersisters par un modèle d'état qui rend les opérations HTTP explicites — et a exigé PHP 8.1 et Symfony 6 pour y arriver."
 ---
 
-API Platform 3.0 est arrivé en novembre 2022 avec Symfony 6.1 comme prérequis strict et une architecture de base qui ne ressemblait en rien à la 2.x. Le guide de migration est long. La raison pour laquelle il est long est intéressante.
+API Platform 3.0 est arrivé en septembre 2022 avec Symfony 6.1 comme prérequis strict et une architecture de base qui ne ressemblait en rien à la 2.x. Le guide de migration est long. La raison pour laquelle il est long est intéressante.
 
 L'ancien modèle avait une fuite conceptuelle. `DataProviderInterface` et `DataPersisterInterface` étaient appelés pour chaque requête HTTP, mais le provider recevait le contexte de l'opération comme un indice — pas comme un contrat. Un provider de collection et un provider d'item étaient des interfaces distinctes, mais les deux vivaient dans le même seau mental : "choses qui retournent des données." La couche HTTP savait ce qui était demandé ; le provider devait reconstruire cette connaissance à partir d'indices passés dans le tableau `$context`.
 
@@ -47,7 +47,7 @@ use ApiPlatform\Metadata\Operation;
 
 class BookProcessor implements ProcessorInterface
 {
-    public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
+    public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = [])
     {
         $this->entityManager->persist($data);
         $this->entityManager->flush();
@@ -86,9 +86,9 @@ C'est plus verbeux que `@ApiResource` avec ses valeurs par défaut magiques. C'e
 
 ## PHP 8.1 n'était pas un hasard
 
-L'exigence stricte pour PHP 8.1 est structurante. Les propriétés readonly permettent à API Platform de s'assurer que les métadonnées d'opération sont immuables une fois construites. Les fibers sous-tendent la gestion asynchrone dans l'intégration Mercure. Les enums clarifient ce que des propriétés comme `paginationType` acceptent réellement. Les callables de première classe rendent l'enregistrement des filtres plus propre.
+L'exigence stricte pour PHP 8.1 est structurante. Les callables de première classe rendent l'enregistrement des filtres plus propre. L'immuabilité des métadonnées d'opération est assurée par un pattern de clonage (méthodes `withX()`) qui s'appuie sur les arguments nommés et les propriétés de constructeur promues — des fondations PHP 8.0 sur lesquelles l'architecture s'appuie massivement.
 
-Plus concrètement : l'expression complète de l'architecture 3.0 — état readonly, opérations typées, providers scopés à l'opération — avait besoin de la 8.1 pour ne pas ressembler à des contournements. Abandonner PHP 7.x et 8.0 n'était pas une décision de nettoyage.
+Plus concrètement : l'expression complète de l'architecture 3.0 — opérations typées, providers scopés à l'opération, métadonnées explicites — avait besoin de la 8.1 pour ne pas ressembler à des contournements. Abandonner PHP 7.x et 8.0 n'était pas une décision de nettoyage.
 
 ## La migration est un vrai travail
 

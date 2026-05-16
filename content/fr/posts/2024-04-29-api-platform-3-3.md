@@ -14,20 +14,20 @@ API Platform 3.3 est sorti en avril 2024 avec un ensemble d'ajouts ciblés. Aucu
 
 Avant la 3.3, définir des headers de réponse personnalisés nécessitait soit un processor personnalisé qui modifiait l'objet réponse, soit un event listener Symfony sur `kernel.response`. Les deux approches fonctionnaient mais vivaient en dehors de la définition de la ressource.
 
-La 3.3 ajoute un paramètre `headers` aux métadonnées d'opération :
+La 3.3 ajoute un paramètre `parameters` aux métadonnées d'opération :
 
 ```php
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\HeaderParameter;
 
 #[Get(
-    headers: [
-        new HeaderParameter(name: 'X-Custom-Header', description: 'A custom header'),
+    parameters: [
+        'X-Custom-Header' => new HeaderParameter(description: 'A custom header'),
     ]
 )]
 ```
 
-Pour les headers qui varient par réponse (comme `Cache-Control` avec un max-age calculé), le processor peut encore les définir directement sur l'objet réponse. Le paramètre `headers` sert principalement à documenter les headers attendus dans la spec OpenAPI et pour les valeurs de headers statiques.
+Pour les headers qui varient par réponse (comme `Cache-Control` avec un max-age calculé), le processor peut encore les définir directement sur l'objet réponse. Le paramètre `parameters` sert principalement à documenter les headers attendus dans la spec OpenAPI et pour les valeurs de headers statiques.
 
 ## Sécurité des liens sur les sous-ressources
 
@@ -74,32 +74,41 @@ La propriété est exclue de la sérialisation quand l'expression est false. C'e
 
 [OpenAPI 3.1](https://spec.openapis.org/oas/v3.1.0) supporte les webhooks — des appels HTTP sortants que votre API fait à des listeners enregistrés — dans le document spec lui-même. Avant la 3.3, il n'y avait pas de moyen de les documenter dans la spec générée par API Platform.
 
-La 3.3 ajoute une option de configuration `webhooks` où vous pouvez déclarer la forme de vos appels sortants :
+La 3.3 ajoute une classe `Webhook` à passer au paramètre `openapi` d'une opération. On déclare une classe PHP dédiée avec `#[ApiResource]` et on utilise `Webhook` sur chaque opération pour décrire la forme de l'appel sortant :
 
-```yaml
-# config/packages/api_platform.yaml
-api_platform:
-    openapi:
-        webhooks:
-            bookCreated:
-                post:
-                    requestBody:
-                        content:
-                            application/json:
-                                schema:
-                                    $ref: '#/components/schemas/Book'
+```php
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\OpenApi\Attributes\Webhook;
+use ApiPlatform\OpenApi\Model\Operation;
+use ApiPlatform\OpenApi\Model\PathItem;
+
+#[ApiResource(
+    operations: [
+        new Post(
+            openapi: new Webhook(
+                name: 'bookCreated',
+                pathItem: new PathItem(
+                    post: new Operation(summary: 'Un livre a été créé'),
+                ),
+            )
+        ),
+    ]
+)]
+class BookWebhook {}
 ```
 
-Les définitions de webhooks apparaissent dans la spec générée aux côtés des paths réguliers. Swagger UI les affiche dans une section séparée.
+Les définitions de webhooks apparaissent dans la spec générée sous la clé `webhooks` aux côtés des paths réguliers. Swagger UI les affiche dans une section séparée.
 
 ## Deep linking dans Swagger UI
 
-Swagger UI supporte le deep linking — des URLs mémorisables qui ouvrent directement sur une opération spécifique dans l'interface. Avant la 3.3, l'intégration API Platform n'activait pas cela. La 3.3 active l'option `deepLinking` de Swagger UI :
+Swagger UI supporte le deep linking — des URLs mémorisables qui ouvrent directement sur une opération spécifique dans l'interface. Avant la 3.3, l'intégration API Platform n'activait pas cela. La 3.3 active l'option `deepLinking` de Swagger UI, configurable via `swagger_ui_extra_configuration` :
 
 ```yaml
 api_platform:
-    swagger_ui:
-        deep_linking: true
+    openapi:
+        swagger_ui_extra_configuration:
+            deepLinking: true
 ```
 
 Avec cette option activée, le fragment d'URL se met à jour pendant la navigation dans l'UI, et coller ou partager l'URL ouvre la même opération. Utile quand on écrit de la doc qui pointe directement vers un endpoint spécifique.

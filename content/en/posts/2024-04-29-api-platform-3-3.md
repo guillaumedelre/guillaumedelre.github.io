@@ -14,15 +14,15 @@ API Platform 3.3 shipped in April 2024 with a set of targeted additions. None of
 
 Before 3.3, setting custom response headers required either a custom processor that modified the response object or a Symfony event listener on `kernel.response`. Both approaches worked but lived outside the resource definition.
 
-3.3 adds a `headers` parameter to operation metadata:
+3.3 adds a `parameters` parameter to operation metadata:
 
 ```php
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\HeaderParameter;
 
 #[Get(
-    headers: [
-        new HeaderParameter(name: 'X-Custom-Header', description: 'A custom header'),
+    parameters: [
+        'X-Custom-Header' => new HeaderParameter(description: 'A custom header'),
     ]
 )]
 ```
@@ -74,32 +74,41 @@ The property is excluded from serialization when the expression is false. This i
 
 [OpenAPI 3.1](https://spec.openapis.org/oas/v3.1.0) supports webhooks — outbound HTTP calls that your API makes to registered listeners — in the spec document itself. Before 3.3, there was no way to document these in API Platform's generated spec.
 
-3.3 adds a `webhooks` configuration option where you can declare the shape of your outbound calls:
+3.3 adds a `Webhook` class you pass to the `openapi` parameter of an operation. Declare a dedicated PHP class with `#[ApiResource]` and use `Webhook` on each operation to describe the outbound call shape:
 
-```yaml
-# config/packages/api_platform.yaml
-api_platform:
-    openapi:
-        webhooks:
-            bookCreated:
-                post:
-                    requestBody:
-                        content:
-                            application/json:
-                                schema:
-                                    $ref: '#/components/schemas/Book'
+```php
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\OpenApi\Attributes\Webhook;
+use ApiPlatform\OpenApi\Model\Operation;
+use ApiPlatform\OpenApi\Model\PathItem;
+
+#[ApiResource(
+    operations: [
+        new Post(
+            openapi: new Webhook(
+                name: 'bookCreated',
+                pathItem: new PathItem(
+                    post: new Operation(summary: 'A book was created'),
+                ),
+            )
+        ),
+    ]
+)]
+class BookWebhook {}
 ```
 
-The webhook definitions appear in the generated spec alongside regular paths. Swagger UI renders them in a separate section.
+The webhook definitions appear in the generated spec under the `webhooks` key alongside regular paths. Swagger UI renders them in a separate section.
 
 ## Swagger UI deep linking
 
-Swagger UI supports deep linking — bookmarkable URLs that open directly to a specific operation in the interface. Before 3.3, the API Platform integration did not enable this. 3.3 turns on the Swagger UI `deepLinking` option:
+Swagger UI supports deep linking — bookmarkable URLs that open directly to a specific operation in the interface. Before 3.3, the API Platform integration did not enable this. 3.3 turns on the Swagger UI `deepLinking` option, configurable via `swagger_ui_extra_configuration`:
 
 ```yaml
 api_platform:
-    swagger_ui:
-        deep_linking: true
+    openapi:
+        swagger_ui_extra_configuration:
+            deepLinking: true
 ```
 
 With this enabled, the URL fragment updates as you navigate the UI, and pasting or sharing the URL opens the same operation. Useful when writing docs that link directly to a specific endpoint.

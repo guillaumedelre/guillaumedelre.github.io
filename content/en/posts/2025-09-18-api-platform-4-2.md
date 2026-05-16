@@ -19,21 +19,10 @@ The default Symfony serializer builds the full response in memory before writing
 ```yaml
 api_platform:
     serializer:
-        use_json_streamer: true
+        enable_json_streamer: true
 ```
 
 With streaming enabled, the response is written directly to the output buffer as each item is serialized. Memory usage stays roughly constant regardless of collection size. The trade-off: you cannot set response headers after streaming starts, and the HTTP status code must be committed before the first byte is written.
-
-Streaming is opt-in per-operation:
-
-```php
-use ApiPlatform\Metadata\GetCollection;
-
-#[GetCollection(
-    extraProperties: ['use_json_streamer' => true]
-)]
-class Book {}
-```
 
 ## ObjectMapper replaces manual DTO wiring
 
@@ -42,10 +31,9 @@ class Book {}
 4.2 introduces `ObjectMapper`, a declarative mapping layer between entities and DTOs:
 
 ```php
-use ApiPlatform\ObjectMapper\Map;
-use ApiPlatform\ObjectMapper\ObjectMapper;
+use Symfony\Component\ObjectMapper\Attribute\Map;
 
-#[Map(from: BookEntity::class)]
+#[Map(source: BookEntity::class)]
 class BookDto
 {
     public string $title;
@@ -53,11 +41,17 @@ class BookDto
 }
 ```
 
-The `#[Map]` attribute tells ObjectMapper that `BookDto` can be populated from `BookEntity`. Field names are matched by convention; mismatches are declared explicitly:
+The `#[Map]` attribute tells ObjectMapper that `BookDto` can be populated from `BookEntity`. Field names are matched by convention; mismatches are declared explicitly at the property level:
 
 ```php
-#[Map(from: BookEntity::class, properties: ['authorName' => 'author.fullName'])]
-class BookDto {}
+use Symfony\Component\ObjectMapper\Attribute\Map;
+
+#[Map(source: BookEntity::class)]
+class BookDto
+{
+    #[Map(source: 'author.fullName')]
+    public string $authorName;
+}
 ```
 
 The dot notation traverses nested objects. The mapping runs before serialization and replaces the implicit property-matching behavior of the serializer. Unmapped fields raise an error at configuration time, not at runtime.
@@ -68,6 +62,7 @@ ObjectMapper works with `stateOptions`:
 use ApiPlatform\Doctrine\Orm\State\Options;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GetCollection;
+use Symfony\Component\ObjectMapper\Attribute\Map;
 
 #[ApiResource(
     operations: [
@@ -76,7 +71,7 @@ use ApiPlatform\Metadata\GetCollection;
         ),
     ]
 )]
-#[Map(from: BookEntity::class)]
+#[Map(source: BookEntity::class)]
 class BookDto {}
 ```
 
@@ -96,24 +91,13 @@ Before 4.2, adding `#[ApiResource]` to a class was sufficient for Hugo to discov
 
 For Laravel, the equivalent uses Laravel's service provider autoloading — Eloquent models with `#[ApiResource]` are picked up automatically without manual registration.
 
-## New Doctrine search filters
+## Doctrine ExistsFilter
 
-4.2 adds two Doctrine filters that were commonly reimplemented from scratch:
-
-`ExistsFilter` — filters a collection by whether a nullable relation or field is set:
+The `ExistsFilter` constrains a collection by whether a nullable relation or field is set:
 
 ```php
 #[ApiFilter(ExistsFilter::class, properties: ['publishedAt'])]
 class Book {}
 ```
 
-`GET /books?publishedAt[exists]=true` returns books where `publishedAt` is not null. `false` returns books where it is null.
-
-`UuidFilter` — filters by a UUID field with proper type handling for UUID columns:
-
-```php
-#[ApiFilter(UuidFilter::class, properties: ['externalId'])]
-class Book {}
-```
-
-Neither filter is novel — both patterns appeared in user code for years. 4.2 standardizes them so they do not need to be copied between projects.
+`GET /books?exists[publishedAt]=true` returns books where `publishedAt` is not null. `exists[publishedAt]=false` returns books where it is null.

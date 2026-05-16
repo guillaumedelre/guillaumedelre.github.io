@@ -31,14 +31,14 @@ class Book extends Model
 }
 ```
 
-L'autorisation utilise les policies et gates de Laravel plutôt que les security voters de Symfony :
+L'autorisation utilise les policies et gates de Laravel plutôt que les security voters de Symfony. Les opérations exposent un paramètre `policy` dédié qui correspond à un nom de méthode de policy :
 
 ```php
-#[Get(security: "policy('view', object)")]
+#[Get(policy: 'view')]
 class Book extends Model {}
 ```
 
-L'expression `policy()` appelle `Gate::check()` de Laravel avec l'instance du modèle. Les filtres Doctrine Orm — `SearchFilter`, `RangeFilter`, `OrderFilter` — sont portés sur Eloquent. La pagination, le tri et la validation fonctionnent via les mécanismes natifs de Laravel.
+API Platform mappe la valeur de `policy` vers `Gate::allows()` de Laravel avec l'instance du modèle. Les policies peuvent aussi être auto-détectées : si un modèle a une classe de policy enregistrée, API Platform infère la bonne méthode (`view`, `viewAny`, `create`, `update`, `delete`) selon le type d'opération. Les filtres pour les collections Eloquent couvrent le même périmètre que leurs homologues Doctrine : `PartialSearchFilter`, `EqualsFilter`, `RangeFilter`, `OrderFilter`, `DateFilter`, et des variantes de recherche (`StartSearchFilter`, `EndSearchFilter`). La pagination, le tri et la validation fonctionnent via les mécanismes natifs de Laravel.
 
 Ce n'est pas un shim de compatibilité. Le bridge Laravel est maintenu aux côtés du bridge Symfony et est couvert par la même suite de tests. Les projets utilisant l'un ou l'autre framework ont la même API de définition des ressources.
 
@@ -67,9 +67,9 @@ La motivation est la clarté sémantique. PATCH remplace PUT pour la plupart des
 
 La 4.0 abandonne PHP 8.0 et 8.1. PHP 8.2 est le nouveau minimum. La syntaxe de classe readonly, `AllowDynamicProperties` et les types DNF[^dnf] introduits en 8.2 sont disponibles dans toute la codebase. Aucune fonctionnalité spécifique de 8.2 n'est structurante pour la 4.0 — le bump de version concerne principalement l'abandon du fardeau de maintenance plus ancien.
 
-## Symfony 7 et Doctrine ORM 3 minimum
+## Symfony 6.4+ et Doctrine ORM 2.17+ minimum
 
-Côté Symfony, la 4.0 requiert Symfony 7.0 et Doctrine ORM 3. Les deux étaient déjà supportés en 3.4. La migration de la 3.4 vers la 4.0 sur la piste Symfony est : résoudre les dépréciations 3.4, vérifier qu'on est sur Symfony 7 et ORM 3, puis mettre à jour. Aucun travail de migration supplémentaire n'est nécessaire si c'est déjà en place.
+Côté Symfony, la 4.0 requiert Symfony 6.4 ou 7.x et Doctrine ORM 2.17 ou 3.x. Les deux étaient déjà supportés en 3.4. La migration de la 3.4 vers la 4.0 sur la piste Symfony est : résoudre les dépréciations 3.4, vérifier qu'on est sur Symfony 6.4+ et ORM 2.17+, puis mettre à jour. Aucun travail de migration supplémentaire n'est nécessaire si c'est déjà en place.
 
 ## Ce que la 4.0 n'est pas
 

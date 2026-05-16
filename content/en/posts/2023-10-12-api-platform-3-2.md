@@ -5,7 +5,7 @@ series: ["api-platform-releases"]
 part: 3
 categories: [development]
 tags: [api-platform, php, symfony, openapi]
-description: "API Platform 3.2 makes errors first-class Problem Detail resources, brings back sub-resources cleanly, and drops event listeners in favor of providers."
+description: "API Platform 3.2 makes errors first-class Problem Detail resources, brings back sub-resources cleanly, and makes event listeners optional."
 ---
 
 API Platform 3.2 arrived in October 2023 with three changes that pushed the state model further: errors became resources, sub-resources came back in a form that actually fits the architecture, and the last legacy extension point — event listeners — was formally replaced.
@@ -14,16 +14,16 @@ API Platform 3.2 arrived in October 2023 with three changes that pushed the stat
 
 Before 3.2, error handling was outside the resource model. Exceptions were caught by a Symfony event listener and converted to a response, with limited control over the shape of the output.
 
-3.2 makes errors first-class `ApiResource` classes compliant with [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) (Problem Details for HTTP APIs). The built-in error class is `ApiPlatform\Api\Error`, and you can create your own:
+3.2 makes errors first-class `ApiResource` classes compliant with [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) (Problem Details for HTTP APIs). The built-in error class is `ApiPlatform\ApiResource\Error`, and you can create your own:
 
 ```php
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\ErrorResource;
-use ApiPlatform\Metadata\Exception\ErrorResourceExceptionInterface;
+use ApiPlatform\Metadata\Exception\ProblemExceptionInterface;
 
 #[ApiResource]
 #[ErrorResource]
-class BookNotFoundError extends \RuntimeException implements ErrorResourceExceptionInterface
+class BookNotFoundError extends \RuntimeException implements ProblemExceptionInterface
 {
     public function __construct(private readonly string $bookId)
     {
@@ -69,7 +69,7 @@ The `Link` descriptor makes the relationship explicit. The provider receives `bo
 
 ## `canonical_uri_template` for multiple access paths
 
-When a resource is accessible through multiple URIs (a direct endpoint and a sub-resource endpoint), OpenAPI needs to know which URI is canonical for `$ref` links. 3.2 adds `canonical_uri_template` to mark the primary URI:
+When a resource is accessible through multiple URIs (a direct endpoint and a sub-resource endpoint), OpenAPI needs to know which URI is canonical for `$ref` links. 3.2 uses the top-level `uriTemplate` on `ApiResource` as the default canonical URI. For finer control, the `canonical_uri_template` option can be passed via `extraProperties` on any operation to override it explicitly.
 
 ```php
 #[ApiResource(
@@ -91,10 +91,10 @@ The generated OpenAPI spec uses the canonical URI for schema references, keeping
 
 3.2 adds support for PHP union and intersection types in the metadata layer. A property declared as `Book|Magazine` generates a proper `oneOf` schema in OpenAPI. This was previously unsupported — you had to fall back to an untyped `mixed` or annotate the property manually.
 
-## Event listeners removed
+## Event listeners made optional
 
-The last compatibility shim from 2.x was the ability to use Symfony event listeners on the `kernel.request` and `kernel.view` events to intercept API Platform's data flow. 3.2 removes this. The replacement is a provider or processor decorated with another provider or processor. The event-based hook was stateful, order-dependent, and bypassed the operation context entirely. Decorated providers get the operation object and can call the inner provider when ready.
+The last compatibility shim from 2.x was the ability to use Symfony event listeners on the `kernel.request` and `kernel.view` events to intercept API Platform's data flow. 3.2 does not remove them, but introduces an opt-out: setting `event_listeners_backward_compatibility_layer: false` in the API Platform configuration disables the event-based hooks entirely. The replacement is a provider or processor decorated with another provider or processor. The event-based hook was stateful, order-dependent, and bypassed the operation context entirely. Decorated providers get the operation object and can call the inner provider when ready.
 
 ## The state model is now complete
 
-3.0 introduced the architecture. 3.1 added resource/entity separation. 3.2 closes the remaining gaps: errors have a resource contract, sub-resources have a clean declaration model, and the extension surface is entirely within the state layer. There are no more 2.x shims to fall back on.
+3.0 introduced the architecture. 3.1 added resource/entity separation. 3.2 closes the remaining gaps: errors have a resource contract, sub-resources have a clean declaration model, and the state layer now covers every extension point that event listeners once handled. The 2.x shims still exist, but opting out of them is now a single config flag.

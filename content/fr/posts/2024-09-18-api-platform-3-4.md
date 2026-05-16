@@ -5,7 +5,7 @@ series: ["api-platform-releases"]
 part: 5
 categories: [développement]
 tags: [api-platform, php, symfony, openapi]
-description: "API Platform 3.4 fait des BackedEnum des ressources API complètes, ajoute un BackedEnumFilter, supporte les expressions de sécurité sur les paramètres, et abandonne DBAL 3."
+description: "API Platform 3.4 fait des BackedEnum des ressources API complètes, ajoute un BackedEnumFilter, supporte les expressions de sécurité sur les paramètres, et ajoute le support DBAL 4."
 ---
 
 API Platform 3.4 est arrivé en septembre 2024 comme dernier mineur avant le saut vers la 4.0. La fonctionnalité principale est le BackedEnum comme ressource complète — pas juste un champ typé, mais un enum qui est lui-même un endpoint API.
@@ -73,11 +73,11 @@ class Book {}
 
 Quand l'expression de sécurité est false, le paramètre est rejeté avec un 403, pas silencieusement ignoré. C'est plus explicite que vérifier le rôle de l'utilisateur dans le provider après avoir reçu le paramètre.
 
-## Support DBAL 4, DBAL 3 abandonné
+## Support DBAL 4 ajouté
 
 La 3.4 ajoute le support de Doctrine DBAL 4, qui apporte des changements au système de types qui affectent la façon dont les types personnalisés et le SQL spécifique à la plateforme fonctionnent. Les filtres Doctrine Orm et les extensions de requête dans API Platform ont été mis à jour pour fonctionner avec la nouvelle API de types DBAL 4.
 
-Le support DBAL 3 est supprimé. Si votre projet utilise le bridge Doctrine et est encore sur DBAL 3, la 3.4 est un stop dur jusqu'à la migration.
+DBAL 3 (`^3.4.0`) et DBAL 4 sont supportés simultanément en 3.4. C'est la release à adopter pour migrer vers DBAL 4 tout en restant sur une branche stable API Platform 3.x.
 
 ## Validateur de paramètres de requête déprécié
 

@@ -8,7 +8,7 @@ tags: [api-platform, php, symfony, openapi]
 description: "API Platform 3.1 découple les ressources API des entités Doctrine, introduit un PUT conforme à la spec, et collecte les erreurs de dénormalisation en liste."
 ---
 
-Deux mois après la 3.0, API Platform 3.1 est arrivé avec le premier lot de fonctionnalités construites sur le nouveau modèle d'état. Tous les changements ne sont pas spectaculaires, mais l'un d'eux résout un problème qui a engendré beaucoup de contournements alambiqués en 2.x : votre ressource API n'a plus besoin d'être votre entité Doctrine.
+Quatre mois après la 3.0, API Platform 3.1 est arrivé avec le premier lot de fonctionnalités construites sur le nouveau modèle d'état. Tous les changements ne sont pas spectaculaires, mais l'un d'eux résout un problème qui a engendré beaucoup de contournements alambiqués en 2.x : votre ressource API n'a plus besoin d'être votre entité Doctrine.
 
 ## La séparation ressource/entité
 

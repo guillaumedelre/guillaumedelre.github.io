@@ -5,22 +5,21 @@ series: ["api-platform-releases"]
 part: 7
 categories: [development]
 tags: [api-platform, php, symfony, openapi]
-description: "API Platform 4.1 makes strict query parameter validation the default, introduces x-apiplatform-tags for splitting one API into multiple OpenAPI specs, and adds depth and complexity limits for GraphQL."
+description: "API Platform 4.1 formalizes strict query parameter validation, introduces x-apiplatform-tag for splitting one API into multiple OpenAPI specs, and adds depth and complexity limits for GraphQL."
 ---
 
-API Platform 4.1 arrived in February 2025 with a batch of features that are less about new capabilities and more about making the existing ones production-ready. Strict query params become the default. OpenAPI gains a mechanism for splitting large APIs into separate specs. GraphQL gets the abuse prevention controls it was missing.
+API Platform 4.1 arrived in February 2025 with a batch of features that are less about new capabilities and more about making the existing ones production-ready. Strict query param validation gets a first-class property. OpenAPI gains a mechanism for splitting large APIs into separate specs. GraphQL gets the abuse prevention controls it was missing.
 
-## Strict query parameter validation is now the default
+## Strict query parameter validation
 
-3.3 introduced query parameter validation as opt-in. 3.4 deprecated the loose behavior. 4.1 flips the switch: unknown query parameters now return 400 by default.
-
-If your API has operations that intentionally accept undeclared parameters — analytics tracking, feature flags, pass-through proxies — you need to declare them explicitly:
+3.3 introduced query parameter validation as opt-in. 3.4 deprecated the loose behavior. 4.1 formalizes it with a native `strictQueryParameterValidation` property on resources and operations: when set to `true`, unknown query parameters return 400.
 
 ```php
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\QueryParameter;
 
 #[GetCollection(
+    strictQueryParameterValidation: true,
     parameters: [
         new QueryParameter(key: 'utm_source', required: false, schema: ['type' => 'string']),
         new QueryParameter(key: 'feature_flag', required: false, schema: ['type' => 'string']),
@@ -29,24 +28,28 @@ use ApiPlatform\Metadata\QueryParameter;
 class Book {}
 ```
 
-Declared parameters pass through; undeclared parameters are rejected. The behavior can be disabled per-operation with `extraProperties: ['unknown_query_parameters' => true]` if you have a legitimate reason to accept arbitrary parameters.
+Declared parameters pass through; undeclared parameters are rejected. To disable strict validation on a specific operation when it is enabled at the resource level, set `strictQueryParameterValidation: false` on that operation.
 
-## `x-apiplatform-tags` for multi-spec OpenAPI
+## `x-apiplatform-tag` for multi-spec OpenAPI
 
 Large APIs often need multiple OpenAPI specs: one per team, one per API version, one internal and one public. Before 4.1, the generated spec was one document, and splitting it required post-processing or separate API Platform instances.
 
-4.1 adds an `x-apiplatform-tags` vendor extension. You tag operations with logical group names, then request the spec filtered to one or more groups:
+4.1 adds an `x-apiplatform-tag` vendor extension (no trailing `s`). You tag operations with logical group names via the `extensionProperties` of an OpenAPI `Operation` object, then request the spec filtered to one or more groups:
 
 ```php
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\OpenApi\Factory\OpenApiFactory;
+use ApiPlatform\OpenApi\Model\Operation;
 
 #[GetCollection(
-    extraProperties: ['x-apiplatform-tags' => ['public', 'v2']]
+    openapi: new Operation(
+        extensionProperties: [OpenApiFactory::API_PLATFORM_TAG => ['public', 'v2']]
+    )
 )]
 class Book {}
 ```
 
-Requesting `/api/docs.json?tags[]=public` returns only the operations tagged `public`. The full spec is still available without a filter. Groups do not affect the actual API behavior — they are a documentation-layer concern only.
+Requesting `/api/docs.json?filter_tags[]=public` returns only the operations tagged `public`. The full spec is still available without a filter. Groups do not affect the actual API behavior — they are a documentation-layer concern only.
 
 This makes it feasible to maintain one API Platform configuration while serving different spec views to different consumers: a public Swagger UI, a partner portal, and an internal tool that exposes admin endpoints.
 
@@ -54,22 +57,7 @@ This makes it feasible to maintain one API Platform configuration while serving 
 
 Before 4.1, the Swagger UI bundled with API Platform supported Bearer token authentication via its "Authorize" dialog. API Key and HTTP Basic authentication were not wired in.
 
-4.1 adds configuration for multiple security schemes:
-
-```yaml
-api_platform:
-    openapi:
-        security_schemes:
-            basicAuth:
-                type: http
-                scheme: basic
-            apiKey:
-                type: apiKey
-                in: header
-                name: X-API-KEY
-```
-
-Each declared scheme appears in Swagger UI's "Authorize" dialog and is applied to requests made from the UI. This is a documentation and developer experience improvement — the actual authentication logic in your application is not affected.
+4.1 adds support for multiple security schemes in the generated OpenAPI document. Security schemes are added by decorating the `OpenApiFactory` and modifying the `components.securitySchemes` object of the spec. Each declared scheme then appears in Swagger UI's "Authorize" dialog and is applied to requests made from the UI. This is a documentation and developer experience improvement — the actual authentication logic in your application is not affected.
 
 ## GraphQL query depth and complexity limits
 

@@ -8,7 +8,7 @@ tags: [api-platform, php, symfony, openapi]
 description: "API Platform 3.0 replaced DataProviders and DataPersisters with a state model that makes HTTP operations explicit — and required PHP 8.1 and Symfony 6 to do it."
 ---
 
-API Platform 3.0 arrived in November 2022 with Symfony 6.1 as a hard minimum and a core architecture that looked nothing like 2.x. The migration guide is long. The reason it's long is interesting.
+API Platform 3.0 arrived in September 2022 with Symfony 6.1 as a hard minimum and a core architecture that looked nothing like 2.x. The migration guide is long. The reason it's long is interesting.
 
 The old model had a conceptual leak. `DataProviderInterface` and `DataPersisterInterface` were called for every HTTP request, but the provider received the operation context as a hint — not as a contract. A collection provider and an item provider were separate interfaces, but both lived in the same mental bucket: "things that return data." The HTTP layer knew what was being requested; the provider had to reconstruct that knowledge from context clues passed in the `$context` array.
 
@@ -47,7 +47,7 @@ use ApiPlatform\Metadata\Operation;
 
 class BookProcessor implements ProcessorInterface
 {
-    public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
+    public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = [])
     {
         $this->entityManager->persist($data);
         $this->entityManager->flush();
@@ -86,9 +86,9 @@ This is more verbose than `@ApiResource` with magic defaults. It is also explici
 
 ## PHP 8.1 was not a coincidence
 
-The hard requirement for PHP 8.1 is load-bearing. Readonly properties let API Platform enforce that operation metadata is immutable once constructed. Fibers underpin the async handling in the Mercure integration. Enums clarify what properties like `paginationType` actually accept. First-class callables make filter registration cleaner.
+The hard requirement for PHP 8.1 is load-bearing. First-class callables make filter registration cleaner. The immutability of operation metadata is enforced through cloning patterns (`withX()` methods) that rely on named arguments and promoted constructor properties — PHP 8.0 foundations the architecture builds on heavily.
 
-More practically: the full expression of 3.0's architecture — readonly state, typed operations, operation-scoped providers — needed 8.1 to not feel like workarounds. Dropping PHP 7.x and 8.0 was not a housekeeping decision.
+More practically: the full expression of 3.0's architecture — typed operations, operation-scoped providers, explicit metadata — needed 8.1 to not feel like workarounds. Dropping PHP 7.x and 8.0 was not a housekeeping decision.
 
 ## The migration is real work
 

@@ -63,11 +63,11 @@ L'attachement ne survit pas aux redémarrages, cependant. usbipd v4+ a ajouté u
 
 ## Ce qui nous a vraiment surpris
 
-:dart: **Le positionnement temporel fonctionne suffisamment bien.** Sans encodeurs, on s'attendait à ce que le tracking d'angle soit quasi-inutilisable. En pratique, le parking avant chaque séquence le maintenait assez précis pour viser un bureau spécifique de manière fiable. Pas au millimètre, mais la précision missile en mousse, ça convient.
+**Le positionnement temporel fonctionne suffisamment bien.** Sans encodeurs, on s'attendait à ce que le tracking d'angle soit quasi-inutilisable. En pratique, le parking avant chaque séquence le maintenait assez précis pour viser un bureau spécifique de manière fiable. Pas au millimètre, mais la précision missile en mousse, ça convient.
 
-:lock: **Le mount `devices` est nécessaire mais pas suffisant.** L'erreur de permission était déroutante précisément parce que le device était clairement visible dans le conteneur. La règle udev est la partie que la plupart des tutoriels passent discrètement sous silence.
+**Le mount `devices` est nécessaire mais pas suffisant.** L'erreur de permission était déroutante précisément parce que le device était clairement visible dans le conteneur. La règle udev est la partie que la plupart des tutoriels passent discrètement sous silence.
 
-:laughing: **La règle café n'a plus jamais été la même après ça.** Une fois le lanceur câblé au pipeline, les builds cassés sont devenus beaucoup plus motivants à corriger.
+**La règle café n'a plus jamais été la même après ça.** Une fois le lanceur câblé au pipeline, les builds cassés sont devenus beaucoup plus motivants à corriger.
 
 <div style="border: 1px solid #e8e8e8; padding: 16px; margin-top: 2em; border-radius: 3px;">
   <img src="https://cdn.simpleicons.org/github" width="20" style="vertical-align: middle; margin-right: 8px;" />

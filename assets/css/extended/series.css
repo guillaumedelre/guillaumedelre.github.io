@@ -1,0 +1,20 @@
+/* Badge de série dans le header du post */
+.post-series-badge {
+    font-size: 14px;
+    color: var(--secondary);
+    margin-top: 6px;
+}
+
+.post-series-badge a {
+    color: var(--secondary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.post-series-badge a:hover {
+    color: var(--primary);
+}
+
+.post-series-badge .series-part {
+    color: var(--secondary);
+}

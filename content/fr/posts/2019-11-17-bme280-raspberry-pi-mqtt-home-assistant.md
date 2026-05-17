@@ -50,11 +50,11 @@ Le guide d'installation complet est <a href="https://github.com/guillaumedelre/b
 
 ## Ce à quoi je ne m'attendais pas
 
-:thermometer: **La calibration Bosch n'est pas négociable.** J'ai commencé par lire le registre de température brute directement et le scaler naïvement. Le résultat était des nombres qui avaient l'air presque plausibles et qui étaient complètement faux. L'algorithme de compensation n'est pas une décoration optionnelle, c'est ce qui rend la sortie significative.
+**La calibration Bosch n'est pas négociable.** J'ai commencé par lire le registre de température brute directement et le scaler naïvement. Le résultat était des nombres qui avaient l'air presque plausibles et qui étaient complètement faux. L'algorithme de compensation n'est pas une décoration optionnelle, c'est ce qui rend la sortie significative.
 
-:clock1: **Le polling bat les événements ici.** Le capteur ne pousse pas de données, on lui demande une lecture. Un cron job toutes les minutes est tout ce dont on a besoin pour surveiller une pièce. Le streaming en temps réel serait excessif et userait probablement le capteur plus vite.
+**Le polling bat les événements ici.** Le capteur ne pousse pas de données, on lui demande une lecture. Un cron job toutes les minutes est tout ce dont on a besoin pour surveiller une pièce. Le streaming en temps réel serait excessif et userait probablement le capteur plus vite.
 
-:house: **La découverte MQTT est sous-estimée.** Déclarer manuellement les capteurs dans `configuration.yaml` fonctionne, mais l'auto-découverte semble simplement juste. Publier un payload de config une fois, et Home Assistant s'en occupe. Ajouter un nouveau type de capteur plus tard prend environ trente secondes.
+**La découverte MQTT est sous-estimée.** Déclarer manuellement les capteurs dans `configuration.yaml` fonctionne, mais l'auto-découverte semble simplement juste. Publier un payload de config une fois, et Home Assistant s'en occupe. Ajouter un nouveau type de capteur plus tard prend environ trente secondes.
 
 La pièce est maintenant à 21,4°C et 47% d'humidité. Je le sais sans rien ouvrir.
 

@@ -50,11 +50,11 @@ The full setup guide is <a href="https://github.com/guillaumedelre/bme280" targe
 
 ## What I didn't expect
 
-:thermometer: **The Bosch calibration is non-negotiable.** I started by reading the raw temperature register directly and scaling it naively. The result was numbers that looked almost plausible and were completely wrong. The compensation algorithm isn't optional decoration, it's what makes the output mean anything.
+**The Bosch calibration is non-negotiable.** I started by reading the raw temperature register directly and scaling it naively. The result was numbers that looked almost plausible and were completely wrong. The compensation algorithm isn't optional decoration, it's what makes the output mean anything.
 
-:clock1: **Polling beats events here.** The sensor doesn't push data, you ask it for a reading. A cron job every minute is all you need for room monitoring. Real-time streaming would be overkill and would probably wear out the sensor faster.
+**Polling beats events here.** The sensor doesn't push data, you ask it for a reading. A cron job every minute is all you need for room monitoring. Real-time streaming would be overkill and would probably wear out the sensor faster.
 
-:house: **MQTT discovery is underrated.** Manually declaring sensors in `configuration.yaml` works, but auto-discovery just feels right. Publish a config payload once, and Home Assistant takes it from there. Adding a new sensor type later takes about thirty seconds.
+**MQTT discovery is underrated.** Manually declaring sensors in `configuration.yaml` works, but auto-discovery just feels right. Publish a config payload once, and Home Assistant takes it from there. Adding a new sensor type later takes about thirty seconds.
 
 The room is now 21.4°C and 47% humidity. I know this without opening anything.
 

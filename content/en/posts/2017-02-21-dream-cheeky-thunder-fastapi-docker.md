@@ -63,11 +63,11 @@ The attachment doesn't survive reboots, though. usbipd v4+ added a policy mechan
 
 ## What actually surprised us
 
-:dart: **Time-based positioning works well enough.** No encoders meant we went in expecting the angle tracking to be basically useless. Turns out, parking before every sequence kept it accurate enough to reliably aim at a specific desk. Not millimeter precision, but foam missile precision is fine.
+**Time-based positioning works well enough.** No encoders meant we went in expecting the angle tracking to be basically useless. Turns out, parking before every sequence kept it accurate enough to reliably aim at a specific desk. Not millimeter precision, but foam missile precision is fine.
 
-:lock: **The `devices` mount is necessary but not sufficient.** The permission error was confusing precisely because the device was clearly visible inside the container. The udev rule is the bit most tutorials quietly skip.
+**The `devices` mount is necessary but not sufficient.** The permission error was confusing precisely because the device was clearly visible inside the container. The udev rule is the bit most tutorials quietly skip.
 
-:laughing: **The coffee rule was never the same after this.** Once the launcher was wired to the pipeline, broken builds suddenly became a lot more motivating to fix.
+**The coffee rule was never the same after this.** Once the launcher was wired to the pipeline, broken builds suddenly became a lot more motivating to fix.
 
 <div style="border: 1px solid #e8e8e8; padding: 16px; margin-top: 2em; border-radius: 3px;">
   <img src="https://cdn.simpleicons.org/github" width="20" style="vertical-align: middle; margin-right: 8px;" />

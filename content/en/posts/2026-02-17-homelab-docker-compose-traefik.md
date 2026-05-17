@@ -441,7 +441,11 @@ I'm well aware this tutorial doesn't cover everything. We could have added authe
 
 The perfect homelab doesn't exist. The one that runs, does.
 
----
+<div style="border: 1px solid #e8e8e8; padding: 16px; margin-top: 2em; border-radius: 3px;">
+  <img src="https://cdn.simpleicons.org/github" width="20" style="vertical-align: middle; margin-right: 8px;" />
+  <strong><a href="https://github.com/guillaumedelre/homelab" target="_blank" rel="noopener noreferrer">guillaumedelre/homelab</a></strong>
+  <p style="margin: 8px 0 0; color: #828282; font-size: 14px;">Docker Compose homelab with Traefik — independent stacks, auto-configured dashboard, and zero DNS configuration using sslip.io.</p>
+</div>
 
 ## References
 

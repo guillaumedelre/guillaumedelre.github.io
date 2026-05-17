@@ -441,7 +441,11 @@ J'ai bien conscience que ce tuto ne couvre pas tout. On aurait pu ajouter de l'a
 
 Le homelab parfait n'existe pas. Celui qui tourne, si.
 
----
+<div style="border: 1px solid #e8e8e8; padding: 16px; margin-top: 2em; border-radius: 3px;">
+  <img src="https://cdn.simpleicons.org/github" width="20" style="vertical-align: middle; margin-right: 8px;" />
+  <strong><a href="https://github.com/guillaumedelre/homelab" target="_blank" rel="noopener noreferrer">guillaumedelre/homelab</a></strong>
+  <p style="margin: 8px 0 0; color: #828282; font-size: 14px;">Homelab Docker Compose avec Traefik — stacks indépendants, dashboard auto-configuré, et zéro configuration DNS grâce à sslip.io.</p>
+</div>
 
 ## Références
 

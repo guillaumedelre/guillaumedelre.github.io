@@ -1,0 +1,15 @@
+{{- with .Params.series -}}
+  {{- $seriesSlug := index . 0 -}}
+  {{- $part := $.Params.part -}}
+  {{- $seriesTitle := $seriesSlug -}}
+  {{- $seriesURL := printf "/series/%s/" $seriesSlug -}}
+  {{- with $.Site.GetPage (printf "series/%s" $seriesSlug) -}}
+    {{- $seriesTitle = .Title -}}
+    {{- $seriesURL = .Permalink -}}
+  {{- end -}}
+  {{- $labelPart := cond (eq $.Site.Language.Lang "fr") "Partie" "Part" -}}
+  <div class="post-series-badge">
+    <a href="{{ $seriesURL }}">{{ $seriesTitle }}</a>
+    {{- with $part }}<span class="series-part"> &middot; {{ $labelPart }} {{ . }}</span>{{- end }}
+  </div>
+{{- end -}}

@@ -1,0 +1,44 @@
+{{- with .Params.series -}}
+  {{- $seriesSlug := index . 0 -}}
+  {{- $currentPart := $.Params.part -}}
+  {{- $allPosts := where $.Site.RegularPages "Params.series" "intersect" (slice $seriesSlug) -}}
+  {{- $sorted := sort $allPosts "Params.part" -}}
+  {{- $prevPosts := where $sorted "Params.part" "lt" $currentPart -}}
+  {{- $nextPosts := where $sorted "Params.part" "gt" $currentPart -}}
+  {{- $prevPost := index (last 1 $prevPosts) 0 -}}
+  {{- $nextPost := index (first 1 $nextPosts) 0 -}}
+  {{- if or $prevPost $nextPost -}}
+  <nav class="paginav">
+    {{- with $prevPost }}
+    <a class="prev" href="{{ .Permalink }}">
+      <span class="title">« {{ i18n "prev_page" }}</span>
+      <span>{{- .Name -}}</span>
+    </a>
+    {{- end }}
+    {{- with $nextPost }}
+    <a class="next" href="{{ .Permalink }}">
+      <span class="title">{{ i18n "next_page" }} »</span>
+      <span>{{- .Name -}}</span>
+    </a>
+    {{- end }}
+  </nav>
+  {{- end -}}
+{{- else -}}
+  {{- $pages := where site.RegularPages "Type" "in" site.Params.mainSections }}
+  {{- if and (gt (len $pages) 1) (in $pages . ) }}
+  <nav class="paginav">
+    {{- with $pages.Next . }}
+    <a class="prev" href="{{ .Permalink }}">
+      <span class="title">« {{ i18n "prev_page" }}</span>
+      <span>{{- .Name -}}</span>
+    </a>
+    {{- end }}
+    {{- with $pages.Prev . }}
+    <a class="next" href="{{ .Permalink }}">
+      <span class="title">{{ i18n "next_page" }} »</span>
+      <span>{{- .Name -}}</span>
+    </a>
+    {{- end }}
+  </nav>
+  {{- end -}}
+{{- end -}}

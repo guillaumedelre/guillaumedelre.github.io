@@ -290,7 +290,7 @@ To find services worth adding, [selfh.st][selfhst] is an excellent resource: it'
 - [ ] Create `stacks/<subdomain-name>/.env.example` with `COMPOSE_PROJECT_NAME=<name>`
 - [ ] Copy `.env.example` to `.env` and fill in IP/DOMAIN
 - [ ] Check the port in the Traefik labels
-- [ ] Choose the Homepage group: `infra`, `monitoring`, `tools` (or any name you like)
+- [ ] Choose the Homepage group: `infra`, `monitoring`, `tools`
 - [ ] Find the icon on [selfhst/icons][selfhst-icons]
 - [ ] Add persistent data in a volume if needed
 - [ ] Start from Dockge and verify the container is `healthy`

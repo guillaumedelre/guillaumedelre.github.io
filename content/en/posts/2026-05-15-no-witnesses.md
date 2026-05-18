@@ -1,8 +1,8 @@
 ---
 title: "No Witnesses"
-date: 2026-05-15T11:00:00+00:00
+date: 2026-05-15T10:00:00+00:00
 series: ["symfony-to-the-cloud"]
-part: 2
+part: 3
 categories: [development]
 tags: [symfony, cloud, monolog, kubernetes, 12factor, observability]
 description: "A service crashed in production and left no logs behind. Here is why fingers_crossed and cloud deployments do not mix well."
@@ -30,15 +30,33 @@ stdout:
 
 ```yaml
 scrape_configs:
-    - job_name: docker
-      docker_sd_configs:
-          - host: unix:///var/run/docker.sock
-      pipeline_stages:
-          - json:
-              expressions:
-                  level: level
-                  service: service
+    -
+        job_name: docker
+        docker_sd_configs:
+            -
+                host: unix:///var/run/docker.sock
+                refresh_interval: 5s
+        pipeline_stages:
+            -
+                drop:
+                    older_than: 168h
+            -
+                json:
+                    expressions:
+                        level: level
+                        msg: message
+                        service: service
+            -
+                labels:
+                    level:
+                    service:
+        relabel_configs:
+            -
+                source_labels: [ '__meta_docker_container_log_stream' ]
+                target_label: stream
 ```
+
+Two stages in that pipeline do more work than the others. The `json` stage extracts `level` and `service` from each log line; the `labels` stage immediately following promotes them to Loki index labels, making `{service="content", level="error"}` a direct index lookup rather than a full-text scan across stored lines. The `stream` relabeling preserves whether a line came from stdout or stderr — a distinction that becomes queryable once Monolog sends errors to stderr and everything else to stdout. The `drop older_than: 168h` stage is a safety valve: if Promtail restarts after a long gap and replays buffered lines, anything older than seven days is discarded before reaching Loki.
 
 In theory: logs go to stdout, Promtail reads stdout, logs appear in Loki. The <a href="https://12factor.net/logs" target="_blank" rel="noopener noreferrer">twelve-factor app methodology</a> describes exactly this model for Factor XI — treat logs as event streams, write to stdout, let the environment handle collection and routing.
 
@@ -152,7 +170,7 @@ The pattern solves a real problem: in a busy production service, logging everyth
 
 It is not a reasonable tradeoff when the failure mode is a process crash. And in a Kubernetes environment, process crashes happen: OOM evictions, liveness probe failures, node pressure. Exactly the cases where you most need the logs.
 
-One approach: keep `fingers_crossed` but reduce the buffer size. By default it keeps everything since the last reset. Set `buffer_size: 50` and you cap memory usage, which also limits what gets lost on crash. You won't have the full context, but you'll have the last fifty records.
+One approach: keep `fingers_crossed` but reduce the buffer size. By default it keeps everything since the last reset. Set `buffer_size: 50` and you cap memory usage, which also limits what gets lost on crash. You won't have the full context, but you'll have the last fifty records. This patches the blast radius rather than removing the root cause: the opacity still depends on an error threshold that may never fire.
 
 Another approach: accept that debug logs are expensive and raise the default log level in production. Then you don't need `fingers_crossed` at all — if info and above go directly to stdout, nothing is ever buffered.
 
@@ -160,7 +178,7 @@ The approach we landed on: drop `fingers_crossed`, raise the default level to `w
 
 ## Crashes don't flush
 
-Factor XI and Factor IX meet at the same point: a process dying mid-request. [The previous article in this series](/2026/05/15/the-cache-that-was-lying-to-us/) described the illusion of a service that worked perfectly on one pod but quietly misbehaved on two. This is the same illusion, one layer up: a service that appeared to log correctly, until the moment it most needed to.
+Factor XI and Factor IX meet at the same point: a process dying mid-request. [another article in this series](/2026/05/16/the-cache-that-was-lying-to-us/) described the illusion of a service that worked perfectly on one pod but quietly misbehaved on two. This is the same illusion, one layer up: a service that appeared to log correctly, until the moment it most needed to.
 
 The rule for production Monolog is blunt: if it doesn't reach stdout or stderr before the process exits, it doesn't exist. A file handler inside a container is invisible to the log collector and dies with the pod. A `fingers_crossed` buffer is invisible to the log collector and dies with the process.
 

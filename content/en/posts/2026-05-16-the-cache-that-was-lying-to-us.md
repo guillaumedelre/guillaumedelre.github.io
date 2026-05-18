@@ -1,8 +1,8 @@
 ---
 title: "The Cache That Was Lying to Us"
-date: 2026-05-15T10:00:00+00:00
+date: 2026-05-16T15:00:00+00:00
 series: ["symfony-to-the-cloud"]
-part: 1
+part: 6
 categories: [development]
 tags: [symfony, cloud, redis, cache, kubernetes, 12factor]
 description: "How a single config line blocked horizontal scaling across 13 Symfony microservices, and what the twelve-factor app had to say about it."
@@ -85,7 +85,7 @@ framework:
 
 Thirteen files. Thirteen identical changes. The kind of fix that makes you feel like you should have caught it earlier, except it's perfectly invisible when you're running a single instance.
 
-## What two pods actually unlocks
+## What needs to move to Redis
 
 The filesystem cache violated Factor VI (processes carry local state they shouldn't) and Factor VIII (you can't scale out without sharing that state). They're the same problem seen from two angles: VI describes what's wrong, VIII describes what you can't do because of it.
 
@@ -93,9 +93,23 @@ With a shared cache backend, a second pod is safe. The two pods build the same c
 
 Without it, horizontal scaling is a liability. More pods means more divergence, more "works on my machine" bugs that are impossible to reproduce locally because local only runs one container.
 
-Sessions had the same problem — and potentially a worse one. Twelve of the thirteen services were using `session.storage.factory.native` — the filesystem. A user whose request lands on pod A gets a session tied to pod A. Their next request goes to pod B. Session gone, they're logged out. Only one service had `RedisSessionHandler` configured.
+Sessions had the same problem — and potentially a worse one. Twelve of the thirteen services were using `session.storage.factory.native` — which writes sessions to the filesystem by default. A user whose request lands on pod A gets a session tied to pod A. Their next request goes to pod B. Session gone, they're logged out. Only one service had `RedisSessionHandler` configured.
 
-The partial mitigation is that most of the platform runs stateless JWT-based APIs, so session usage is limited. But "limited" isn't "zero". The services that do create sessions — authentication flows, temporary state during OAuth handshakes — have a user-visible failure mode waiting for the second pod. Either those sessions get moved to Redis, or the code that creates them gets removed. Leaving them as-is is a decision that will eventually make itself heard.
+The partial mitigation is that most of the platform runs stateless JWT-based APIs, so session usage is limited. But "limited" isn't "zero". The services that do create sessions — authentication flows, temporary state during OAuth handshakes — have a user-visible failure mode waiting for the second pod. Either those sessions get moved to Redis, or the code that creates them gets removed. Leaving them as-is is a decision that waits for the first user whose session disappears without explanation.
+
+## The other kind of state
+
+Redis fixes the cross-pod problem. FrankenPHP introduces a different one worth knowing about.
+
+In the standard PHP-FPM model, each request forks a fresh process. Every in-memory object — every cached value, every computed result — dies with the response. The process is stateless by construction.
+
+FrankenPHP has a worker mode that doesn't follow that model. In worker mode, a single PHP process boots once, loads the kernel, wires the container, and handles multiple successive requests without restarting. Request throughput improves: no autoloader cold start, no container rebuild per request, fewer allocations. The tradeoff is that the PHP process now has a lifecycle that spans requests.
+
+For cache, this adds a wrinkle. An `array` adapter or APCu pool accumulates entries across requests on the same worker. A cache invalidation pushed to Redis reaches the other pods immediately — but doesn't clear what's sitting in a worker's in-process memory. Two requests on the same pod can see different things: one hits a warm in-memory entry, the next triggers a Redis fetch after the in-process entry expires.
+
+The platform keeps worker mode disabled (`APP__WORKER_MODE__ENABLED=false`). It's available — the infrastructure is there, the flag is wired — but it's not active. The performance gain didn't justify the audit. Every cache pool would need to be verified against worker-mode semantics; every place where state leaks between requests would become a potential bug.
+
+The conservative position: keep PHP stateless at the process level even when the runtime doesn't require it. Factor VI's shared-nothing principle applies not just to the filesystem — it applies to the process itself.
 
 ## What was already working
 

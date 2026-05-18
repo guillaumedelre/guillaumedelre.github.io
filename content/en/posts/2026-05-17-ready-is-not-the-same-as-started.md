@@ -1,8 +1,8 @@
 ---
 title: "Ready Is Not the Same as Started"
-date: 2026-05-15T15:00:00+00:00
+date: 2026-05-17T10:00:00+00:00
 series: ["symfony-to-the-cloud"]
-part: 6
+part: 7
 categories: [development]
 tags: [symfony, cloud, kubernetes, docker, 12factor]
 description: "The entrypoint script that works perfectly in Docker Compose has five jobs. In Kubernetes, each of those jobs belongs somewhere else."
@@ -39,7 +39,9 @@ The Dockerfile has a better signal:
 HEALTHCHECK --start-period=60s CMD curl -f http://localhost:2019/metrics || exit 1
 ```
 
-This checks the actual metrics endpoint that FrankenPHP exposes, with a sixty-second grace period to cover the polling loop. That's closer. But in Kubernetes, the `HEALTHCHECK` instruction is ignored entirely. Kubernetes uses its own probe configuration. Without explicit probe definitions in the Kubernetes manifests, there are no readiness checks — and a pod is considered ready the moment its container starts.
+Port 2019 is Caddy's built-in metrics server, embedded directly in FrankenPHP. The endpoint is Prometheus-compatible and only responds once Caddy's HTTP stack is fully initialized and PHP workers are accepting connections. `php -v` exits in fifty milliseconds regardless of what the application is doing — it checks the binary, not the server. `:2019/metrics` only answers when the server is actually serving. It is also not an endpoint added just for the probe: every service in the platform already has it scraped by Prometheus, so the signal is live regardless of any healthcheck configuration.
+
+That's closer. But in Kubernetes, the `HEALTHCHECK` instruction is ignored entirely. Kubernetes uses its own probe configuration. Without explicit probe definitions in the Kubernetes manifests, there are no readiness checks — and a pod is considered ready the moment its container starts.
 
 Which means: pod starts, entrypoint begins polling, Kubernetes routes traffic, application is not yet serving. Requests arrive at a container that isn't ready to handle them.
 
@@ -64,7 +66,7 @@ startupProbe:
     periodSeconds: 5
 ```
 
-Once the startupProbe passes, a readinessProbe on the same endpoint takes over — telling Kubernetes when the pod is safe to receive traffic — and a livenessProbe watches for hung processes. But the startupProbe is the one that absorbs the slow start. The entrypoint polling loop becomes redundant: if the database isn't up within the startup probe window, Kubernetes kills the container and tries again.
+Once the startupProbe passes, a readinessProbe on the same endpoint takes over — telling Kubernetes when the pod is safe to receive traffic — and a livenessProbe watches for hung processes. But the startupProbe is the one that absorbs the slow start. The entrypoint polling loop becomes redundant: its job was to keep the container alive while the database caught up. Without it, the application attempts to connect, fails, and the container exits — Kubernetes restarts the pod, and the startupProbe maintains its retry cycle until the database responds and the application starts cleanly. The retry responsibility moves from inside the entrypoint to the orchestrator, which is exactly where it belongs.
 
 ## The migration problem
 
@@ -86,7 +88,9 @@ initContainers:
       command: ["php", "bin/console", "doctrine:migrations:migrate", "--no-interaction", "--all-or-nothing"]
 ```
 
-Even with init containers, multiple pods starting simultaneously — initial deploy, after a node failure, or under autoscaling pressure — will each attempt to run migrations. Solving that properly — through a Helm pre-upgrade hook, a `maxSurge: 0` strategy, or a separate migration Job — is a topic in itself. What matters here is that the entrypoint is the wrong place to host that decision: it can't coordinate across pods, and it ties migration execution to application startup in a way that's hard to untangle later.
+Both init containers reuse the application image. That's not waste: they need the same PHP binary and the same environment wiring to reach the database and resolve the migration classes. A lighter purpose-built image would reduce startup overhead, but would require maintaining a separate PHP installation in sync with the main image.
+
+Even with init containers, multiple pods starting simultaneously — initial deploy, after a node failure, or under autoscaling pressure — will each attempt to run migrations. Solving that properly — through a Helm pre-upgrade hook, a `maxSurge: 0` strategy, or a separate migration Job — is a topic in itself. What matters here is that the entrypoint is the wrong place to host that decision: it can't coordinate across pods, and it ties migration execution to application startup in a way that's hard to untangle later. The question of which approach fits this codebase — and why the entrypoint hasn't been replaced — gets its own treatment in [the next article in this series](/2026/05/17/eleven-out-of-twelve/).
 
 Factor XII of the <a href="https://12factor.net/admin-processes" target="_blank" rel="noopener noreferrer">twelve-factor methodology</a> — admin processes run in the same environment as the application — is satisfied either way. The question is whether "same environment" means "same entrypoint script" or "same image, separate process". In Kubernetes, the latter is safer.
 
@@ -110,6 +114,6 @@ This is not a design flaw. It's a reasonable adaptation to the constraints of Do
 
 The issue is the assumption that the same script works equally well in Kubernetes. It runs. The application eventually starts. But it bypasses the probe system that makes Kubernetes deployments reliable, and it puts migration responsibility in a place where coordination across pods is difficult to reason about.
 
-The series of migrations this codebase went through — [cache adapters](/2026/05/15/the-cache-that-was-lying-to-us/), [log handlers](/2026/05/15/no-witnesses/), [image secrets](/2026/05/15/layers-remember-everything/), [scheduler coordination](/2026/05/15/the-job-that-never-exits/), [media storage](/2026/05/15/three-adapters-one-variable/) — all of them were changes to application code or configuration. This one is different. It requires the infrastructure to gain awareness of what "ready" means for this application, and it requires the entrypoint to give up responsibilities it currently owns.
+Several of the changes in this series — [media storage](/2026/05/14/the-ghost-of-the-ci-runner/), [secrets in image layers](/2026/05/14/what-survives-the-build/), [log handlers](/2026/05/15/no-witnesses/), [service dependencies](/2026/05/15/the-host-that-hid-the-graph/), [CI environment parity](/2026/05/16/fifteen-minutes-before-the-first-test/), [cache adapters](/2026/05/16/the-cache-that-was-lying-to-us/) — were changes to application code or configuration. This one is different. It requires the infrastructure to gain awareness of what "ready" means for this application, and it requires the entrypoint to give up responsibilities it currently owns.
 
 That's a harder conversation. But the startupProbe is waiting for it.

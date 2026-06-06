@@ -68,9 +68,35 @@ Then there's <a href="https://github.com/boschsensortec/BME280_SensorAPI/pull/94
 
 The chip itself is great. But manufacturer reference code is a starting point, not gospel. Implementing the compensation algorithm straight from the datasheet meant I understood every line of it. When a reading looks weird, there's no mystery C library to blame.
 
-<div style="border: 1px solid #e8e8e8; padding: 16px; margin-top: 2em; border-radius: 3px;">
-  <img src="https://cdn.simpleicons.org/github" width="20" style="vertical-align: middle; margin-right: 8px;" />
-  <strong><a href="https://github.com/guillaumedelre/bme280" target="_blank" rel="noopener noreferrer">guillaumedelre/bme280</a></strong>
-  <p style="margin: 8px 0 0; color: #828282; font-size: 14px;">Python driver for the BME280 sensor — temperature, humidity, and pressure over I²C, with MQTT publishing and Home Assistant integration.</p>
-</div>
+<style>
+.gh-card {
+  display: block;
+  border: 1px solid #d0d7de;
+  padding: 16px;
+  margin-top: 2em;
+  border-radius: 6px;
+  text-decoration: none !important;
+}
+.gh-card:hover { border-color: #8c959f; }
+.gh-card,
+.gh-card *,
+.md-content .gh-card,
+.md-content .gh-card * { text-decoration: none !important; }
+.gh-card__head { display: flex; align-items: center; gap: 8px; }
+.gh-card__head svg { flex-shrink: 0; fill: #1f2328 !important; }
+.gh-card__repo { font-weight: 600; color: #1f2328 !important; }
+.gh-card__desc { margin: 8px 0 0; color: #59636e !important; font-size: 14px; }
+[data-theme=dark] .gh-card { border-color: #30363d; }
+[data-theme=dark] .gh-card:hover { border-color: #6e7681; }
+[data-theme=dark] .gh-card__head svg { fill: #e6edf3 !important; }
+[data-theme=dark] .gh-card__repo { color: #e6edf3 !important; }
+[data-theme=dark] .gh-card__desc { color: #8b949e !important; }
+</style>
+<a class="gh-card" href="https://github.com/guillaumedelre/bme280" target="_blank" rel="noopener noreferrer">
+  <span class="gh-card__head">
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+    <span class="gh-card__repo">guillaumedelre/bme280</span>
+  </span>
+  <span class="gh-card__desc">Python driver for the BME280 sensor — temperature, humidity, and pressure over I²C, with MQTT publishing and Home Assistant integration.</span>
+</a>
 

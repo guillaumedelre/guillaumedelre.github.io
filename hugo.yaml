@@ -15,7 +15,7 @@ languages:
       profileMode:
         enabled: true
         title: Guillaume Delré
-        subtitle: "Tech articles about PHP, Symfony, API Platform and experiments."
+        subtitle: "Homelab, Docker and IoT experiments."
         imageUrl: /assets/images/og-default.jpg
         imageWidth: 120
         imageHeight: 120
@@ -53,7 +53,7 @@ languages:
       profileMode:
         enabled: true
         title: Guillaume Delré
-        subtitle: "Articles techniques sur PHP, Symfony, API Platform et expérimentations."
+        subtitle: "Expérimentations homelab, Docker et IoT."
         imageUrl: /assets/images/og-default.jpg
         imageWidth: 120
         imageHeight: 120
@@ -83,7 +83,7 @@ languages:
           url: /fr/index.xml
           weight: 30
 
-description: Tech articles about PHP, Symfony, API Platform and experiments.
+description: Homelab, Docker and IoT experiments.
 
 googleAnalytics: G-KJ5HF5SY3R
 

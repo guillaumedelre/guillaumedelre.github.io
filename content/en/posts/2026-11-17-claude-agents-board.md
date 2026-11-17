@@ -94,7 +94,7 @@ It's built for a local network, and it shows it. There's no authentication on th
 
 The hooks don't report everything either. No intermediate model messages, and subagents launched by a workflow show up without their instructions. Tokens and cost are counted per session, not split per subagent; only the context is tracked per thread. The PowerShell script doesn't wrap the status line yet, so on Windows it has to be wired by hand (the README shows how). A session whose terminal was closed without a clean exit stays "idle" until the automatic cleanup removes it.
 
-None of that bothers me for what it's meant to be: a tab I glance at to know whether something needs me. It runs as one more stack next to the others in the [homelab]({{< relref "2026-02-17-homelab-docker-compose-traefik.md" >}}), behind Traefik, on an [sslip.io]({{< relref "2025-04-17-traefik-local-https-mkcert-sslip.md" >}}) hostname. The screenshots above come from a demo instance fed with made-up sessions.
+None of that bothers me for what it's meant to be: a tab I glance at to know whether something needs me. It runs as one more stack next to the others in the [homelab]({{< relref "2026-05-17-homelab-docker-compose-traefik.md" >}}), behind Traefik, on an [sslip.io]({{< relref "2025-04-17-traefik-local-https-mkcert-sslip.md" >}}) hostname. The screenshots above come from a demo instance fed with made-up sessions.
 
 <a class="gh-card" href="https://github.com/guillaumedelre/claude-agents-board" target="_blank" rel="noopener noreferrer">
   <span class="gh-card__head">

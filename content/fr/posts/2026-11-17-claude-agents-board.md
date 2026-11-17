@@ -95,7 +95,7 @@ Il est pensé pour un réseau local, et ça se voit. L'interface n'a pas d'authe
 
 Les hooks ne remontent pas tout non plus. Pas de messages intermédiaires du modèle, et les sous-agents lancés par un workflow arrivent sans leur consigne. Les tokens et le coût sont comptés par session, sans répartition par sous-agent ; seul le contexte est suivi par fil. Le script PowerShell n'enveloppe pas encore la status line : sous Windows, il faut la brancher à la main (le README explique comment). Une session dont le terminal a été fermé sans sortie propre reste « au repos » jusqu'à ce que le nettoyage automatique la retire.
 
-Rien de tout ça ne me gêne pour ce qu'il est censé être : un onglet sur lequel je jette un œil pour savoir si quelque chose a besoin de moi. Il tourne comme un stack de plus à côté des autres dans le [homelab]({{< relref "2026-02-17-homelab-docker-compose-traefik.md" >}}), derrière Traefik, sur un nom en [sslip.io]({{< relref "2025-04-17-traefik-local-https-mkcert-sslip.md" >}}). Les captures ci-dessus viennent d'une instance de démonstration alimentée par des sessions fictives.
+Rien de tout ça ne me gêne pour ce qu'il est censé être : un onglet sur lequel je jette un œil pour savoir si quelque chose a besoin de moi. Il tourne comme un stack de plus à côté des autres dans le [homelab]({{< relref "2026-05-17-homelab-docker-compose-traefik.md" >}}), derrière Traefik, sur un nom en [sslip.io]({{< relref "2025-04-17-traefik-local-https-mkcert-sslip.md" >}}). Les captures ci-dessus viennent d'une instance de démonstration alimentée par des sessions fictives.
 
 <a class="gh-card" href="https://github.com/guillaumedelre/claude-agents-board" target="_blank" rel="noopener noreferrer">
   <span class="gh-card__head">

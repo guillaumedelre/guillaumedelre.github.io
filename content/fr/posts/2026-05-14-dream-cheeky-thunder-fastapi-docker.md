@@ -1,6 +1,7 @@
 ---
 title: "Contrôler un lance-missiles USB en HTTP avec FastAPI et Docker"
-date: 2017-02-21
+aliases: ["/fr/2017/02/21/contrôler-un-lance-missiles-usb-en-http-avec-fastapi-et-docker/"]
+date: 2026-05-14
 categories: [iot]
 tags: [python, docker]
 description: "Comment on a branché un lance-missiles USB en mousse sur le pipeline CI — et ce que Docker, udev et WSL2 avaient à dire là-dessus."

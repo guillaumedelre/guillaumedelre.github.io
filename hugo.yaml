@@ -23,16 +23,11 @@ languages:
         buttons:
           - name: Blog
             url: /posts/
-          - name: Series
-            url: /series/
     menu:
       main:
         - name: Blog
           url: /posts/
           weight: 5
-        - name: Series
-          url: /series/
-          weight: 10
         - name: Categories
           url: /categories/
           weight: 20
@@ -66,16 +61,11 @@ languages:
         buttons:
           - name: Blog
             url: /fr/posts/
-          - name: Séries
-            url: /fr/series/
     menu:
       main:
         - name: Blog
           url: /fr/posts/
           weight: 5
-        - name: Séries
-          url: /fr/series/
-          weight: 10
         - name: Catégories
           url: /fr/categories/
           weight: 20

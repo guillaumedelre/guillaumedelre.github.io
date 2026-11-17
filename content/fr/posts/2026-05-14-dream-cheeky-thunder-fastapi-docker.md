@@ -2,6 +2,7 @@
 title: "Contrôler un lance-missiles USB en HTTP avec FastAPI et Docker"
 aliases: ["/fr/2017/02/21/contrôler-un-lance-missiles-usb-en-http-avec-fastapi-et-docker/"]
 date: 2026-05-14
+lastmod: 2026-11-17
 categories: [iot]
 tags: [python, docker]
 description: "Comment on a branché un lance-missiles USB en mousse sur le pipeline CI — et ce que Docker, udev et WSL2 avaient à dire là-dessus."
@@ -9,7 +10,7 @@ description: "Comment on a branché un lance-missiles USB en mousse sur le pipel
 
 La règle était simple : celui qui casse le build CI offre le café à l'équipe. Ça a marché un moment. Puis quelqu'un a proposé qu'on ait un retour plus immédiat. Quelque chose de physique. Quelque chose qui tire.
 
-Un <a href="http://www.dreamcheeky.com/thunder-missile-launcher" target="_blank" rel="noopener noreferrer">Dream Cheeky Thunder</a> a atterri sur un bureau peu après. Quatre missiles en mousse, un câble USB, et un consensus d'équipe très clair : le brancher au cluster, le câbler au pipeline de build, et laisser le CI décider qui mérite une volée.
+Un <a href="https://web.archive.org/web/20171216061329/http://dreamcheeky.com/thunder-missile-launcher" target="_blank" rel="noopener noreferrer">Dream Cheeky Thunder</a> a atterri sur un bureau peu après. Quatre missiles en mousse, un câble USB, et un consensus d'équipe très clair : le brancher au cluster, le câbler au pipeline de build, et laisser le CI décider qui mérite une volée.
 
 Le lanceur devait répondre à des appels HTTP depuis n'importe où sur le réseau. Sans driver, sans GUI, sans visée manuelle. Juste un endpoint qui le fait tirer dans la direction du bureau du coupable.
 
@@ -19,7 +20,7 @@ Voilà l'histoire de <a href="https://github.com/guillaumedelre/dream-cheeky-thu
 
 ## Pas de SDK, pas de docs, pas de problème
 
-Dream Cheeky n'a jamais publié de spec de protocole. Le lanceur parle USB HID brut, et le seul point de départ était un script Python vendorisé de 2012 qui traînait dans des fils de forum. Vendor ID `0x2123`, product ID `0x1010`, et une poignée d'octets de contrôle que quelqu'un avait rétro-ingénié des années auparavant.
+Dream Cheeky n'a jamais publié de spec de protocole. Le lanceur parle USB HID brut, et le seul point de départ était un vieux script Python qui traînait dans des fils de forum. Vendor ID `0x2123`, product ID `0x1010`, et une poignée d'octets de contrôle que quelqu'un avait rétro-ingénié des années auparavant.
 
 C'était suffisant. Le protocole est simple : envoyer une séquence d'octets pour bouger les moteurs, en envoyer une autre pour tirer. La partie délicate : le lanceur n'a aucun retour de position. Pas d'encodeurs, pas de fins de course en dehors des butées physiques aux extrémités. On le pilote à l'aveugle.
 
@@ -35,7 +36,7 @@ curl -X POST http://localhost:8000/yaw/20    # rotation vers le bureau du coupab
 curl -X POST "http://localhost:8000/fire?shots=2"
 ```
 
-L'appel `/park` est plus important qu'il n'y paraît. Puisque le lanceur n'a pas de retour de position, le serveur estime l'angle courant en suivant le temps de rotation des moteurs. Cette estimation dérive. Un choc sur le hardware, une commande interrompue, ou simplement l'imprécision du tracking temporel — tout s'accumule. Le parking pousse les deux moteurs contre les butées physiques en balayage complet, ce qui garantit l'alignement quelle que soit la représentation interne du serveur. Sans ça, la visée est une approximation.
+L'appel `/park` est plus important qu'il n'y paraît. Puisque le lanceur n'a pas de retour de position, le serveur estime l'angle courant en suivant le temps de rotation des moteurs. Cette estimation dérive. Un choc sur le hardware, une commande interrompue, ou simplement l'imprécision du tracking temporel — tout s'accumule. Le parking pousse le lanceur à gauche, puis en bas, contre les butées physiques, en balayage complet à chaque fois, ce qui garantit l'alignement quelle que soit la représentation interne du serveur. Sans ça, la visée est une approximation.
 
 La référence complète de l'API est <a href="https://github.com/guillaumedelre/dream-cheeky-thunder/blob/develop/docs/api.md" target="_blank" rel="noopener noreferrer">dans le repo</a>. Il y a aussi une UI web si vous préférez cliquer plutôt que `curl`.
 
@@ -52,7 +53,7 @@ devices:
 
 Pas suffisant. Première exécution : `USBError: [Errno 13] Access denied`. Le nœud de device est bien là dans le conteneur, mais il hérite des permissions du host, et sur le host seul root peut l'ouvrir par défaut.
 
-La solution : une règle udev. Déposer un fichier dans `/etc/udev/rules.d/`, et le kernel applique le bon groupe et les bonnes permissions quand le device se branche. Après ça, l'utilisateur du conteneur peut l'ouvrir sans privilèges élevés. La règle est fournie avec le projet, les instructions d'installation sont <a href="https://github.com/guillaumedelre/dream-cheeky-thunder/blob/develop/docs/setup-linux.md" target="_blank" rel="noopener noreferrer">dans la doc</a>.
+La solution : une règle udev. Déposer un fichier dans `/etc/udev/rules.d/`, et udev l'applique quand le device se branche : mode `0666`, groupe `plugdev`. Le device n'est plus réservé à root. La règle est fournie avec le projet, les instructions d'installation sont <a href="https://github.com/guillaumedelre/dream-cheeky-thunder/blob/develop/docs/setup-linux.md" target="_blank" rel="noopener noreferrer">dans la doc</a>.
 
 ## WSL2 a rendu ça intéressant
 
@@ -60,7 +61,7 @@ La moitié de l'équipe tourne sous Windows avec Docker Desktop sur WSL2. C'est 
 
 WSL2 n'a pas accès aux périphériques USB par défaut : le kernel Windows les détient, et le mount `devices` seul ne fait rien parce que WSL2 ne voit simplement pas le hardware. La solution est <a href="https://github.com/dorssel/usbipd-win" target="_blank" rel="noopener noreferrer">usbipd-win</a>, qui transfère le périphérique USB de Windows vers le kernel WSL2 par IP. Une fois ça fait, le chemin Linux fonctionne à l'identique : règle udev, mount `devices`, terminé.
 
-L'attachement ne survit pas aux redémarrages, cependant. usbipd v4+ a ajouté un mécanisme de policy qui automatise la reconnexion, ce qui a mis fin au mystère du "ça marchait hier" qui nous agaçait depuis des jours.
+L'attachement ne survit pas aux redémarrages, cependant. usbipd v4.2+ peut partager automatiquement le périphérique grâce à une règle de policy, et `usbipd attach --wsl --auto-attach` le rattache à chaque reconnexion. À eux deux, ils ont mis fin au mystère du "ça marchait hier" qui nous agaçait depuis des jours.
 
 ## Ce qui nous a vraiment surpris
 

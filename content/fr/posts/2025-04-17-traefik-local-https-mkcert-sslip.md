@@ -2,7 +2,7 @@
 title: "HTTPS local avec Traefik: traefik.me est mort, vive sslip.io"
 date: 2025-04-17
 categories: [devops]
-tags: [docker, traefik, tls, mkcert, homelab]
+tags: [traefik, docker, homelab]
 description: "Le certificat wildcard de traefik.me a été révoqué en 2025. Voici comment le remplacer avec sslip.io, mkcert et une configuration Traefik locale."
 ---
 

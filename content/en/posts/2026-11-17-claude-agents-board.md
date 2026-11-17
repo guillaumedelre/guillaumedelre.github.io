@@ -2,7 +2,7 @@
 title: "Keeping an eye on several Claude Code sessions at once"
 date: 2026-11-17
 categories: [development]
-tags: [claude-code, docker, traefik, homelab]
+tags: [claude-code, homelab, docker]
 description: "A small self-hosted dashboard to see what all your Claude Code sessions and subagents are doing, in real time."
 translationKey: "claude-agents-board"
 lastmod: 2026-11-17

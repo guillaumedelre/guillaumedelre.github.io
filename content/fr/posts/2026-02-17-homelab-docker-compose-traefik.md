@@ -2,7 +2,7 @@
 title: "Construire un homelab self-hosted avec Docker Compose et Traefik"
 date: 2026-02-17
 categories: [devops]
-tags: [docker, traefik, devops, homelab, self-hosted]
+tags: [docker, traefik, homelab]
 description: "Tuto complet pour monter un homelab Docker avec Traefik et sslip.io : stacks indépendants, dashboard auto-configuré, pièges documentés."
 ---
 

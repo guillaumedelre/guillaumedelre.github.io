@@ -2,7 +2,7 @@
 title: "From a €10 sensor to a Home Assistant dashboard with a Raspberry Pi and MQTT"
 date: 2019-11-17
 categories: [iot]
-tags: [raspberry-pi, bme280, mqtt, flask, i2c]
+tags: [python, raspberry-pi, bme280, mqtt, home-assistant]
 description: "A €10 BME280 sensor, a Raspberry Pi, and an MQTT broker: building a room climate monitor that feeds Home Assistant."
 ---
 

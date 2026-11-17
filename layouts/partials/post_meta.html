@@ -1,0 +1,4 @@
+<p class="post__meta">
+  <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date | time.Format ":date_long" }}</time>
+  · {{ i18n "readingTime" .ReadingTime }}
+</p>

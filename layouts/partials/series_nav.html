@@ -1,0 +1,18 @@
+{{- with .Params.series -}}
+  {{- $slug := index . 0 -}}
+  {{- $current := $.Params.part -}}
+  {{- $series := site.GetPage (printf "/series/%s" $slug) -}}
+  {{- $title := $slug -}}{{ with $series }}{{ $title = .Title }}{{ end -}}
+  {{- $posts := sort (where site.RegularPages "Params.series" "intersect" (slice $slug)) "Params.part" -}}
+  {{- $prev := index (last 1 (where $posts "Params.part" "lt" $current)) 0 -}}
+  {{- $next := index (first 1 (where $posts "Params.part" "gt" $current)) 0 -}}
+  <nav class="series-nav">
+    <p>{{ with $series }}<a href="{{ .Permalink }}">{{ $title }}</a>{{ else }}{{ $title }}{{ end }} · {{ i18n "partOf" (dict "Part" $current "Count" (len $posts)) }}</p>
+    {{- if or $prev $next }}
+    <p class="series-nav__links">
+      {{- with $prev }}<a href="{{ .Permalink }}">← {{ .Title }}</a>{{ end }}
+      {{- with $next }}<a class="series-nav__next" href="{{ .Permalink }}">{{ .Title }} →</a>{{ end }}
+    </p>
+    {{- end }}
+  </nav>
+{{- end -}}

@@ -1,6 +1,6 @@
 baseURL: https://guillaumedelre.github.io/
 title: Guillaume Delré
-theme: PaperMod
+theme: risotto
 
 defaultContentLanguage: en
 defaultContentLanguageInSubdir: false
@@ -12,17 +12,10 @@ languages:
     weight: 1
     contentDir: content/en
     params:
-      profileMode:
-        enabled: true
+      about:
         title: Guillaume Delré
-        subtitle: "Homelab, Docker and IoT experiments."
-        imageUrl: /assets/images/og-default.jpg
-        imageWidth: 120
-        imageHeight: 120
-        imageTitle: Guillaume Delré
-        buttons:
-          - name: Blog
-            url: /posts/
+        description: "I write about tech experiments, dev and whatever I find interesting."
+        logo_image: /assets/images/og-default.jpg
     menu:
       main:
         - name: Blog
@@ -31,18 +24,11 @@ languages:
         - name: Categories
           url: /categories/
           weight: 20
-        - name: Search
-          url: /search/
-          weight: 25
-      footer:
         - name: Tags
           url: /tags/
-          weight: 10
+          weight: 25
         - name: Archives
           url: /archives/
-          weight: 20
-        - name: RSS
-          url: /index.xml
           weight: 30
   fr:
     languageName: Français
@@ -50,17 +36,10 @@ languages:
     weight: 2
     contentDir: content/fr
     params:
-      profileMode:
-        enabled: true
+      about:
         title: Guillaume Delré
-        subtitle: "Expérimentations homelab, Docker et IoT."
-        imageUrl: /assets/images/og-default.jpg
-        imageWidth: 120
-        imageHeight: 120
-        imageTitle: Guillaume Delré
-        buttons:
-          - name: Blog
-            url: /fr/posts/
+        description: "J'écris sur mes expérimentations tech, le dev et tout ce que je trouve intéressant."
+        logo_image: /assets/images/og-default.jpg
     menu:
       main:
         - name: Blog
@@ -69,23 +48,18 @@ languages:
         - name: Catégories
           url: /fr/categories/
           weight: 20
-        - name: Recherche
-          url: /fr/search/
-          weight: 25
-      footer:
         - name: Tags
           url: /fr/tags/
-          weight: 10
+          weight: 25
         - name: Archives
           url: /fr/archives/
-          weight: 20
-        - name: RSS
-          url: /fr/index.xml
           weight: 30
 
 description: Homelab, Docker and IoT experiments.
 
-googleAnalytics: G-KJ5HF5SY3R
+services:
+  googleAnalytics:
+    id: G-KJ5HF5SY3R
 
 taxonomies:
   category: categories
@@ -96,8 +70,26 @@ pagination:
   pagerSize: 10
 
 params:
-  env: production
   author: Guillaume Delré
+  images:
+    - /assets/images/og-default.jpg
+
+  theme:
+    palette: tokyo-night-dark
+
+  socialLinks:
+    - icon: fa-brands fa-github
+      title: GitHub
+      url: https://github.com/guillaumedelre
+    - icon: fa-brands fa-linkedin
+      title: LinkedIn
+      url: https://www.linkedin.com/in/guillaumedelre/
+    - icon: fa-solid fa-envelope
+      title: Email
+      url: mailto:delre.guillaume@gmail.com
+    - icon: fa-solid fa-rss
+      title: RSS
+      url: /index.xml
 
   schema:
     publisherType: Person
@@ -105,31 +97,10 @@ params:
       - "https://github.com/guillaumedelre"
       - "https://www.linkedin.com/in/guillaumedelre/"
 
-  socialIcons:
-    - name: github
-      url: https://github.com/guillaumedelre
-    - name: linkedin
-      url: https://www.linkedin.com/in/guillaumedelre/
-    - name: email
-      url: mailto:delre.guillaume@gmail.com
-    - name: rss
-      url: /index.xml
-
-  ShowReadingTime: true
-  ShowShareButtons: false
-  ShowPostNavLinks: true
-  ShowBreadCrumbs: true
-  ShowCodeCopyButtons: true
-  ShowFullTextinRSS: true
-  ShowSeriesNavigation: true
-
-  defaultTheme: auto
-  disableThemeToggle: false
-
-  assets:
-    favicon: /assets/images/og-default.jpg
-
 markup:
+  tableOfContents:
+    startLevel: 2
+    endLevel: 3
   goldmark:
     renderer:
       unsafe: true
@@ -141,4 +112,3 @@ outputs:
   home:
     - HTML
     - RSS
-    - JSON

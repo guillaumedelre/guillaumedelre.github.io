@@ -5,6 +5,7 @@ categories: [devops]
 tags: [docker, traefik, homelab, claude-code]
 description: "A small self-hosted dashboard to see what all your Claude Code sessions and subagents are doing, in real time."
 translationKey: "claude-agents-board"
+lastmod: 2026-11-17
 ---
 
 One Claude Code session in one terminal is easy to follow. Three sessions spread across two machines, each one spawning subagents, is another story. One is refactoring, one is running tests, one has been waiting for twenty minutes for me to approve a `psql` command, and I only find out when I happen to switch to that tab.
@@ -25,13 +26,17 @@ The app serves its own install script, so plugging in a machine is one line:
 curl -fsSL http://agents.10.0.0.10.sslip.io/install-hooks.sh | sh -s -- --host laptop
 ```
 
-The script merges the hooks into `~/.claude/settings.json` without touching existing ones, and a PowerShell version exists for Windows. The rest of the setup is in the [README][repo].
+The script merges the hooks into `~/.claude/settings.json` without touching existing ones, turns on telemetry, and wraps the status line (more on both below). A PowerShell version exists for Windows. The rest of the setup is in the [README][repo].
 
 ## One page, every session
 
 ![Home page: you at the top, sessions grouped by machine in the middle, shared stations at the bottom](/images/claude-agents-board/home-tree.png)
 
 The home page is a tree. You at the top, every open session in the middle grouped by machine, and at the bottom the "stations" they use: model, files, terminal, network, agents, and so on. Each tool call sends a pulse from the session to the station and back. A session that's working breathes in orange; a session waiting for you turns amber, and the link between you and it starts scrolling.
+
+![Session boxes: current activity and its timer, context bar, compactions and estimated cost](/images/claude-agents-board/home-sessions.png)
+
+Each box says a bit more than "busy" or "not busy". Under the session title and project: what it's doing right now and for how long (a tool, "thinking", "waiting for you", "idle"), a context bar with its percentage, the number of compactions, and the estimated cost. Running subagents show up as small pills on the top edge, each with its own context gauge. An idle session slowly fades between five minutes and an hour, so the ones I forgot about stop competing with the ones that matter.
 
 That amber state is the reason the whole thing exists. A banner at the top lists every session waiting for an answer or a permission, and an optional chime plays when one asks. I no longer discover a blocked agent by accident.
 
@@ -55,6 +60,26 @@ Hooks don't carry token usage, but Claude Code can export [OpenTelemetry][otel] 
 
 The cost is Claude Code's own estimate at public API prices. On a subscription, that's not what you pay. I read it as an order of magnitude, and as a way to notice which session has been burning through Opus all afternoon.
 
+## How full the context is
+
+Context was the number I missed most. When a session starts getting slow and vague, the first question is always "is it about to compact?", and the answer lives in a terminal I'm not looking at.
+
+The hooks don't say. The telemetry does, indirectly: each model request reports its input, cache read and cache write tokens, and their sum is the size of the context sent with that request. The catch is that not every request belongs to the conversation. Claude Code also asks the model for session titles, compaction summaries or auto mode checks, and subagents make their own requests in the same session. Each event carries a `query_source`, and since Claude Code 2.1 subagent requests also carry an `agent_id`. So the dashboard keeps one context per thread: the main one, and one per subagent. Side requests are ignored.
+
+![Session map: the context gauge circles the main agent](/images/claude-agents-board/session-map.png)
+
+The percentage is relative to the model's window: 200k for the 3.x to 4.6 models without the `[1m]` suffix, 1M for the others. The bar turns orange at 60% and red at 85%, and every compaction (`PostCompact` hook) adds one to the `⟲` counter. In the session's map view, the same gauge circles the main agent.
+
+### And the weekly limit
+
+On a subscription, the number that really matters isn't the cost, it's how much of the week is left. Neither the hooks nor the telemetry carry it. Only the [status line][statusline] receives it: a `rate_limits` object with the 7-day and 5-hour windows, as a used percentage and a reset date, for Pro and Max plans, after the first model response.
+
+So the install script wraps whatever status line is already configured. A small generated script forwards the status line input to the dashboard, then runs the original command, which is saved on the side and put back by `--uninstall`. Nothing changes in the terminal. The exact context window size comes along for free and replaces the 200k / 1M guess for the main thread.
+
+![Subscription limits in the status bar: week and 5-hour window with their reset dates](/images/claude-agents-board/limits.png)
+
+Both limits end up in the dashboard's bottom bar, with the reset dates on hover. When a window passes its reset date, it drops back to zero until the next value arrives.
+
 ## The part that's just for fun
 
 ![The office view: the main agent at the front desk, a subagent at its table](/images/claude-agents-board/session-office.png)
@@ -67,7 +92,7 @@ Is it useful? Not really. The timeline says the same thing more precisely. But i
 
 It's built for a local network, and it shows it. There's no authentication on the UI: anyone on the network can read the prompts, the commands, and the files the agents read. An optional token protects the endpoint that receives events, not the page. I wouldn't expose it outside the house.
 
-The hooks don't report everything either. No intermediate model messages, no context usage, and subagents launched by a workflow show up without their instructions. A session whose terminal was closed without a clean exit stays "idle" until the automatic cleanup removes it.
+The hooks don't report everything either. No intermediate model messages, and subagents launched by a workflow show up without their instructions. Tokens and cost are counted per session, not split per subagent; only the context is tracked per thread. The PowerShell script doesn't wrap the status line yet, so on Windows it has to be wired by hand (the README shows how). A session whose terminal was closed without a clean exit stays "idle" until the automatic cleanup removes it.
 
 None of that bothers me for what it's meant to be: a tab I glance at to know whether something needs me. It runs as one more stack next to the others in the [homelab]({{< relref "2026-02-17-homelab-docker-compose-traefik.md" >}}), behind Traefik, on an [sslip.io]({{< relref "2025-04-17-traefik-local-https-mkcert-sslip.md" >}}) hostname. The screenshots above come from a demo instance fed with made-up sessions.
 
@@ -82,4 +107,5 @@ None of that bothers me for what it's meant to be: a tab I glance at to know whe
 [repo]: https://github.com/guillaumedelre/claude-agents-board
 [hooks]: https://code.claude.com/docs/en/hooks
 [otel]: https://code.claude.com/docs/en/monitoring-usage
+[statusline]: https://code.claude.com/docs/en/statusline
 [metrocity]: https://jik-a-4.itch.io/metrocity

@@ -1,0 +1,18 @@
+{{ define "main" }}
+  <header class="content__header">
+    <h1>{{ .Title | markdownify }}</h1>
+    {{ .Content }}
+  </header>
+  {{ $pag := .Paginate .Pages }}
+  {{ partial "post_list.html" $pag.Pages }}
+  {{ if gt $pag.TotalPages 1 }}
+  <nav class="pagination">
+    {{ with $pag.Prev }}<a href="{{ .URL }}">← {{ i18n "prev" }}</a>{{ end }}
+    {{ with $pag.Next }}<a class="pagination__next" href="{{ .URL }}">{{ i18n "next" }} →</a>{{ end }}
+  </nav>
+  {{ end }}
+{{ end }}
+
+{{ define "aside" }}
+  {{ with .Description }}<p>{{ . }}</p>{{ end }}
+{{ end }}

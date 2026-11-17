@@ -1,3 +1,3 @@
 ---
-description: "Tech articles about PHP, Symfony, API Platform and experiments."
+description: "Homelab, Docker, IoT and dev tooling experiments, told as stories."
 ---

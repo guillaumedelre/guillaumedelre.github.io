@@ -18,7 +18,7 @@ So I made a small dashboard for it: [claude-agents-board][repo]. It runs in my h
 
 Claude Code [hooks][hooks] fire on almost everything a session does: a prompt, a tool call, a subagent starting or stopping, a permission request, the end of a turn. Each machine sends those events to a small Node server, which keeps the state and pushes changes to a web UI over server-sent events. That's it. No agent to install, no change to how you use Claude Code.
 
-There's one small detail worth knowing. Claude Code supports HTTP hooks natively, but it refuses to call a private address like `10.0.0.10`: only loopback is allowed. So the hooks are plain `command` hooks that pipe the event JSON to `curl`. They're synchronous, so events arrive in order, and they give up after two seconds if the dashboard is down. A dead dashboard never blocks an agent.
+There's one small detail worth knowing. Claude Code supports HTTP hooks natively, but in my tests it refused to call a private address like `10.0.0.10`: only loopback went through. So the hooks are plain `command` hooks that pipe the event JSON to `curl`. They're synchronous, so events arrive in order, and they give up after two seconds if the dashboard is down. A dead dashboard never blocks an agent.
 
 The app serves its own install script, so plugging in a machine is one line:
 
@@ -40,7 +40,7 @@ Each box says a bit more than "busy" or "not busy". Under the session title and 
 
 That amber state is the reason the whole thing exists. A banner at the top lists every session waiting for an answer or a permission, and an optional chime plays when one asks. I no longer discover a blocked agent by accident.
 
-The sidebar groups sessions by machine, then by project folder. Sessions running inside a git worktree are attached to their repository instead of showing up as strangers.
+The sidebar groups sessions by machine, then by project folder. Sessions running in a worktree created by Claude Code (under `.claude/worktrees/`) are attached to their repository instead of showing up as strangers.
 
 ## What a session is actually doing
 
@@ -48,7 +48,7 @@ The sidebar groups sessions by machine, then by project folder. Sessions running
 
 Clicking a session opens its detail, and the timeline is the view I use most. One row for the main thread with a bar per turn, one row per subagent from launch to finish, one row per task from Claude's task list, and the tool calls as small marks underneath.
 
-For a running agent, a dashed line shows when it should finish. The estimate is just the median duration of past agents of the same type, on the same project when there is enough history. Nothing clever, but enough to tell "normal" from "something's stuck". The session header also copies `claude --resume <id>` in one click, handy for picking a session back up from another terminal.
+For a running agent, a dashed line shows when it should finish. The estimate is just the median duration of past agents of the same type, on the same project once it has three finished runs, across all projects otherwise. Nothing clever, but enough to tell "normal" from "something's stuck". The session header also copies `claude --resume <id>` in one click, handy for picking a session back up from another terminal.
 
 The journal view lists prompts and tool calls in order, and each turn ends with the final answer of the model. That's all the hooks give: the intermediate messages never leave Claude Code.
 
@@ -64,7 +64,7 @@ The cost is Claude Code's own estimate at public API prices. On a subscription, 
 
 Context was the number I missed most. When a session starts getting slow and vague, the first question is always "is it about to compact?", and the answer lives in a terminal I'm not looking at.
 
-The hooks don't say. The telemetry does, indirectly: each model request reports its input, cache read and cache write tokens, and their sum is the size of the context sent with that request. The catch is that not every request belongs to the conversation. Claude Code also asks the model for session titles, compaction summaries or auto mode checks, and subagents make their own requests in the same session. Each event carries a `query_source`, and since Claude Code 2.1 subagent requests also carry an `agent_id`. So the dashboard keeps one context per thread: the main one, and one per subagent. Side requests are ignored.
+The hooks don't say. The telemetry does, indirectly: each model request reports its input, cache read and cache write tokens, and their sum is the size of the context sent with that request. The catch is that not every request belongs to the conversation. Claude Code also asks the model for session titles, compaction summaries or auto mode checks, and subagents make their own requests in the same session. Each event carries a `query_source`, and since Claude Code 2.1.310 subagent requests also carry an `agent_id`. So the dashboard keeps one context per thread: the main one, and one per subagent. Side requests are ignored.
 
 ![Session map: the context gauge circles the main agent](/images/claude-agents-board/session-map.png)
 
@@ -72,7 +72,7 @@ The percentage is relative to the model's window: 200k for the 3.x to 4.6 models
 
 ### And the weekly limit
 
-On a subscription, the number that really matters isn't the cost, it's how much of the week is left. Neither the hooks nor the telemetry carry it. Only the [status line][statusline] receives it: a `rate_limits` object with the 7-day and 5-hour windows, as a used percentage and a reset date, for Pro and Max plans, after the first model response.
+On a subscription, the number that really matters isn't the cost, it's how much of the week is left. Neither the hooks nor the telemetry carry it. Only the [status line][statusline] receives it: a `rate_limits` object with the 7-day and 5-hour windows, as a used percentage and a reset date, for Pro, Max and Ultra plans, after the first model response.
 
 So the install script wraps whatever status line is already configured. A small generated script forwards the status line input to the dashboard, then runs the original command, which is saved on the side and put back by `--uninstall`. Nothing changes in the terminal. The exact context window size comes along for free and replaces the 200k / 1M guess for the main thread.
 
@@ -86,15 +86,15 @@ Both limits end up in the dashboard's bottom bar, with the reset dates on hover.
 
 Every session also has an office, in pixel art. The main agent sits at the front desk in an orange jacket, each subagent walks in through the door, takes a table, types or reads depending on the tool it's using, then gets up and leaves when it's done. When the main agent has been idle for a while, it goes for a coffee or sits on the couch in front of the TV. A session that stopped responding takes a nap.
 
-Is it useful? Not really. The timeline says the same thing more precisely. But it's by far the most fun one to watch. The sprites come from the [MetroCity][metrocity] packs by JIK-A-4, released under CC0.
+Is it useful? Not really. The timeline says the same thing more precisely. But it's by far the most fun one to watch. The sprites come from the [MetroCity][metrocity] and [MetroCity Interior][metrocity-interior] packs by JIK-A-4, released under CC0.
 
 ## What it doesn't do
 
-It's built for a local network, and it shows it. There's no authentication on the UI: anyone on the network can read the prompts, the commands, and the files the agents read. An optional token protects the endpoint that receives events, not the page. I wouldn't expose it outside the house.
+It's built for a local network, and it shows it. There's no authentication on the UI: anyone on the network can read the prompts, the commands, and the files the agents read. An optional token protects the endpoints that receive data (hooks, telemetry, status line), not the page or its API, which can also rename or clear sessions. I wouldn't expose it outside the house.
 
-The hooks don't report everything either. No intermediate model messages, and subagents launched by a workflow show up without their instructions. Tokens and cost are counted per session, not split per subagent; only the context is tracked per thread. The PowerShell script doesn't wrap the status line yet, so on Windows it has to be wired by hand (the README shows how). A session whose terminal was closed without a clean exit stays "idle" until the automatic cleanup removes it.
+The hooks don't report everything either. No intermediate model messages, and subagents launched by a workflow show up without their instructions. Tokens and cost are counted per session, not split per subagent; only the context is tracked per thread. The PowerShell script doesn't wrap the status line yet, so on Windows it has to be wired by hand (the README shows how). A session whose terminal was closed without a clean exit stays "idle", or shows "no news" after ten minutes if it was mid-turn, until the automatic cleanup removes it (after a day by default).
 
-None of that bothers me for what it's meant to be: a tab I glance at to know whether something needs me. It runs as one more stack next to the others in the [homelab]({{< relref "2026-02-17-homelab-docker-compose-traefik.md" >}}), behind Traefik, on an [sslip.io]({{< relref "2025-04-17-traefik-local-https-mkcert-sslip.md" >}}) hostname. The screenshots above come from a demo instance fed with made-up sessions.
+None of that bothers me for what it's meant to be: a tab I glance at to know whether something needs me. It runs as one more stack next to the others in the [homelab]({{< relref "2026-05-17-homelab-docker-compose-traefik.md" >}}), behind Traefik, on an [sslip.io]({{< relref "2025-04-17-traefik-local-https-mkcert-sslip.md" >}}) hostname. The screenshots above come from a demo instance fed with made-up sessions.
 
 <a class="gh-card" href="https://github.com/guillaumedelre/claude-agents-board" target="_blank" rel="noopener noreferrer">
   <span class="gh-card__head">
@@ -108,4 +108,5 @@ None of that bothers me for what it's meant to be: a tab I glance at to know whe
 [hooks]: https://code.claude.com/docs/en/hooks
 [otel]: https://code.claude.com/docs/en/monitoring-usage
 [statusline]: https://code.claude.com/docs/en/statusline
-[metrocity]: https://jik-a-4.itch.io/metrocity
+[metrocity]: https://jik-a-4.itch.io/metrocity-free-topdown-character-pack
+[metrocity-interior]: https://jik-a-4.itch.io/metrocity

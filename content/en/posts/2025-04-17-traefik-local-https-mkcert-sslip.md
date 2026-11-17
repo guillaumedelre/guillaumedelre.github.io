@@ -1,6 +1,7 @@
 ---
 title: "Local HTTPS with Traefik: traefik.me is dead, long live sslip.io"
 date: 2025-04-17
+lastmod: 2026-11-17
 categories: [devops]
 tags: [traefik, docker, homelab]
 description: "traefik.me's wildcard cert was revoked in 2025. Here's how to replace it with sslip.io, mkcert, and a local Traefik setup."
@@ -18,13 +19,13 @@ The certificate was the bonus: a wildcard cert for `*.traefik.me` that pyrou, th
 
 Sharing a private key is why it died.
 
-The CA/Browser Forum Baseline Requirements, section 9.6.3, require subscribers to "maintain sole control" over their private key. Distributing it to anyone who visits a URL is the exact opposite of sole control. Let's Encrypt sent a notice, blocked future issuance for the domain, and revoked the existing certificate. Pyrou confirmed the situation and recommended mkcert as an alternative. The project will live on as a DNS resolver only.
+The CA/Browser Forum Baseline Requirements, section 9.6.3, require every subscriber to commit to "keep confidential, and properly protect at all times the Private Key". Handing it to anyone who visits a URL is the exact opposite. Let's Encrypt [said so publicly][le-post]: it blocked the leaked key, revoked the certificates tied to it, and warned that a subscriber ignoring the rules would get the domain blocked. Pyrou [confirmed the situation][pyrou-reply] and recommended mkcert as an alternative. The project will live on as a DNS resolver only.
 
-The cert had already been revoked twice before 2025. Third time was the last.
+It wasn't the first time: the published key had already been used to revoke the cert several times before. This time it was Let's Encrypt, and it was the last.
 
 ## sslip.io does the same thing, differently
 
-sslip.io is also a wildcard DNS resolver, with one difference: the IP is encoded in the hostname rather than resolved from a fallback. `10-0-0-1.sslip.io` resolves to `10.0.0.1`. `myapp.192-168-1-10.sslip.io` resolves to `192.168.1.10`. IPv6 works too.
+[sslip.io][sslip] is also a wildcard DNS resolver. Like traefik.me, the IP goes in the hostname, with dots or dashes; unlike traefik.me, there is no fallback when there isn't one. `10-0-0-1.sslip.io` resolves to `10.0.0.1`. `myapp.192-168-1-10.sslip.io` resolves to `192.168.1.10`. IPv6 works too.
 
 The infrastructure behind sslip.io is also more visible: three nameservers in Singapore, the US, and Poland, handling over 10,000 requests per second, with public monitoring. About 1,000 GitHub stars and active maintenance under the Apache 2.0 licence.
 
@@ -34,16 +35,15 @@ Strip away the certificate story and the comparison is pretty straightforward:
 |---|---|---|
 | DNS wildcard | yes | yes |
 | Fallback to 127.0.0.1 | yes | no |
-| IPv6 | no | yes |
 | Wildcard certificate | ~~yes~~ revoked | no |
 | Infrastructure | opaque | documented |
-| Project activity | stalled | active |
+| Project activity | low | active |
 
 traefik.me's only remaining advantage is the 127.0.0.1 fallback: URLs without an IP segment. That matters if you really want `myapp.traefik.me` instead of `myapp.127-0-0-1.sslip.io`. Whether that difference is worth the infrastructure uncertainty is a short conversation.
 
 ## mkcert fills the gap
 
-mkcert creates a local certificate authority, installs it in the system trust store and whatever browsers it finds, then issues certificates signed by that CA. Browsers see a trusted chain. No warning, no click-through, no "proceed anyway".
+[mkcert][mkcert] creates a local certificate authority, installs it in the system trust store and whatever browsers it finds, then issues certificates signed by that CA. Browsers see a trusted chain. No warning, no click-through, no "proceed anyway".
 
 ```bash
 mkcert -install
@@ -61,7 +61,7 @@ The limitation is that mkcert's CA is local. Other machines on the network won't
 
 ## The Traefik configuration
 
-The setup is the same regardless of which DNS service you pick. Traefik needs the certificate mounted as a volume and a static file provider pointing at a TLS configuration file.
+The setup is the same regardless of which DNS service you pick. Traefik needs the certificate mounted as a volume and a file provider, declared in the static configuration, that loads a dynamic TLS configuration file.
 
 ```yaml
 # traefik/config/tls.yml
@@ -84,7 +84,7 @@ Start by creating the external network once:
 docker network create traefik-public
 ```
 
-**`traefik/compose.yml`** - Traefik alone, owning the network:
+**`traefik/compose.yml`** - Traefik alone, attached to the shared network:
 
 ```yaml
 services:
@@ -165,3 +165,8 @@ The certificate distribution model was always fragile. A "public-private key pai
 The lesson isn't specific to traefik.me. Any service that provides convenience by quietly removing a security boundary will eventually hit that boundary. mkcert is the right tool for this problem because it operates entirely within your own trust domain: you generate the CA, you install it, you issue the certificates. Nothing depends on a third party's continued willingness to bend certificate issuance rules.
 
 sslip.io solves the DNS part cleanly. mkcert solves the TLS part cleanly. They compose well. The traefik.me setup was simpler, for a while. Until it wasn't.
+
+[le-post]: https://github.com/pyrou/traefik.me/discussions/14
+[pyrou-reply]: https://github.com/pyrou/traefik.me/discussions/15
+[sslip]: https://sslip.io
+[mkcert]: https://github.com/FiloSottile/mkcert

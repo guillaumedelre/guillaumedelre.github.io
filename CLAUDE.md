@@ -9,15 +9,15 @@ This repository is a personal tech article publication site hosted on GitHub Pag
 ## Documentation
 
 - [Hugo](https://gohugo.io/documentation/)
-- [PaperMod theme](https://github.com/adityatelange/hugo-PaperMod)
+- [Risotto theme](https://github.com/joeroe/risotto)
 
 ## Stack
 
-Hugo blog hosted on GitHub Pages. Theme: PaperMod (git submodule at `themes/PaperMod`).
+Hugo blog hosted on GitHub Pages. Theme: Risotto (git submodule at `themes/risotto`), a minimal terminal-style theme, with the `tokyo-night-dark` palette. Site-specific styles live in `static/css/custom.css` (e.g. the `.gh-card` GitHub cards).
 
-Hugo features active: RSS at `/index.xml`, sitemap at `/sitemap.xml`, JSON search index at `/index.json`.
+Hugo features active: RSS at `/index.xml`, sitemap at `/sitemap.xml`. There is no search index.
 
-PaperMod features enabled: `ShowSeriesNavigation`, `ShowReadingTime`, `ShowCodeCopyButtons`, `ShowBreadCrumbs`.
+Risotto itself only provides the page shell (header, sidebar, footer with the language switcher). Everything else comes from the overrides in `layouts/` (see Layout overrides): date and reading time, series navigation, tags and series in the sidebar, the last-modified date when it differs from the publication date, and a sidebar table of contents for posts with `toc: true` in their frontmatter.
 
 Taxonomies: `tags`, `series` (native Hugo taxonomy — no registration step needed).
 
@@ -73,7 +73,7 @@ Before drafting any article, always ask the user for:
 
 1. **Date** — publication date in `YYYY-MM-DD` format (used in both the filename and the frontmatter).
 2. **Tags** — propose a list based on existing tags already used across posts. Check `content/posts/` frontmatter to build the suggestion. Prefer reusing existing tags over creating new ones; only propose new tags when no existing tag covers the concept. Keep EN and FR tags identical. When a new tag is created, add `content/en/tags/<slug>/_index.md` and `content/fr/tags/<slug>/_index.md` with its display name as `title` (e.g. `Claude Code`, `BME280`), otherwise Hugo shows the capitalized slug.
-3. **Description** — write a one-sentence summary (50-160 characters) for the `description` frontmatter field. Used by PaperMod for meta description, Open Graph, and Twitter cards.
+3. **Description** — write a one-sentence summary (50-160 characters) for the `description` frontmatter field. Used for the meta description (`layouts/partials/head.html`), Open Graph and Twitter cards (Hugo built-in templates), post lists and the post sidebar.
 4. **Language** — ask whether the article will have a French translation. If yes, create both `slug.md` and `slug.fr.md` with a shared `translationKey`.
 5. **Series** — ask whether the post belongs to an existing series or starts a new one (see the Series section below).
 6. **Format** — propose `experiment`, `showcase` or `guide` based on the topic (see Writing style) and set it in the `format` frontmatter field. The format drives structure, tone and length.
@@ -94,7 +94,7 @@ series: ["kubernetes-migration"]
 part: 1
 ```
 
-`series` is an array containing the series slug. `part` is the article's position in the series (integer). PaperMod uses `part` to order articles within the series navigation card shown at the bottom of each post.
+`series` is an array containing the series slug. `part` is the article's position in the series (integer). `layouts/partials/series_nav.html` uses `part` to show "part X of Y" with previous/next links at the bottom of each post, and `layouts/_default/taxonomy.html` uses it to order the series listing.
 
 ### Creating a new series
 
@@ -114,20 +114,27 @@ One paragraph introducing the series.
 ### Before writing a new post in a series
 
 - Add `series` and `part` to the frontmatter
-- Do not add a manual series footer — PaperMod generates the navigation card automatically
+- Do not add a manual series footer — `series_nav.html` generates it automatically
 - If the series is new, optionally create the `_index.md` page above for a richer series listing
 
 ## Layout overrides
 
-Custom templates live in `layouts/` and take precedence over the PaperMod theme. When creating or modifying a layout override that visually mimics an existing template:
+Custom templates live in `layouts/` and take precedence over the Risotto theme (`themes/risotto/layouts/`). When creating or modifying an override:
 
-- Read the reference template in full before writing the override, including all partials it calls
+- Read the theme template it replaces in full before writing the override, including all partials it calls, and keep its `main` / `aside` blocks and CSS classes so the palette still applies
 - For each partial in the reference template, explicitly decide: include it, replace it with contextually appropriate data, or omit it with a reason
-- Use PaperMod partials directly (`author.html`, `breadcrumbs.html`, `cover.html`, `post_meta.html`) where applicable — don't re-implement what the theme already provides
+- Reuse the existing partials (`post_meta.html`, `post_list.html`, `terms.html`, `series_nav.html`) instead of re-implementing them
 - Metadata that makes no sense in the new context should be replaced, not dropped silently (e.g., reading time on a series listing becomes article count)
+- Styles go in `static/css/custom.css` using the palette's CSS variables (e.g. `var(--link)`), never inline
 
 Current overrides:
-- `layouts/series/taxonomy.html` — series listing styled as post cards; footer shows article count and author
+- `_default/single.html` — post page: date and reading time, content, series navigation; sidebar with description, last-modified date, tags, series and the optional table of contents
+- `_default/taxonomy.html` / `_default/terms.html` — a term's post list (series sorted by `part`) and the term index with post counts
+- `_default/archives.html` — posts grouped by year
+- `_default/rss.xml` — RSS feed with series-aware descriptions
+- `_default/_markup/render-link.html` — external links open in a new tab (see External links)
+- `index.html` / `posts/list.html` — home page with the five latest posts, paginated post list
+- `partials/head.html` — meta description, canonical, hreflang, Open Graph / Twitter / schema.org, Google Analytics in production only
 
 ## External links
 
@@ -161,7 +168,7 @@ To add a French version of an existing post:
 1. Create `content/posts/YYYY-MM-DD-slug.fr.md` with the translated content.
 2. Add `translationKey: "slug"` to the frontmatter of both the EN and FR files.
 
-Hugo automatically generates `/fr/YYYY/MM/DD/slug-fr/`, adds `hreflang` tags for SEO, and PaperMod shows a "Translations: Fr" link in the article header.
+Hugo automatically generates `/fr/YYYY/MM/DD/slug-fr/`, adds `hreflang` tags for SEO, and Risotto shows a language switcher in the footer.
 
 Articles without a French version remain available in English only — no placeholder or stub needed.
 
@@ -379,7 +386,7 @@ A step-by-step reference the reader follows with a terminal open, and comes back
 
 - Say it's a guide in the `description` and in the first paragraphs. State the prerequisites and the end result (what the reader will have running at the end).
 - Keep the story for the intro (why I set it up this way, one or two paragraphs) and for the pitfalls, which should be told as things that actually happened.
-- Topic headers, numbered steps and a table of contents (above ~1500 words) are allowed here — and only here.
+- Topic headers and numbered steps are allowed here — and only here. Above ~1500 words, set `toc: true` in the frontmatter to get the sidebar table of contents; never write one by hand in the post.
 - Each step: what to do, how to check that it worked, the most common failure. Commands are complete, copy-pastable and tested; versions are pinned or stated.
 - "Why X and not Y" justifications: one opinionated paragraph each, not a feature comparison.
 - Pitfalls follow the shape *symptom → cause → fix*, with the exact error message when there is one.

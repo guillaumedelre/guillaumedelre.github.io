@@ -5,6 +5,7 @@ date: 2026-05-17
 lastmod: 2026-11-18
 tags: [homelab, docker, traefik]
 format: guide
+toc: true
 description: "Tuto complet pour monter un homelab Docker avec Traefik et sslip.io : stacks indépendantes, dashboard auto-configuré, pièges documentés."
 ---
 
@@ -21,19 +22,6 @@ Ce tutoriel s'adresse à quelqu'un qui connaît Docker mais qui part de zéro su
 **Prérequis** : une machine Linux ou WSL2, Docker avec Compose v2 (la commande `docker compose`), et git. Toutes les commandes ont été testées sur Ubuntu/WSL2 avec Docker Desktop.
 
 **Résultat** : Dockge sur `http://<IP>:5001`, et les dix services listés dans [Les groupes Homepage](#les-groupes-homepage) (Traefik, Dockge, Watchtower, Homepage, Dozzle, Glances, Uptime Kuma, FileBrowser, IT-Tools, Stirling PDF), chacun joignable sur `http://<nom>.<IP>.sslip.io`, où `<nom>` est le dossier de la stack (`dockge` pour Dockge). Homepage sert de dashboard et les affiche tous. Seule exception, Watchtower : il n'a pas d'interface web et met à jour les autres containers en arrière-plan.
-
----
-
-## Table des matières
-
-1. [Philosophie et choix d'architecture](#1-philosophie-et-choix-darchitecture)
-2. [Les briques fondamentales](#2-les-briques-fondamentales)
-3. [Mise en place pas à pas](#3-mise-en-place-pas-à-pas)
-4. [Ajouter un nouveau service](#4-ajouter-un-nouveau-service)
-5. [Modèles et conventions](#5-modèles-et-conventions)
-6. [Pièges courants](#6-pièges-courants)
-7. [Conclusion](#conclusion)
-8. [Références](#références)
 
 ---
 

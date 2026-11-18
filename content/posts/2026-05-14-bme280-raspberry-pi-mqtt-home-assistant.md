@@ -9,6 +9,9 @@ date: 2026-05-14
 lastmod: 2026-11-18
 tags: [python, raspberry-pi, home-assistant]
 format: experiment
+featureimage: "images/bme280/raspberry-pi-bme280.jpg"
+featureimagecaption: "Le Raspberry Pi dans son boîtier et le module BME280, reliés par quatre fils : alimentation, masse et les deux lignes I²C"
+images: ["/images/bme280/raspberry-pi-bme280.jpg"]
 description: "Un capteur BME280 à 10 €, un Raspberry Pi et un broker MQTT : une sonde de température et d'humidité pour une pièce, qui alimente Home Assistant."
 ---
 

@@ -7,7 +7,7 @@ date: 2026-11-17
 tags: [claude-code, homelab, docker]
 format: showcase
 featureimage: "images/claude-agents-board/home-tree.png"
-featureimagecaption: "Accueil : le nœud « Toi » en haut, les sessions groupées par machine au milieu, les stations partagées en bas"
+featureimagecaption: "L'accueil : le nœud « Toi » en haut, les sessions ouvertes groupées par machine, les outils qu'elles utilisent en bas"
 images: ["/images/claude-agents-board/home-tree.png"]
 description: "Un petit tableau de bord auto-hébergé pour voir en temps réel ce que font toutes vos sessions Claude Code et leurs sous-agents."
 lastmod: 2026-11-18
@@ -20,89 +20,81 @@ Une session Claude Code dans un terminal, ça se suit facilement. Trois sessions
 
 C'est ce dernier cas, le vrai problème. Pas les agents qui travaillent : ceux qui *attendent*.
 
-Alors je me suis fait un petit tableau de bord : [claude-agents-board][repo]. Il tourne dans mon homelab, chaque session Claude Code du réseau local lui envoie ce qu'elle fait, et un seul onglet du navigateur montre qui travaille, qui est au repos et qui a besoin de moi. Il fait une seule chose : me dire quelle session m'attend.
+[claude-agents-board][repo] est le tableau de bord que je me suis écrit pour ça. Il tourne dans mon homelab, chaque session Claude Code du réseau local lui envoie ce qu'elle fait, et un seul onglet du navigateur montre qui travaille, qui est au repos et qui a besoin de moi. Je n'ai pas cherché d'outil existant avant de l'écrire : je suis parti directement des hooks de Claude Code.
 
-## L'idée tient en une phrase
+## Comment il est branché
 
-Les [hooks][hooks] de Claude Code se déclenchent sur à peu près tout ce que fait une session : un prompt, un appel d'outil, un sous-agent qui démarre ou s'arrête, une demande de permission, la fin d'un tour. Chaque machine envoie ces événements à un petit serveur Node, qui tient l'état et pousse les changements vers une interface web en server-sent events, et c'est tout : pas d'agent à installer, rien à changer dans votre façon d'utiliser Claude Code.
+Les [hooks][hooks] de Claude Code se déclenchent sur à peu près tout ce que fait une session : un prompt, un appel d'outil, un sous-agent qui démarre ou s'arrête, une demande de permission, la fin d'un tour. Chaque machine envoie ces événements à un petit serveur Node, qui tient l'état et pousse les changements vers l'interface web. Il n'y a pas d'agent à installer, et rien ne change dans la façon d'utiliser Claude Code.
 
-Un petit détail à connaître quand même. Claude Code sait faire des hooks HTTP, mais dans mes tests il a refusé d'appeler une adresse privée comme `10.0.0.10` : seule l'adresse de bouclage passait. Les hooks sont donc de simples hooks `command` qui envoient le JSON de l'événement à `curl`. Ils sont synchrones, pour que les événements arrivent dans l'ordre, et abandonnent au bout de deux secondes si le tableau de bord ne répond pas : un tableau de bord en panne ne bloque donc jamais un agent.
-
-L'application sert elle-même son script d'installation, donc brancher une machine tient en une ligne :
+L'application sert elle-même son script d'installation. Brancher une machine tient en une ligne :
 
 ```bash
 curl -fsSL http://agents.10.0.0.10.sslip.io/install-hooks.sh | sh -s -- --host portable
 ```
 
-Le script ajoute les hooks dans `~/.claude/settings.json` sans toucher à ceux qui existent déjà, active la télémétrie et s'intercale devant la status line (j'y reviens plus bas). Une version PowerShell existe pour Windows. Le reste de l'installation est dans le [README][repo].
+Le script ajoute les hooks à `~/.claude/settings.json` sans toucher à ceux qui existent déjà, active la télémétrie et s'intercale devant la status line existante. Une version PowerShell existe pour Windows.
 
-## Une page, toutes les sessions
+Un détail à connaître : Claude Code sait appeler des hooks HTTP, mais dans mes tests il refusait de joindre une adresse privée comme `10.0.0.10` : seule l'adresse de bouclage passait. Les hooks sont donc des hooks `command` qui transmettent l'événement à `curl`. Ils sont synchrones, pour que les événements arrivent dans l'ordre, et abandonnent au bout de deux secondes si le tableau de bord ne répond pas. Un tableau de bord en panne ne bloque jamais un agent.
 
-La page d'accueil est un arbre. Le nœud « Toi » en haut, toutes les sessions ouvertes au milieu, groupées par machine, et en bas les « stations » qu'elles utilisent : modèle, fichiers, terminal, réseau, agents, etc. Chaque appel d'outil envoie une impulsion de la session vers la station, puis une autre au retour. Une session qui travaille respire en orange ; une session qui vous attend passe en ambre, et le lien entre elle et vous se met à défiler.
+## Quand une session vous attend
 
-{{< figure src="images/claude-agents-board/home-sessions.png" alt="Les boîtes des sessions : activité en cours et son chrono, barre de contexte, compactages et coût estimé" caption="Les boîtes des sessions : activité en cours et son chrono, barre de contexte, compactages et coût estimé" >}}
+La page d'accueil est un arbre : le nœud « Toi » en haut (c'est le libellé de l'interface), toutes les sessions ouvertes au milieu, groupées par machine, et en bas les outils qu'elles utilisent. Une session qui travaille respire en orange. Une session qui attend une réponse ou une permission passe en ambre, et le lien entre elle et vous se met à défiler.
 
-Chaque boîte en dit un peu plus qu'« occupée » ou « pas occupée ». Sous le titre de la session et le nom du projet : ce qu'elle fait en ce moment et depuis combien de temps (un outil, « réfléchit », « t'attend », « inactive »), une barre de contexte avec son pourcentage, le nombre de compactages et le coût estimé. Les sous-agents en cours apparaissent en petites pastilles sur le bord haut, chacun avec la jauge de son propre contexte. Une session inactive s'estompe doucement entre cinq minutes et une heure, pour que celles que j'ai oubliées ne fassent plus concurrence à celles qui comptent.
+Cet état ambre est la raison d'être de tout le reste. Un bandeau en haut de la page liste chaque session en attente, et un carillon, optionnel, sonne quand l'une d'elles demande une permission. Je ne découvre plus un agent bloqué par hasard.
 
-Cet état ambre, c'est la raison d'être de tout le reste. Un bandeau en haut liste chaque session qui attend une réponse ou une permission, et un petit carillon, optionnel, sonne quand l'une d'elles en demande une. Je ne découvre plus un agent bloqué par hasard.
+{{< figure src="images/claude-agents-board/home-sessions.png" alt="Les boîtes des sessions : activité en cours et son chrono, barre de contexte, compactages et coût estimé" caption="Chaque boîte dit ce que fait la session et depuis combien de temps : un outil, « réfléchit », « t'attend » ou « inactive »." >}}
 
-La barre latérale range les sessions par machine, puis par dossier de projet. Les sessions qui tournent dans un worktree créé par Claude Code (sous `.claude/worktrees/`) sont rattachées à leur dépôt au lieu d'apparaître comme des inconnues.
+Chaque boîte indique aussi la barre de contexte, le nombre de compactages et le coût estimé. Les sous-agents en cours apparaissent en pastilles sur son bord. Une session inactive s'estompe progressivement entre cinq minutes et une heure, pour que celles que j'ai oubliées ne fassent pas concurrence à celles qui comptent.
 
-## Ce que fait une session
+## Quand un agent met trop de temps
 
-{{< figure src="images/claude-agents-board/session-timeline.png" alt="Timeline d'une session : le fil principal, deux sous-agents et la liste de tâches" caption="Timeline d'une session : le fil principal, deux sous-agents et la liste de tâches" >}}
+{{< figure src="images/claude-agents-board/session-timeline.png" alt="Timeline d'une session : le fil principal, deux sous-agents et la liste de tâches" caption="La timeline d'une session : une ligne par tour du fil principal, par sous-agent et par tâche ; les pointillés donnent la fin estimée d'un agent en cours." >}}
 
-Un clic sur une session ouvre son détail, et la timeline est la vue que j'utilise le plus. Une ligne pour le fil principal avec une barre par tour, une ligne par sous-agent de son lancement à sa fin, une ligne par tâche de la liste de tâches de Claude, et les appels d'outils en petites marques en dessous.
-
-Pour un agent en cours, des pointillés indiquent quand il devrait finir. L'estimation, c'est la durée médiane des agents du même type déjà terminés, sur le même projet dès qu'il en compte trois, tous projets confondus sinon. Rien de malin, mais assez pour distinguer « normal » d'« il y a un truc qui coince ». L'en-tête de la session copie aussi `claude --resume <id>` d'un clic, pratique pour reprendre une session depuis un autre terminal.
-
-La vue journal liste les prompts et les appels d'outils dans l'ordre, et chaque tour se termine par la réponse finale du modèle. C'est tout ce que donnent les hooks : les messages intermédiaires ne sortent jamais de Claude Code.
-
-## Combien ça coûte, à peu près
-
-{{< figure src="images/claude-agents-board/home-tokens.png" alt="Tokens et coût estimé sur 7 jours, empilés par modèle" caption="Tokens et coût estimé sur 7 jours, empilés par modèle" >}}
-
-Les hooks ne transmettent pas la consommation de tokens, mais Claude Code sait exporter des événements [OpenTelemetry][otel], un par requête au modèle. Le script d'installation les active et les envoie au tableau de bord. Chaque session a un petit badge avec ses tokens et son coût estimé, et l'accueil affiche les sept derniers jours par modèle, avec la part lue depuis le cache.
-
-Le coût, c'est l'estimation de Claude Code au tarif public de l'API. Avec un abonnement, ce n'est pas ce qui est facturé. Je le lis comme un ordre de grandeur, et comme un moyen de repérer la session qui consomme de l'Opus depuis tout l'après-midi.
+Un clic sur une session ouvre son détail, et la timeline est la vue que j'utilise le plus. Pour un sous-agent en cours, des pointillés indiquent quand il devrait finir : c'est la durée médiane des agents du même type déjà terminés, sur le même projet quand il en compte au moins trois. Rien de malin, mais assez pour distinguer un agent qui travaille d'un agent qui coince. L'en-tête copie aussi `claude --resume <id>` d'un clic, pour reprendre la session depuis un autre terminal.
 
 ## Quand le contexte se remplit
 
-Le contexte, c'est le chiffre qui me manquait le plus. Quand une session devient lente et un peu vague, la première question est toujours « elle va compacter ? », et la réponse est dans un terminal que je ne regarde pas.
+Quand une session devient lente et un peu vague, la première question est toujours « elle va compacter ? », et la réponse est dans un terminal que je ne regarde pas.
 
-Les hooks ne le disent pas. La télémétrie, si, indirectement : chaque requête au modèle donne ses tokens d'entrée, de cache lu et de cache écrit, et leur somme, c'est la taille du contexte envoyé avec cette requête. Le piège, c'est que toutes les requêtes n'appartiennent pas à la conversation. Claude Code demande aussi au modèle des titres de session, des résumés de compactage ou des vérifications du mode auto, et les sous-agents font leurs propres requêtes dans la même session. Chaque événement porte un `query_source`, et depuis Claude Code 2.1.310 les requêtes des sous-agents portent aussi un `agent_id`. Le tableau de bord garde donc un contexte par fil : le principal, et un par sous-agent. Les requêtes annexes sont ignorées.
+Les hooks ne donnent pas la taille du contexte, mais la télémétrie [OpenTelemetry][otel] de Claude Code permet de la calculer : chaque requête au modèle indique ses tokens d'entrée et de cache. Encore faut-il écarter les requêtes qui n'appartiennent pas à la conversation (titres de session, résumés de compactage) et séparer celles des sous-agents, identifiables depuis Claude Code 2.1.310. Le tableau de bord suit donc un contexte par fil ; le [README][repo] détaille le calcul.
 
-{{< figure src="images/claude-agents-board/session-map.png" alt="Carte d'une session : la jauge de contexte entoure l'agent principal" caption="Carte d'une session : la jauge de contexte entoure l'agent principal" >}}
+{{< figure src="images/claude-agents-board/session-map.png" alt="Carte d'une session : la jauge de contexte entoure l'agent principal" caption="Dans la carte d'une session, la jauge de contexte entoure l'agent principal ; elle passe à l'orange à 60 % et au rouge à 85 %." >}}
 
-Le pourcentage est calculé sur la fenêtre du modèle : 200 k pour les modèles 3.x à 4.6 sans suffixe `[1m]`, 1 M pour les autres. La barre passe à l'orange à 60 % et au rouge à 85 %, et chaque compactage (hook `PostCompact`) ajoute un au compteur `⟲`. Dans la vue carte d'une session, la même jauge entoure l'agent principal.
+## Combien il reste de la semaine
 
-### Et la limite de la semaine
+Avec un abonnement, le chiffre qui compte, c'est ce qu'il reste de la semaine. Ni les hooks ni la télémétrie ne le transmettent : seule la [status line][statusline] le reçoit, pour les abonnements Pro, Max et Ultra. C'est pour ça que le script d'installation s'intercale devant elle. Il envoie ces valeurs au tableau de bord, puis lance la status line d'origine, sans rien changer dans le terminal.
 
-Avec un abonnement, plus que le coût, le chiffre qui compte, c'est ce qu'il reste de la semaine. Ni les hooks ni la télémétrie ne le transmettent. Seule la [status line][statusline] le reçoit : un objet `rate_limits` avec les fenêtres de 7 jours et de 5 heures, avec le pourcentage consommé et la date de remise à zéro, pour les abonnements Pro, Max et Ultra, après la première réponse du modèle.
+{{< figure src="images/claude-agents-board/limits.png" alt="Les limites de l'abonnement dans la barre d'état : semaine et fenêtre de 5 h avec leurs dates de remise à zéro" caption="Les deux limites de l'abonnement, la semaine et la fenêtre de 5 h, dans la barre du bas ; la date de remise à zéro s'affiche au survol." >}}
 
-Le script d'installation s'intercale donc devant la status line déjà configurée, quelle qu'elle soit. Un petit script généré envoie l'entrée de la status line au tableau de bord, puis lance la commande d'origine, mise de côté et remise en place par `--uninstall`. Rien ne change dans le terminal. Au passage, la taille exacte de la fenêtre de contexte arrive aussi, et remplace la règle 200 k / 1 M pour le fil principal.
+La télémétrie donne aussi les tokens et un coût estimé, par session et sur sept jours par modèle. Ce coût est celui du tarif public de l'API : avec un abonnement, ce n'est pas ce qui est facturé. Je le lis comme un ordre de grandeur, et comme un moyen de repérer la session qui consomme de l'Opus depuis tout l'après-midi.
 
-{{< figure src="images/claude-agents-board/limits.png" alt="Les limites de l'abonnement dans la barre d'état : semaine et fenêtre de 5 h avec leurs dates de remise à zéro" caption="Les limites de l'abonnement dans la barre d'état : semaine et fenêtre de 5 h avec leurs dates de remise à zéro" >}}
+## Et pour le plaisir
 
-Les deux limites s'affichent dans la barre du bas, avec les dates de remise à zéro au survol. Une fois cette date passée, la fenêtre retombe à zéro en attendant la prochaine valeur.
+{{< figure src="images/claude-agents-board/session-office.png" alt="Le bureau : l'agent principal à l'accueil, un sous-agent à sa table" caption="La vue bureau : l'agent principal à l'accueil, chaque sous-agent à sa table." >}}
 
-## La partie pour le plaisir
-
-{{< figure src="images/claude-agents-board/session-office.png" alt="Le bureau : l'agent principal à l'accueil, un sous-agent à sa table" caption="Le bureau : l'agent principal à l'accueil, un sous-agent à sa table" >}}
-
-Chaque session a aussi son bureau, en pixel art. L'agent principal est derrière le comptoir d'accueil, en veste orange ; chaque sous-agent entre par la porte, s'installe à une table, tape ou lit selon l'outil qu'il utilise, puis se lève et repart quand il a fini. Quand l'agent principal est au repos depuis un moment, il va prendre un café ou s'installe sur le canapé devant la télé. Une session qui ne donne plus de nouvelles fait la sieste.
-
-C'est utile ? Pas vraiment. La timeline dit la même chose, en plus précis. Mais c'est de loin la plus amusante à regarder. Les sprites viennent des packs [MetroCity][metrocity] et [MetroCity Interior][metrocity-interior] de JIK-A-4, sous licence CC0.
+Chaque session a aussi son bureau en pixel art. Les sous-agents entrent par la porte, s'installent à une table, tapent ou lisent selon l'outil qu'ils utilisent, puis repartent. C'est utile ? Pas vraiment, la timeline dit la même chose en plus précis. Mais c'est la vue la plus amusante à regarder. Les personnages viennent des packs [MetroCity][metrocity] et [MetroCity Interior][metrocity-interior] de JIK-A-4, sous licence CC0.
 
 ## Ce qu'il ne fait pas
 
 {{< alert >}}
-Il est pensé pour un réseau local, et ça se voit. L'interface n'a pas d'authentification : n'importe quel appareil du réseau peut lire les prompts, les commandes et les fichiers lus par les agents. Un jeton optionnel protège les routes qui reçoivent les données (hooks, télémétrie, status line), pas la page ni son API, qui permet aussi de renommer ou d'effacer des sessions. Je ne l'exposerais pas en dehors de la maison.
+Il est pensé pour un réseau local, et ça se voit. L'interface n'a pas d'authentification : n'importe quel appareil du réseau peut lire les prompts, les commandes et les fichiers lus par les agents. Un jeton optionnel protège les routes qui reçoivent les données, pas la page ni son API, qui permet aussi de renommer ou d'effacer des sessions. Je ne l'exposerais pas en dehors de la maison.
 {{< /alert >}}
 
-Les hooks ne remontent pas tout non plus. Pas de messages intermédiaires du modèle, et les sous-agents lancés par un workflow arrivent sans leur consigne. Les tokens et le coût sont comptés par session, sans répartition par sous-agent ; seul le contexte est suivi par fil. Le script PowerShell ne s'intercale pas encore devant la status line : sous Windows, il faut la brancher à la main (le README explique comment). Une session dont le terminal a été fermé sans sortie propre reste « au repos », ou passe à « Sans nouvelles » au bout de dix minutes si elle était en plein tour, jusqu'à ce que le nettoyage automatique la retire (au bout d'un jour par défaut).
+Les hooks ne remontent pas tout non plus. Les messages intermédiaires du modèle ne sortent jamais de Claude Code, et les sous-agents lancés par un workflow arrivent sans leur consigne. Les tokens et le coût sont comptés par session, sans répartition par sous-agent. Sous Windows, le script PowerShell ne s'intercale pas encore devant la status line : il faut la brancher à la main. Et une session dont le terminal a été fermé brutalement reste affichée jusqu'au nettoyage automatique, au bout d'un jour par défaut.
 
-Rien de tout ça ne me gêne pour ce qu'il est censé être : un onglet sur lequel je jette un œil pour savoir si quelque chose a besoin de moi. Il tourne comme une stack de plus à côté des autres dans le [homelab]({{< relref "2026-05-17-homelab-docker-compose-traefik.md" >}}), derrière Traefik, sur un nom en [sslip.io]({{< relref "2025-04-17-traefik-local-https-mkcert-sslip.md" >}}). Les captures ci-dessus viennent d'une instance de démonstration alimentée par des sessions fictives.
+## L'essayer
+
+Il vous servira si vous faites tourner plusieurs sessions Claude Code en parallèle, sur une ou plusieurs machines d'un même réseau local. Il faut Docker sur la machine qui l'héberge, puis :
+
+```bash
+git clone https://github.com/guillaumedelre/claude-agents-board.git && cd claude-agents-board
+cp .env.example .env    # IP et DOMAIN de la machine, jeton optionnel
+docker compose up -d --build
+```
+
+Chaque machine se branche ensuite avec la commande `curl` donnée plus haut. Chez moi, il tourne comme une stack de plus dans [le homelab]({{< relref "2026-05-17-homelab-docker-compose-traefik.md" >}}), derrière Traefik, sur un nom en [sslip.io]({{< relref "2025-04-17-traefik-local-https-mkcert-sslip.md" >}}). Les captures de cet article viennent d'une instance de démonstration alimentée par des sessions fictives.
+
+Si quelque chose ne marche pas chez vous, ou s'il vous manque quelque chose, les issues et les pull requests sont ouvertes.
 
 {{< github repo="guillaumedelre/claude-agents-board" >}}
 

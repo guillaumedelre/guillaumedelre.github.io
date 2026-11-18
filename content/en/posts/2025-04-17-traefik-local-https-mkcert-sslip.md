@@ -1,7 +1,7 @@
 ---
 title: "Local HTTPS with Traefik: traefik.me is dead, long live sslip.io"
 date: 2025-04-17
-lastmod: 2026-11-17
+lastmod: 2026-11-18
 tags: [traefik, docker, homelab]
 format: experiment
 description: "traefik.me's wildcard cert was revoked in 2025. Here's how to replace it with sslip.io, mkcert, and a local Traefik setup."
@@ -9,11 +9,11 @@ description: "traefik.me's wildcard cert was revoked in 2025. Here's how to repl
 
 The setup seemed perfect. Point `*.traefik.me` at 127.0.0.1, download a wildcard certificate from the same domain, drop it into Traefik, and every local service gets a clean HTTPS URL with no IP in the address bar. No Let's Encrypt rate limits, no `mkcert` to explain to teammates, no self-signed warnings to click through. Just `https://myapp.traefik.me` and a green padlock.
 
-Then in March 2025, Let's Encrypt revoked the certificate. The wildcard cert for traefik.me is gone and it's not coming back.
+Then in March 2025, Let's Encrypt revoked the wildcard certificate for traefik.me, and it's not coming back.
 
-## What traefik.me was actually selling
+## What traefik.me was selling
 
-traefik.me is a wildcard DNS resolver. Type `anything.traefik.me` and it resolves to 127.0.0.1. Type `anything.10.0.0.1.traefik.me` and it resolves to 10.0.0.1. No account, no configuration, no infrastructure to maintain. The DNS part still works fine, by the way.
+traefik.me is a wildcard DNS resolver. Type `anything.traefik.me` and it resolves to 127.0.0.1. Type `anything.10.0.0.1.traefik.me` and it resolves to 10.0.0.1. No account, nothing to configure or maintain. The DNS part still works fine, by the way.
 
 The certificate was the bonus: a wildcard cert for `*.traefik.me` that pyrou, the maintainer, generated with Let's Encrypt and distributed at `https://traefik.me/cert.pem` and `https://traefik.me/privkey.pem`. It was convenient precisely because it was shared: download, drop into Traefik, done.
 
@@ -21,13 +21,13 @@ Sharing a private key is why it died.
 
 The CA/Browser Forum Baseline Requirements, section 9.6.3, require every subscriber to commit to "keep confidential, and properly protect at all times the Private Key". Handing it to anyone who visits a URL is the exact opposite. Let's Encrypt [said so publicly][le-post]: it blocked the leaked key, revoked the certificates tied to it, and warned that a subscriber ignoring the rules would get the domain blocked. Pyrou [confirmed the situation][pyrou-reply] and recommended mkcert as an alternative. The project will live on as a DNS resolver only.
 
-It wasn't the first time: the published key had already been used to revoke the cert several times before. This time it was Let's Encrypt, and it was the last.
+It wasn't the first time: the published key had already been used to revoke the cert several times before, but this time it was Let's Encrypt, and it was the last.
 
 ## sslip.io does the same thing, differently
 
 [sslip.io][sslip] is also a wildcard DNS resolver. Like traefik.me, the IP goes in the hostname, with dots or dashes; unlike traefik.me, there is no fallback when there isn't one. `10-0-0-1.sslip.io` resolves to `10.0.0.1`. `myapp.192-168-1-10.sslip.io` resolves to `192.168.1.10`. IPv6 works too.
 
-The infrastructure behind sslip.io is also more visible: three nameservers in Singapore, the US, and Poland, handling over 10,000 requests per second, with public monitoring. About 1,000 GitHub stars and active maintenance under the Apache 2.0 licence.
+The infrastructure behind sslip.io is also more visible: three nameservers in Singapore, the US, and Poland, handling over 10,000 requests per second, with public monitoring. About 1,000 GitHub stars and active maintenance under the Apache 2.0 license.
 
 Strip away the certificate story and the comparison is pretty straightforward:
 
@@ -39,11 +39,11 @@ Strip away the certificate story and the comparison is pretty straightforward:
 | Infrastructure | opaque | documented |
 | Project activity | low | active |
 
-traefik.me's only remaining advantage is the 127.0.0.1 fallback: URLs without an IP segment. That matters if you really want `myapp.traefik.me` instead of `myapp.127-0-0-1.sslip.io`. Whether that difference is worth the infrastructure uncertainty is a short conversation.
+traefik.me's only remaining advantage is the 127.0.0.1 fallback: URLs without an IP segment. That matters if you want `myapp.traefik.me` instead of `myapp.127-0-0-1.sslip.io`. Whether that difference is worth the infrastructure uncertainty is a short conversation.
 
 ## mkcert fills the gap
 
-[mkcert][mkcert] creates a local certificate authority, installs it in the system trust store and whatever browsers it finds, then issues certificates signed by that CA. Browsers see a trusted chain. No warning, no click-through, no "proceed anyway".
+[mkcert][mkcert] creates a local certificate authority, installs it in the system trust store and whatever browsers it finds, then issues certificates signed by that CA. Browsers see a trusted chain and stop complaining.
 
 ```bash
 mkcert -install
@@ -57,7 +57,7 @@ mkcert "*.127-0-0-1.sslip.io"
 #          _wildcard.127-0-0-1.sslip.io-key.pem
 ```
 
-The limitation is that mkcert's CA is local. Other machines on the network won't trust it by default. For a solo dev setup that's fine. For a shared team environment, you'd need to distribute the CA root, which is essentially the same operational problem traefik.me was trying to avoid, just smaller in scope.
+The limitation is that mkcert's CA is local. Other machines on the network won't trust it by default. For a solo dev setup that's fine. For a shared team environment, you'd need to distribute the CA root, which is the same operational problem traefik.me was trying to avoid, at a smaller scale.
 
 ## The Traefik configuration
 
@@ -142,7 +142,7 @@ networks:
 docker compose -f whoami/compose.yml up -d
 ```
 
-Traefik detects the new container via the Docker provider, reads its labels, and adds the route. `https://whoami.127-0-0-1.sslip.io` responds immediately. Bring `whoami` down and the route disappears. Traefik keeps running without noticing.
+Traefik detects the new container via the Docker provider, reads its labels, and adds the route. `https://whoami.127-0-0-1.sslip.io` responds immediately. Bring `whoami` down and the route disappears, while Traefik keeps running without noticing.
 
 The `external: true` declaration is the load-bearing line. Without it, Compose creates a project-scoped network: Traefik and `whoami` end up on different networks and can't reach each other, even though both are running. The external network is the shared bus every service project must explicitly opt into.
 

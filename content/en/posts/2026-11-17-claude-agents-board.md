@@ -6,20 +6,20 @@ format: showcase
 images: ["/images/claude-agents-board/home-tree.png"]
 description: "A small self-hosted dashboard to see what all your Claude Code sessions and subagents are doing, in real time."
 translationKey: "claude-agents-board"
-lastmod: 2026-11-17
+lastmod: 2026-11-18
 ---
 
 One Claude Code session in one terminal is easy to follow. Three sessions spread across two machines, each one spawning subagents, is another story. One is refactoring, one is running tests, one has been waiting for twenty minutes for me to approve a `psql` command, and I only find out when I happen to switch to that tab.
 
 That last one is the real problem. Not the agents working, the agents *waiting*.
 
-So I made a small dashboard for it: [claude-agents-board][repo]. It runs in my homelab, every Claude Code session on the local network reports to it, and a single browser tab shows who is working, who is idle, and who needs me. It's not a revolutionary tool. It's a convenient one.
+So I made a small dashboard for it: [claude-agents-board][repo]. It runs in my homelab, every Claude Code session on the local network reports to it, and a single browser tab shows who is working, who is idle, and who needs me. It does one thing: tell me which session is waiting on me.
 
 ## The idea fits in one sentence
 
-Claude Code [hooks][hooks] fire on almost everything a session does: a prompt, a tool call, a subagent starting or stopping, a permission request, the end of a turn. Each machine sends those events to a small Node server, which keeps the state and pushes changes to a web UI over server-sent events. That's it. No agent to install, no change to how you use Claude Code.
+Claude Code [hooks][hooks] fire on almost everything a session does: a prompt, a tool call, a subagent starting or stopping, a permission request, the end of a turn. Each machine sends those events to a small Node server, which keeps the state and pushes changes to a web UI over server-sent events, and that's the whole setup: no agent to install, no change to how you use Claude Code.
 
-There's one small detail worth knowing. Claude Code supports HTTP hooks natively, but in my tests it refused to call a private address like `10.0.0.10`: only loopback went through. So the hooks are plain `command` hooks that pipe the event JSON to `curl`. They're synchronous, so events arrive in order, and they give up after two seconds if the dashboard is down. A dead dashboard never blocks an agent.
+There's one small detail worth knowing. Claude Code supports HTTP hooks natively, but in my tests it refused to call a private address like `10.0.0.10`: only loopback went through. So the hooks are plain `command` hooks that pipe the event JSON to `curl`. They're synchronous, which keeps events in order, and they give up after two seconds if the dashboard is down, so a dead dashboard never blocks an agent.
 
 The app serves its own install script, so plugging in a machine is one line:
 
@@ -43,13 +43,13 @@ That amber state is the reason the whole thing exists. A banner at the top lists
 
 The sidebar groups sessions by machine, then by project folder. Sessions running in a worktree created by Claude Code (under `.claude/worktrees/`) are attached to their repository instead of showing up as strangers.
 
-## What a session is actually doing
+## What a session is doing
 
 ![Timeline of a session: the main thread, two subagents, and the task list](/images/claude-agents-board/session-timeline.png)
 
 Clicking a session opens its detail, and the timeline is the view I use most. One row for the main thread with a bar per turn, one row per subagent from launch to finish, one row per task from Claude's task list, and the tool calls as small marks underneath.
 
-For a running agent, a dashed line shows when it should finish. The estimate is just the median duration of past agents of the same type, on the same project once it has three finished runs, across all projects otherwise. Nothing clever, but enough to tell "normal" from "something's stuck". The session header also copies `claude --resume <id>` in one click, handy for picking a session back up from another terminal.
+For a running agent, a dashed line shows when it should finish. The estimate is the median duration of past agents of the same type, on the same project once it has three finished runs, across all projects otherwise. Nothing clever, but enough to tell "normal" from "something's stuck". The session header also copies `claude --resume <id>` in one click, handy for picking a session back up from another terminal.
 
 The journal view lists prompts and tool calls in order, and each turn ends with the final answer of the model. That's all the hooks give: the intermediate messages never leave Claude Code.
 
@@ -73,7 +73,7 @@ The percentage is relative to the model's window: 200k for the 3.x to 4.6 models
 
 ### And the weekly limit
 
-On a subscription, the number that really matters isn't the cost, it's how much of the week is left. Neither the hooks nor the telemetry carry it. Only the [status line][statusline] receives it: a `rate_limits` object with the 7-day and 5-hour windows, as a used percentage and a reset date, for Pro, Max and Ultra plans, after the first model response.
+On a subscription, the number that matters more than the cost is how much of the week is left. Neither the hooks nor the telemetry carry it. Only the [status line][statusline] receives it: a `rate_limits` object with the 7-day and 5-hour windows, as a used percentage and a reset date, for Pro, Max and Ultra plans, after the first model response.
 
 So the install script wraps whatever status line is already configured. A small generated script forwards the status line input to the dashboard, then runs the original command, which is saved on the side and put back by `--uninstall`. Nothing changes in the terminal. The exact context window size comes along for free and replaces the 200k / 1M guess for the main thread.
 
@@ -81,7 +81,7 @@ So the install script wraps whatever status line is already configured. A small 
 
 Both limits end up in the dashboard's bottom bar, with the reset dates on hover. When a window passes its reset date, it drops back to zero until the next value arrives.
 
-## The part that's just for fun
+## The fun part
 
 ![The office view: the main agent at the front desk, a subagent at its table](/images/claude-agents-board/session-office.png)
 

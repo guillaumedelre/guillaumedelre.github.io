@@ -6,21 +6,21 @@ format: showcase
 images: ["/images/claude-agents-board/home-tree.png"]
 description: "Un petit tableau de bord auto-hébergé pour voir en temps réel ce que font toutes vos sessions Claude Code et leurs sous-agents."
 translationKey: "claude-agents-board"
-lastmod: 2026-11-17
+lastmod: 2026-11-18
 slug: "garder-un-oeil-sur-plusieurs-sessions-claude-code-a-la-fois"
 ---
 
-Une session Claude Code dans un terminal, ça se suit facilement. Trois sessions sur deux machines, chacune qui lance ses sous-agents, c'est une autre histoire. L'une refactore, l'autre fait tourner les tests, la troisième attend depuis vingt minutes que j'autorise une commande `psql`, et je ne m'en rends compte qu'en tombant par hasard sur le bon onglet.
+Une session Claude Code dans un terminal, ça se suit facilement. Trois sessions sur deux machines, chacune qui lance ses sous-agents, c'est une autre histoire. L'une restructure du code, l'autre fait tourner les tests, la troisième attend depuis vingt minutes que j'autorise une commande `psql`, et je ne m'en rends compte qu'en tombant par hasard sur le bon onglet.
 
 C'est ce dernier cas, le vrai problème. Pas les agents qui travaillent : ceux qui *attendent*.
 
-Alors je me suis fait un petit tableau de bord : [claude-agents-board][repo]. Il tourne dans mon homelab, chaque session Claude Code du réseau local lui envoie ce qu'elle fait, et un seul onglet du navigateur montre qui travaille, qui est au repos et qui a besoin de moi. Ce n'est pas un outil révolutionnaire. C'est un outil pratique.
+Alors je me suis fait un petit tableau de bord : [claude-agents-board][repo]. Il tourne dans mon homelab, chaque session Claude Code du réseau local lui envoie ce qu'elle fait, et un seul onglet du navigateur montre qui travaille, qui est au repos et qui a besoin de moi. Il fait une seule chose : me dire quelle session m'attend.
 
 ## L'idée tient en une phrase
 
-Les [hooks][hooks] de Claude Code se déclenchent sur à peu près tout ce que fait une session : un prompt, un appel d'outil, un sous-agent qui démarre ou s'arrête, une demande de permission, la fin d'un tour. Chaque machine envoie ces événements à un petit serveur Node, qui tient l'état et pousse les changements vers une interface web en server-sent events. C'est tout. Pas d'agent à installer, rien à changer dans votre façon d'utiliser Claude Code.
+Les [hooks][hooks] de Claude Code se déclenchent sur à peu près tout ce que fait une session : un prompt, un appel d'outil, un sous-agent qui démarre ou s'arrête, une demande de permission, la fin d'un tour. Chaque machine envoie ces événements à un petit serveur Node, qui tient l'état et pousse les changements vers une interface web en server-sent events, et c'est tout : pas d'agent à installer, rien à changer dans votre façon d'utiliser Claude Code.
 
-Un petit détail à connaître quand même. Claude Code sait faire des hooks HTTP, mais dans mes tests il a refusé d'appeler une adresse privée comme `10.0.0.10` : seul le loopback passait. Les hooks sont donc de simples hooks `command` qui envoient le JSON de l'événement à `curl`. Ils sont synchrones, pour que les événements arrivent dans l'ordre, et abandonnent au bout de deux secondes si le tableau de bord ne répond pas. Un tableau de bord en panne ne bloque jamais un agent.
+Un petit détail à connaître quand même. Claude Code sait faire des hooks HTTP, mais dans mes tests il a refusé d'appeler une adresse privée comme `10.0.0.10` : seule l'adresse de bouclage passait. Les hooks sont donc de simples hooks `command` qui envoient le JSON de l'événement à `curl`. Ils sont synchrones, pour que les événements arrivent dans l'ordre, et abandonnent au bout de deux secondes si le tableau de bord ne répond pas : un tableau de bord en panne ne bloque donc jamais un agent.
 
 L'application sert elle-même son script d'installation, donc brancher une machine tient en une ligne :
 
@@ -28,13 +28,13 @@ L'application sert elle-même son script d'installation, donc brancher une machi
 curl -fsSL http://agents.10.0.0.10.sslip.io/install-hooks.sh | sh -s -- --host portable
 ```
 
-Le script ajoute les hooks dans `~/.claude/settings.json` sans toucher à ceux qui existent déjà, active la télémétrie et enveloppe la status line (j'y reviens plus bas). Une version PowerShell existe pour Windows. Le reste de l'installation est dans le [README][repo].
+Le script ajoute les hooks dans `~/.claude/settings.json` sans toucher à ceux qui existent déjà, active la télémétrie et s'intercale devant la status line (j'y reviens plus bas). Une version PowerShell existe pour Windows. Le reste de l'installation est dans le [README][repo].
 
 ## Une page, toutes les sessions
 
-![Accueil : toi en haut, les sessions groupées par machine au milieu, les stations partagées en bas](/images/claude-agents-board/home-tree.png)
+![Accueil : le nœud « Toi » en haut, les sessions groupées par machine au milieu, les stations partagées en bas](/images/claude-agents-board/home-tree.png)
 
-La page d'accueil est un arbre. Toi en haut, toutes les sessions ouvertes au milieu, groupées par machine, et en bas les « stations » qu'elles utilisent : modèle, fichiers, terminal, réseau, agents, etc. Chaque appel d'outil envoie une impulsion de la session vers la station, puis une autre au retour. Une session qui travaille respire en orange ; une session qui vous attend passe en ambre, et le lien entre elle et vous se met à défiler.
+La page d'accueil est un arbre. Le nœud « Toi » en haut, toutes les sessions ouvertes au milieu, groupées par machine, et en bas les « stations » qu'elles utilisent : modèle, fichiers, terminal, réseau, agents, etc. Chaque appel d'outil envoie une impulsion de la session vers la station, puis une autre au retour. Une session qui travaille respire en orange ; une session qui vous attend passe en ambre, et le lien entre elle et vous se met à défiler.
 
 ![Les boîtes des sessions : activité en cours et son chrono, barre de contexte, compactages et coût estimé](/images/claude-agents-board/home-sessions.png)
 
@@ -44,13 +44,13 @@ Cet état ambre, c'est la raison d'être de tout le reste. Un bandeau en haut li
 
 La barre latérale range les sessions par machine, puis par dossier de projet. Les sessions qui tournent dans un worktree créé par Claude Code (sous `.claude/worktrees/`) sont rattachées à leur dépôt au lieu d'apparaître comme des inconnues.
 
-## Ce que fait vraiment une session
+## Ce que fait une session
 
 ![Timeline d'une session : le fil principal, deux sous-agents et la liste de tâches](/images/claude-agents-board/session-timeline.png)
 
 Un clic sur une session ouvre son détail, et la timeline est la vue que j'utilise le plus. Une ligne pour le fil principal avec une barre par tour, une ligne par sous-agent de son lancement à sa fin, une ligne par tâche de la liste de tâches de Claude, et les appels d'outils en petites marques en dessous.
 
-Pour un agent en cours, des pointillés indiquent quand il devrait finir. L'estimation, c'est simplement la durée médiane des agents du même type déjà terminés, sur le même projet dès qu'il en compte trois, tous projets confondus sinon. Rien de malin, mais assez pour distinguer « normal » d'« il y a un truc qui coince ». L'en-tête de la session copie aussi `claude --resume <id>` d'un clic, pratique pour reprendre une session depuis un autre terminal.
+Pour un agent en cours, des pointillés indiquent quand il devrait finir. L'estimation, c'est la durée médiane des agents du même type déjà terminés, sur le même projet dès qu'il en compte trois, tous projets confondus sinon. Rien de malin, mais assez pour distinguer « normal » d'« il y a un truc qui coince ». L'en-tête de la session copie aussi `claude --resume <id>` d'un clic, pratique pour reprendre une session depuis un autre terminal.
 
 La vue journal liste les prompts et les appels d'outils dans l'ordre, et chaque tour se termine par la réponse finale du modèle. C'est tout ce que donnent les hooks : les messages intermédiaires ne sortent jamais de Claude Code.
 
@@ -74,15 +74,15 @@ Le pourcentage est calculé sur la fenêtre du modèle : 200 k pour les modèles
 
 ### Et la limite de la semaine
 
-Avec un abonnement, le chiffre qui compte vraiment n'est pas le coût, c'est ce qu'il reste de la semaine. Ni les hooks ni la télémétrie ne le transmettent. Seule la [status line][statusline] le reçoit : un objet `rate_limits` avec les fenêtres de 7 jours et de 5 heures, en pourcentage utilisé avec la date de reset, pour les abonnements Pro, Max et Ultra, après la première réponse du modèle.
+Avec un abonnement, plus que le coût, le chiffre qui compte, c'est ce qu'il reste de la semaine. Ni les hooks ni la télémétrie ne le transmettent. Seule la [status line][statusline] le reçoit : un objet `rate_limits` avec les fenêtres de 7 jours et de 5 heures, avec le pourcentage consommé et la date de remise à zéro, pour les abonnements Pro, Max et Ultra, après la première réponse du modèle.
 
-Le script d'installation enveloppe donc la status line déjà configurée, quelle qu'elle soit. Un petit script généré envoie l'entrée de la status line au tableau de bord, puis lance la commande d'origine, mise de côté et remise en place par `--uninstall`. Rien ne change dans le terminal. Au passage, la taille exacte de la fenêtre de contexte arrive aussi, et remplace la règle 200 k / 1 M pour le fil principal.
+Le script d'installation s'intercale donc devant la status line déjà configurée, quelle qu'elle soit. Un petit script généré envoie l'entrée de la status line au tableau de bord, puis lance la commande d'origine, mise de côté et remise en place par `--uninstall`. Rien ne change dans le terminal. Au passage, la taille exacte de la fenêtre de contexte arrive aussi, et remplace la règle 200 k / 1 M pour le fil principal.
 
-![Les limites de l'abonnement dans la barre d'état : semaine et fenêtre de 5 h avec leurs dates de reset](/images/claude-agents-board/limits.png)
+![Les limites de l'abonnement dans la barre d'état : semaine et fenêtre de 5 h avec leurs dates de remise à zéro](/images/claude-agents-board/limits.png)
 
-Les deux limites s'affichent dans la barre du bas, avec les dates de reset au survol. Quand une fenêtre dépasse sa date de reset, elle repart à zéro en attendant la prochaine valeur.
+Les deux limites s'affichent dans la barre du bas, avec les dates de remise à zéro au survol. Une fois cette date passée, la fenêtre retombe à zéro en attendant la prochaine valeur.
 
-## La partie juste pour le plaisir
+## La partie pour le plaisir
 
 ![Le bureau : l'agent principal à l'accueil, un sous-agent à sa table](/images/claude-agents-board/session-office.png)
 
@@ -92,9 +92,9 @@ C'est utile ? Pas vraiment. La timeline dit la même chose, en plus précis. Mai
 
 ## Ce qu'il ne fait pas
 
-Il est pensé pour un réseau local, et ça se voit. L'interface n'a pas d'authentification : n'importe quel appareil du réseau peut lire les prompts, les commandes et les fichiers lus par les agents. Un token optionnel protège les routes qui reçoivent les données (hooks, télémétrie, status line), pas la page ni son API, qui permet aussi de renommer ou d'effacer des sessions. Je ne l'exposerais pas en dehors de la maison.
+Il est pensé pour un réseau local, et ça se voit. L'interface n'a pas d'authentification : n'importe quel appareil du réseau peut lire les prompts, les commandes et les fichiers lus par les agents. Un jeton optionnel protège les routes qui reçoivent les données (hooks, télémétrie, status line), pas la page ni son API, qui permet aussi de renommer ou d'effacer des sessions. Je ne l'exposerais pas en dehors de la maison.
 
-Les hooks ne remontent pas tout non plus. Pas de messages intermédiaires du modèle, et les sous-agents lancés par un workflow arrivent sans leur consigne. Les tokens et le coût sont comptés par session, sans répartition par sous-agent ; seul le contexte est suivi par fil. Le script PowerShell n'enveloppe pas encore la status line : sous Windows, il faut la brancher à la main (le README explique comment). Une session dont le terminal a été fermé sans sortie propre reste « au repos », ou passe à « Sans nouvelles » au bout de dix minutes si elle était en plein tour, jusqu'à ce que le nettoyage automatique la retire (au bout d'un jour par défaut).
+Les hooks ne remontent pas tout non plus. Pas de messages intermédiaires du modèle, et les sous-agents lancés par un workflow arrivent sans leur consigne. Les tokens et le coût sont comptés par session, sans répartition par sous-agent ; seul le contexte est suivi par fil. Le script PowerShell ne s'intercale pas encore devant la status line : sous Windows, il faut la brancher à la main (le README explique comment). Une session dont le terminal a été fermé sans sortie propre reste « au repos », ou passe à « Sans nouvelles » au bout de dix minutes si elle était en plein tour, jusqu'à ce que le nettoyage automatique la retire (au bout d'un jour par défaut).
 
 Rien de tout ça ne me gêne pour ce qu'il est censé être : un onglet sur lequel je jette un œil pour savoir si quelque chose a besoin de moi. Il tourne comme une stack de plus à côté des autres dans le [homelab]({{< relref "2026-05-17-homelab-docker-compose-traefik.md" >}}), derrière Traefik, sur un nom en [sslip.io]({{< relref "2025-04-17-traefik-local-https-mkcert-sslip.md" >}}). Les captures ci-dessus viennent d'une instance de démonstration alimentée par des sessions fictives.
 

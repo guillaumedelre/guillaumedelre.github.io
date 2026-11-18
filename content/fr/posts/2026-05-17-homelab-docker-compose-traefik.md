@@ -1,8 +1,8 @@
 ---
-title: "Construire un homelab self-hosted avec Docker Compose et Traefik"
+title: "Construire un homelab auto-hébergé avec Docker Compose et Traefik"
 aliases: ["/fr/2026/02/17/construire-un-homelab-self-hosted-avec-docker-compose-et-traefik/"]
 date: 2026-05-17
-lastmod: 2026-11-17
+lastmod: 2026-11-18
 tags: [homelab, docker, traefik]
 format: guide
 description: "Tuto complet pour monter un homelab Docker avec Traefik et sslip.io : stacks indépendantes, dashboard auto-configuré, pièges documentés."
@@ -12,11 +12,15 @@ description: "Tuto complet pour monter un homelab Docker avec Traefik et sslip.i
 
 À l'époque, Kubernetes n'existait pas encore. Les options pour faire tourner plusieurs services sur une machine se résumaient à du scripting bash, des configurations Nginx écrites à la main, et beaucoup de café. Les tutoriels « homelab pour les humains » brillaient par leur absence.
 
-Ce tuto, c'est ce que j'aurais voulu trouver à l'époque. Ça tourne depuis plusieurs années maintenant. Pas sans évoluer : des services ajoutés, d'autres abandonnés, des choix revisités. Mais la base est là, stable, et c'est bien ça le succès en self-hosting.
+Ce tuto, c'est ce que j'aurais voulu trouver à l'époque. Ça tourne depuis plusieurs années maintenant. Pas sans évoluer : des services ajoutés, d'autres abandonnés, des choix revisités. Mais la base est là, stable, et c'est à ça qu'on reconnaît une installation auto-hébergée réussie.
 
-Le setup : dix services auto-hébergés sur une machine locale, accessibles depuis un navigateur via des URLs lisibles, sans toucher à la configuration DNS, sans louer un VPS, sans certificat TLS à gérer. L'ingrédient qui rend ça possible : [sslip.io][sslip], un service DNS public qui encode l'IP directement dans le nom de domaine. `service.192.168.1.10.sslip.io` résout vers `192.168.1.10`, sans rien configurer, depuis n'importe quelle machine du réseau local.
+Le principe : dix services auto-hébergés sur une machine locale, accessibles depuis un navigateur via des URLs lisibles, sans toucher à la configuration DNS, sans louer un VPS, sans certificat TLS à gérer. L'ingrédient qui rend ça possible : [sslip.io][sslip], un service DNS public qui encode l'IP directement dans le nom de domaine. `service.192.168.1.10.sslip.io` résout vers `192.168.1.10`, sans rien configurer, depuis n'importe quelle machine du réseau local.
 
-Ce tutoriel s'adresse à quelqu'un qui connaît Docker mais qui part de zéro sur l'orchestration de services self-hosted.
+Ce tutoriel s'adresse à quelqu'un qui connaît Docker mais qui part de zéro sur l'orchestration de services auto-hébergés.
+
+**Prérequis** : une machine Linux ou WSL2, Docker avec Compose v2 (la commande `docker compose`), et git. Toutes les commandes ont été testées sur Ubuntu/WSL2 avec Docker Desktop.
+
+**Résultat** : Dockge sur `http://<IP>:5001`, et les dix services listés dans [Les groupes Homepage](#les-groupes-homepage) (Traefik, Dockge, Watchtower, Homepage, Dozzle, Glances, Uptime Kuma, FileBrowser, IT-Tools, Stirling PDF), chacun joignable sur `http://<nom>.<IP>.sslip.io`, où `<nom>` est le dossier de la stack (`dockge` pour Dockge). Homepage sert de dashboard et les affiche tous. Seule exception, Watchtower : il n'a pas d'interface web et met à jour les autres containers en arrière-plan.
 
 ---
 
@@ -26,7 +30,7 @@ Ce tutoriel s'adresse à quelqu'un qui connaît Docker mais qui part de zéro su
 2. [Les briques fondamentales](#2-les-briques-fondamentales)
 3. [Mise en place pas à pas](#3-mise-en-place-pas-à-pas)
 4. [Ajouter un nouveau service](#4-ajouter-un-nouveau-service)
-5. [Patterns et conventions](#5-patterns-et-conventions)
+5. [Modèles et conventions](#5-modèles-et-conventions)
 6. [Pièges courants](#6-pièges-courants)
 7. [Conclusion](#conclusion)
 8. [Références](#références)
@@ -92,7 +96,7 @@ Pourquoi externe plutôt qu'interne à un Compose ? Parce que plusieurs stacks i
 
 ### Traefik : le reverse proxy
 
-Traefik écoute sur le port 80 et route les requêtes HTTP vers le bon container selon le `Host` header. Son `compose.yaml` publie aussi les ports 443 et 25565, mais aucun entrypoint ne les utilise encore : ils sont réservés pour plus tard.
+Traefik écoute sur le port 80 et route les requêtes HTTP vers le bon container selon l'en-tête `Host`. Son `compose.yaml` publie aussi les ports 443 et 25565, mais aucun entrypoint ne les utilise encore : ils sont réservés pour plus tard.
 
 Sa configuration principale est dans `stacks/traefik/docker/traefik/traefik.yaml` :
 
@@ -142,7 +146,7 @@ Dockge tourne lui-même dans un container (le `compose.yaml` à la racine du rep
 1. Accès au socket Docker pour piloter les autres containers.
 2. Accès aux dossiers des stacks pour lire et modifier les `compose.yaml`.
 
-Le point critique est le montage des stacks. Dockge lance les stacks en passant des chemins absolus au daemon Docker. Ces chemins doivent être identiques dans le container Dockge et sur le host. La solution :
+Le point critique est le montage des stacks. Dockge lance les stacks en passant des chemins absolus au daemon Docker. Ces chemins doivent être identiques dans le container Dockge et sur l'hôte. La solution :
 
 ```yaml
 volumes:
@@ -155,7 +159,7 @@ environment:
 
 **Conséquence pratique** : toujours lancer `docker compose up -d` depuis la racine du repo.
 
-La donnée persistante de Dockge (configuration, historique) est dans un volume nommé créé à l'avance :
+Les données persistantes de Dockge (configuration, historique) sont dans un volume nommé créé à l'avance :
 
 ```bash
 docker volume create homelab_dockge_data
@@ -170,7 +174,7 @@ Comme il est déclaré `external: true`, un `docker compose down -v` n'y touche 
 ### Étape 1 : cloner et configurer
 
 ```bash
-git clone <repo> homelab
+git clone https://github.com/guillaumedelre/homelab.git homelab
 cd homelab
 ```
 
@@ -191,6 +195,8 @@ cp .env.example .env
 # COMPOSE_PROJECT_NAME=dockge  ← important, voir section conventions
 ```
 
+**Vérification** : `cat .env` affiche les trois valeurs, avec votre IP.
+
 ### Étape 2 : prérequis Docker
 
 ```bash
@@ -198,13 +204,26 @@ docker network create traefik
 docker volume create homelab_dockge_data
 ```
 
+**Vérification** : chacune de ces commandes affiche une seule ligne, `traefik` et `homelab_dockge_data` :
+
+```bash
+docker network ls --filter name=traefik
+docker volume ls --filter name=homelab_dockge_data
+```
+
 ### Étape 3 : démarrer Dockge
+
+Depuis la racine du repo, et seulement de là :
 
 ```bash
 docker compose up -d
 ```
 
 Dockge est accessible sur `http://<IP>:5001`. Il est exposé directement sur le port 5001, pas via Traefik (Traefik n'est pas encore démarré à ce stade). Créer un compte admin à la première ouverture.
+
+**Vérification** : `http://<IP>:5001` affiche la page de création de compte de Dockge.
+
+**Échec le plus courant** : lancer `docker compose up -d` depuis un autre répertoire. `${PWD}` pointe alors au mauvais endroit et les montages de volumes des stacks sont cassés (voir [Pièges courants](#6-pièges-courants)).
 
 ### Étape 4 : configurer les stacks
 
@@ -220,6 +239,8 @@ Puis éditer chaque `.env` pour renseigner `IP` et `DOMAIN` avec les mêmes vale
 
 Pour `filebrowser`, renseigner aussi `FILEBROWSER_ROOT` avec le chemin local à exposer.
 
+**Vérification** : `ls stacks/*/.env` affiche un `.env` par stack, sauf pour Watchtower.
+
 ### Étape 5 : lancer les stacks depuis Dockge
 
 Depuis l'interface Dockge (`http://<IP>:5001`), dans cet ordre :
@@ -234,11 +255,15 @@ Après démarrage, vérifier que Traefik est healthy :
 docker ps --filter name=traefik
 ```
 
+La colonne `STATUS` doit afficher `Up … (healthy)`. Juste après le démarrage, elle indique `(health: starting)` le temps que le premier health check passe ; si elle finit en `(unhealthy)`, vérifier le bloc `ping` de `traefik.yaml` (voir [Traefik : le reverse proxy](#traefik--le-reverse-proxy)).
+
 **2. Les autres stacks dans n'importe quel ordre**
 
 Chaque stack se déclare automatiquement auprès de Traefik via ses labels Docker. Traefik découvre les nouveaux containers en temps réel.
 
 Homepage n'a pas besoin d'une place particulière : il interroge les labels Docker des containers actifs à chaque chargement du dashboard, donc un service démarré après lui apparaît au rafraîchissement suivant.
+
+**Vérification finale** : `docker ps` affiche tous les containers en `(healthy)`, et Homepage, ouvert sur `http://<nom>.<IP>.sslip.io` (`<nom>` étant son dossier dans `stacks/`), affiche les trois groupes avec un lien fonctionnel pour chaque service. Un service absent du dashboard ou injoignable : voir [Le container démarre mais n'est pas routable](#le-container-démarre-mais-nest-pas-routable).
 
 ---
 
@@ -286,7 +311,7 @@ DOMAIN=sslip.io
 
 **Le nom du dossier détermine le sous-domaine.** Si le dossier s'appelle `monservice`, le service sera accessible sur `monservice.<IP>.<DOMAIN>`. C'est tout.
 
-Pour trouver des services à ajouter, [selfh.st][selfhst] est une excellente ressource : c'est un catalogue de logiciels self-hosted organisé par catégorie (media, sécurité, productivité, monitoring...), avec pour chacun une description, une capture d'écran et le lien GitHub. Le site publie aussi une newsletter hebdomadaire sur les nouvelles releases.
+Pour trouver des services à ajouter, [selfh.st][selfhst] est une excellente ressource : c'est un catalogue de logiciels auto-hébergés organisé par catégorie (media, sécurité, productivité, monitoring...), avec pour chacun une description, une capture d'écran et le lien GitHub. Le site publie aussi une newsletter hebdomadaire sur les nouvelles versions.
 
 ### Checklist pour un nouveau service
 
@@ -301,11 +326,11 @@ Pour trouver des services à ajouter, [selfh.st][selfhst] est une excellente res
 
 ---
 
-## 5. Patterns et conventions
+## 5. Modèles et conventions
 
 ### La variable `${COMPOSE_PROJECT_NAME}`
 
-Docker Compose valorise automatiquement `COMPOSE_PROJECT_NAME` avec le nom du dossier qui contient le `compose.yaml`, ici le dossier de la stack. On l'utilise pour construire dynamiquement les URLs :
+Docker Compose renseigne automatiquement `COMPOSE_PROJECT_NAME` avec le nom du dossier qui contient le `compose.yaml`, ici le dossier de la stack. On l'utilise pour construire dynamiquement les URLs :
 
 ```yaml
 traefik.http.routers.dozzle.rule: Host(`${COMPOSE_PROJECT_NAME}.${IP}.${DOMAIN}`)
@@ -386,15 +411,27 @@ Ce n'est pas une contrainte technique de Traefik, juste une convention de lisibi
 
 ### Dockge : Stop puis Start, pas Restart
 
-Quand on modifie un `compose.yaml` depuis l'IDE et qu'on veut appliquer les changements, il faut faire **Stop + Start** depuis Dockge, pas « Restart ». Le Restart redémarre le container existant sans relire le `compose.yaml`. Le Stop + Start recrée le container avec la nouvelle configuration.
+**Symptôme** : vous avez modifié un `compose.yaml` depuis l'IDE, cliqué sur « Restart » dans Dockge, et le changement n'est pas pris en compte.
+
+**Cause** : le Restart redémarre le container existant sans relire le `compose.yaml`.
+
+**Correction** : faire **Stop + Start** depuis Dockge. Le Stop + Start recrée le container avec la nouvelle configuration.
 
 ### Les labels modifiés n'apparaissent pas dans Homepage
 
-Homepage relit les labels Docker à chaque chargement de page, donc un `homepage.group` ou `homepage.name` modifié doit apparaître après un rafraîchissement. Sinon, c'est que le container porte encore les anciens labels : il a été redémarré, pas recréé (voir Stop + Start plus haut).
+**Symptôme** : un `homepage.group` ou `homepage.name` modifié n'apparaît pas après un rafraîchissement, alors que Homepage relit les labels Docker à chaque chargement de page.
+
+**Cause** : le container porte encore les anciens labels : il a été redémarré, pas recréé.
+
+**Correction** : Stop + Start depuis Dockge (voir plus haut).
 
 ### Le container démarre mais n'est pas routable
 
-Vérifier dans l'ordre :
+**Symptôme** : le container tourne, mais son URL n'y mène pas.
+
+**Cause** : une des conditions dont Traefik a besoin pour créer la route n'est pas remplie.
+
+**Correction** : vérifier dans l'ordre :
 
 1. `docker ps` : le container est-il `healthy` ? Traefik ignore les containers `unhealthy`.
 2. Le container est-il sur le réseau `traefik` ?
@@ -408,15 +445,19 @@ docker inspect <container> --format '{{json .NetworkSettings.Networks}}'
 
 ### Monter un fichier qui n'existe pas encore
 
-Quand un bind mount pointe vers un **fichier** qui n'existe pas encore sur le host, Docker crée un **répertoire** à la place. Ça arrive avec Docker Engine comme avec Docker Desktop sous WSL. Ce répertoire fantôme bloque ensuite le montage du vrai fichier. Symptôme : le container refuse de démarrer avec une erreur de montage.
+**Symptôme** : le container refuse de démarrer avec une erreur de montage.
 
-Solution : s'assurer que le fichier existe sur le host avant de démarrer le container, ou utiliser un montage de répertoire plutôt que de fichier.
+**Cause** : quand un bind mount pointe vers un **fichier** qui n'existe pas encore sur l'hôte, Docker crée un **répertoire** à la place. Ça arrive avec Docker Engine comme avec Docker Desktop sous WSL. Ce répertoire fantôme bloque ensuite le montage du vrai fichier.
+
+**Correction** : supprimer le répertoire fantôme, s'assurer que le fichier existe sur l'hôte avant de démarrer le container, ou utiliser un montage de répertoire plutôt que de fichier.
 
 ### Watchtower : API Docker trop ancienne
 
-Sur certaines configurations, Watchtower tente de communiquer avec le daemon en commençant la négociation à l'API v1.25 (son minimum historique). Les versions récentes de Docker refusent cette version. Symptôme : le container redémarre en boucle avec `client version 1.25 is too old. Minimum supported API version is 1.40`.
+**Symptôme** : le container Watchtower redémarre en boucle avec `client version 1.25 is too old. Minimum supported API version is 1.40`.
 
-Le `compose.yaml` de Watchtower du repo force la version :
+**Cause** : sur certaines configurations, Watchtower commence la négociation avec le daemon à l'API v1.25 (son minimum historique). Les versions récentes de Docker refusent cette version.
+
+**Correction** : forcer la version. C'est ce que fait le `compose.yaml` de Watchtower du repo :
 
 ```yaml
 environment:
@@ -433,11 +474,11 @@ docker version --format '{{.Server.APIVersion}}'
 
 ### `${PWD}` dans le compose de Dockge
 
-`${PWD}` n'est pas une variable `.env`, c'est une variable shell résolue au moment du `docker compose up`. Elle vaut le répertoire courant du terminal. Lancer `docker compose up -d` depuis n'importe quel autre répertoire donnera une mauvaise valeur et cassera les montages de volumes des stacks.
+**Symptôme** : les montages de volumes des stacks sont cassés, ou Docker crée des répertoires fantômes au mauvais endroit.
 
----
+**Cause** : `${PWD}` n'est pas une variable `.env`, c'est une variable shell résolue au moment du `docker compose up`. Elle vaut le répertoire courant du terminal. Lancé depuis un autre répertoire que la racine du repo, `docker compose up -d` lui donne une mauvaise valeur.
 
-*Ce homelab est conçu pour tourner sur une machine Linux ou WSL. Toutes les commandes sont testées sur Ubuntu/WSL2 avec Docker Desktop.*
+**Correction** : toujours lancer `docker compose up -d` depuis la racine du repo.
 
 ---
 
@@ -445,7 +486,7 @@ docker version --format '{{.Server.APIVersion}}'
 
 J'ai bien conscience que ce tuto ne couvre pas tout. On aurait pu ajouter de l'authentification devant chaque service, faire tourner l'ensemble en HTTPS, mettre en place un socket proxy pour limiter l'exposition du daemon Docker, ou épingler précisément chaque version d'image. Mais chacun de ces points aurait considérablement allongé l'article et la complexité de mise en place. L'objectif était de démarrer avec quelque chose de fonctionnel et maintenable, pas de construire une forteresse dès le premier jour.
 
-Le homelab parfait n'existe pas. Celui qui tourne, si.
+Pour le HTTPS, la suite est dans [HTTPS local avec Traefik]({{< relref "2025-04-17-traefik-local-https-mkcert-sslip.md" >}}) : les mêmes noms en sslip.io, avec des certificats générés en local par mkcert.
 
 <a class="gh-card" href="https://github.com/guillaumedelre/homelab" target="_blank" rel="noopener noreferrer">
   <span class="gh-card__head">
@@ -457,21 +498,7 @@ Le homelab parfait n'existe pas. Celui qui tourne, si.
 
 ## Références
 
-| Projet | GitHub |
-|---|---|
-| sslip.io | [sslip.io][sslip] |
-| selfh.st | [selfh.st][selfhst] |
-| Traefik | [github.com/traefik/traefik][traefik] |
-| Dockge | [github.com/louislam/dockge][dockge] |
-| Homepage | [github.com/gethomepage/homepage][homepage] |
-| Dozzle | [github.com/amir20/dozzle][dozzle] |
-| Glances | [github.com/nicolargo/glances][glances] |
-| FileBrowser | [github.com/gtsteffaniak/filebrowser][filebrowser] |
-| IT-Tools | [github.com/CorentinTh/it-tools][ittools] |
-| Stirling PDF | [github.com/Stirling-Tools/Stirling-PDF][stirling-pdf] |
-| Uptime Kuma | [github.com/louislam/uptime-kuma][uptime-kuma] |
-| Watchtower | [github.com/containrrr/watchtower][watchtower] |
-| selfhst/icons | [github.com/selfhst/icons][selfhst-icons] |
+Chaque projet renvoie vers son dépôt à sa première mention, et les services sont listés avec leurs liens dans [Les groupes Homepage](#les-groupes-homepage). Pour aller plus loin, [selfh.st][selfhst] recense les logiciels auto-hébergés et [selfhst/icons][selfhst-icons] fournit les icônes.
 
 [sslip]: https://sslip.io
 [selfhst]: https://selfh.st

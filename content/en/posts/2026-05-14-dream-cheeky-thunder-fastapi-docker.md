@@ -2,28 +2,28 @@
 title: "Controlling a USB missile launcher over HTTP with FastAPI and Docker"
 aliases: ["/2017/02/21/controlling-a-usb-missile-launcher-over-http-with-fastapi-and-docker/"]
 date: 2026-05-14
-lastmod: 2026-11-17
+lastmod: 2026-11-18
 tags: [python, docker]
 format: experiment
 images: ["https://raw.githubusercontent.com/guillaumedelre/dream-cheeky-thunder/develop/docs/Dream-Cheeky-Thunder.jpg"]
 description: "How we wired a USB foam missile launcher to the CI pipeline — and what Docker, udev, and WSL2 had to say about it."
 ---
 
-The rule was simple: whoever breaks the CI build owes the team a coffee. It worked fine for a while. Then someone suggested we needed something with more immediate feedback. Something physical. Something that fires.
+The rule was simple: whoever breaks the CI build owes the team a coffee. It worked fine for a while. Then someone suggested we needed something with more immediate feedback, something physical that fires.
 
-A <a href="https://web.archive.org/web/20171216061329/http://dreamcheeky.com/thunder-missile-launcher" target="_blank" rel="noopener noreferrer">Dream Cheeky Thunder</a> appeared on a desk shortly after. Four foam missiles, a USB cable, and a very clear team consensus: hook it to the cluster, wire it to the build pipeline, and let the CI decide who deserves a volley.
+A [Dream Cheeky Thunder][dct] appeared on a desk shortly after. Four foam missiles, a USB cable, and a very clear team consensus: hook it to the cluster, wire it to the build pipeline, and let the CI decide who deserves a volley.
 
-The launcher needed to respond to HTTP calls from anywhere on the network. No driver, no GUI, no manual aiming. Just an endpoint that makes it shoot in the direction of the guilty party's desk.
+The launcher needed to respond to HTTP calls from anywhere on the network, with no driver or GUI to install and no manual aiming: an endpoint that makes it shoot in the direction of the guilty party's desk.
 
-This is the story of <a href="https://github.com/guillaumedelre/dream-cheeky-thunder" target="_blank" rel="noopener noreferrer">dream-cheeky-thunder</a>.
+This is the story of [dream-cheeky-thunder][repo].
 
-![Dream Cheeky Thunder](https://raw.githubusercontent.com/guillaumedelre/dream-cheeky-thunder/develop/docs/Dream-Cheeky-Thunder.jpg)
+![The Dream Cheeky Thunder, a small USB turret that fires foam missiles](https://raw.githubusercontent.com/guillaumedelre/dream-cheeky-thunder/develop/docs/Dream-Cheeky-Thunder.jpg)
 
-## No SDK, no docs, no problem
+## A forum script and a handful of control bytes
 
 Dream Cheeky never published a protocol spec. The launcher speaks raw USB HID, and the only starting point was an old Python script floating around in forum threads. Vendor ID `0x2123`, product ID `0x1010`, and a handful of control bytes that someone had reverse engineered years before.
 
-That was enough. The protocol is simple: send a byte sequence to move the motors, send another to fire. The tricky part is that the launcher has no position feedback. No encoders, no limit switches beyond the physical hard stops at the extremes. You drive it blind.
+That was enough. The protocol is simple: send a byte sequence to move the motors, send another to fire. The tricky part is that the launcher has no position feedback: no encoders, no limit switches beyond the physical hard stops at the extremes, so you drive it blind.
 
 ## From USB to HTTP
 
@@ -37,13 +37,13 @@ curl -X POST http://localhost:8000/yaw/20    # rotate toward guilty desk
 curl -X POST "http://localhost:8000/fire?shots=2"
 ```
 
-The `/park` call matters more than it looks. Since the launcher has no position feedback, the server estimates the current angle by tracking how long the motors have been running. That estimate drifts. Bumping the hardware, interrupting a command, or just the imprecision of time-based tracking — they all accumulate. Parking drives the launcher left, then down, against the physical hard stops for a full sweep each, which guarantees alignment regardless of what the server thinks it knows. Skip it, and your aim is a guess.
+The `/park` call matters more than it looks. Since the launcher has no position feedback, the server estimates the current angle by tracking how long the motors have been running. That estimate drifts. Bumping the hardware, interrupting a command, or the imprecision of time-based tracking itself — they all accumulate. Parking drives the launcher left, then down, against the physical hard stops for a full sweep each, which guarantees alignment regardless of what the server thinks it knows; without it, the aim is a guess.
 
-The full API reference is <a href="https://github.com/guillaumedelre/dream-cheeky-thunder/blob/develop/docs/api.md" target="_blank" rel="noopener noreferrer">in the repo</a>. There's also a web UI if you prefer clicking over `curl`.
+The full API reference is [in the repo][api]. There's also a web UI if you prefer clicking over `curl`.
 
 ## Docker knows nothing about USB
 
-Running this in a Docker container on the cluster was where the fun really started: containers don't see USB devices by default.
+Running this in a Docker container on the cluster was where the fun started: containers don't see USB devices by default.
 
 The `devices` mount in `compose.yaml` exposes the USB bus to the container:
 
@@ -54,23 +54,21 @@ devices:
 
 Not enough. First run came back with `USBError: [Errno 13] Access denied`. The device node is there inside the container, but it inherits permissions from the host, and on the host only root can open it by default.
 
-The fix is a udev rule. Drop one file into `/etc/udev/rules.d/`, and udev applies it when the device plugs in: mode `0666`, group `plugdev`. The device node is no longer reserved to root. The rule ships with the project, setup instructions are <a href="https://github.com/guillaumedelre/dream-cheeky-thunder/blob/develop/docs/setup-linux.md" target="_blank" rel="noopener noreferrer">in the docs</a>.
+The fix is a udev rule. Drop one file into `/etc/udev/rules.d/`, and udev applies it when the device plugs in: mode `0666`, group `plugdev`. The device node is no longer reserved to root. The rule ships with the project, setup instructions are [in the docs][setup-linux].
 
 ## WSL2 made it interesting
 
-Half the team runs Windows with Docker Desktop on WSL2. That's where things got creative.
+Half the team runs Windows with Docker Desktop on WSL2, which puts one more layer between the launcher and the container.
 
-WSL2 has no access to USB devices by default: the Windows kernel holds them, and the `devices` mount alone does nothing because WSL2 simply doesn't see the hardware. The fix is <a href="https://github.com/dorssel/usbipd-win" target="_blank" rel="noopener noreferrer">usbipd-win</a>, which forwards the USB device from Windows into the WSL2 kernel over IP. Once that's done, the Linux path works exactly the same: udev rule, `devices` mount, done.
+WSL2 has no access to USB devices by default: the Windows kernel holds them, and the `devices` mount alone does nothing because WSL2 doesn't see the hardware. The fix is [usbipd-win][usbipd-win], which forwards the USB device from Windows into the WSL2 kernel over IP. Once that's done, the Linux path works exactly the same: udev rule, `devices` mount, done.
 
 The attachment doesn't survive reboots, though. usbipd v4.2+ can share the device automatically with a policy rule, and `usbipd attach --wsl --auto-attach` re-attaches it whenever it reconnects. Together, they killed the "it worked yesterday" mystery that had been annoying us for days.
 
-## What actually surprised us
+## What surprised us
 
-**Time-based positioning works well enough.** No encoders meant we went in expecting the angle tracking to be basically useless. Turns out, parking before every sequence kept it accurate enough to reliably aim at a specific desk. Not millimeter precision, but foam missile precision is fine.
+Time-based positioning works well enough. With no encoders, we went in expecting the angle tracking to be nearly useless; in practice, parking before every sequence kept it accurate enough to reliably aim at a specific desk. Not millimeter precision, but foam missile precision is fine.
 
-**The `devices` mount is necessary but not sufficient.** The permission error was confusing precisely because the device was clearly visible inside the container. The udev rule is the bit most tutorials quietly skip.
-
-**The coffee rule was never the same after this.** Once the launcher was wired to the pipeline, broken builds suddenly became a lot more motivating to fix.
+The other surprise was the permission error. The `devices` mount is necessary but not sufficient, and the error was confusing precisely because the device was clearly visible inside the container. The udev rule is the bit most tutorials quietly skip. As for the coffee rule, it was never the same: once the launcher was wired to the pipeline, broken builds became a lot more motivating to fix.
 
 <a class="gh-card" href="https://github.com/guillaumedelre/dream-cheeky-thunder" target="_blank" rel="noopener noreferrer">
   <span class="gh-card__head">
@@ -79,3 +77,9 @@ The attachment doesn't survive reboots, though. usbipd v4.2+ can share the devic
   </span>
   <span class="gh-card__desc">FastAPI + Docker + PyUSB — HTTP control for the Dream Cheeky Thunder USB missile launcher. Pull requests welcome, especially if you have a better angle calibration approach.</span>
 </a>
+
+[dct]: https://web.archive.org/web/20171216061329/http://dreamcheeky.com/thunder-missile-launcher
+[repo]: https://github.com/guillaumedelre/dream-cheeky-thunder
+[api]: https://github.com/guillaumedelre/dream-cheeky-thunder/blob/develop/docs/api.md
+[setup-linux]: https://github.com/guillaumedelre/dream-cheeky-thunder/blob/develop/docs/setup-linux.md
+[usbipd-win]: https://github.com/dorssel/usbipd-win

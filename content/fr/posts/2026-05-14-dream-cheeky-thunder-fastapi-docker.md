@@ -2,34 +2,34 @@
 title: "Contrôler un lance-missiles USB en HTTP avec FastAPI et Docker"
 aliases: ["/fr/2017/02/21/contrôler-un-lance-missiles-usb-en-http-avec-fastapi-et-docker/"]
 date: 2026-05-14
-lastmod: 2026-11-17
+lastmod: 2026-11-18
 tags: [python, docker]
 format: experiment
 images: ["https://raw.githubusercontent.com/guillaumedelre/dream-cheeky-thunder/develop/docs/Dream-Cheeky-Thunder.jpg"]
-description: "Comment on a branché un lance-missiles USB en mousse sur le pipeline CI — et ce que Docker, udev et WSL2 avaient à dire là-dessus."
+description: "Comment on a branché un lance-missiles USB en mousse sur la CI — et ce que Docker, udev et WSL2 avaient à dire là-dessus."
 ---
 
-La règle était simple : celui qui casse le build CI offre le café à l'équipe. Ça a marché un moment. Puis quelqu'un a proposé qu'on ait un retour plus immédiat. Quelque chose de physique. Quelque chose qui tire.
+La règle était simple : celui qui casse le build de la CI offre le café à l'équipe. Ça a marché un moment. Puis quelqu'un a trouvé qu'il nous fallait un retour plus immédiat, quelque chose de physique, qui tire.
 
-Un <a href="https://web.archive.org/web/20171216061329/http://dreamcheeky.com/thunder-missile-launcher" target="_blank" rel="noopener noreferrer">Dream Cheeky Thunder</a> a atterri sur un bureau peu après. Quatre missiles en mousse, un câble USB, et un consensus d'équipe très clair : le brancher au cluster, le câbler au pipeline de build, et laisser le CI décider qui mérite une volée.
+Un [Dream Cheeky Thunder][dct] a atterri sur un bureau peu après. Quatre missiles en mousse, un câble USB, et un consensus très clair dans l'équipe : le brancher au cluster, le relier au pipeline de build, et laisser la CI décider qui mérite une salve.
 
-Le lanceur devait répondre à des appels HTTP depuis n'importe où sur le réseau. Sans driver, sans GUI, sans visée manuelle. Juste un endpoint qui le fait tirer dans la direction du bureau du coupable.
+Le lanceur devait répondre à des appels HTTP depuis n'importe où sur le réseau, sans pilote ni interface graphique à installer, sans visée manuelle : un endpoint qui le fait tirer en direction du bureau du coupable.
 
-Voilà l'histoire de <a href="https://github.com/guillaumedelre/dream-cheeky-thunder" target="_blank" rel="noopener noreferrer">dream-cheeky-thunder</a>.
+Voici l'histoire de [dream-cheeky-thunder][repo].
 
-![Dream Cheeky Thunder](https://raw.githubusercontent.com/guillaumedelre/dream-cheeky-thunder/develop/docs/Dream-Cheeky-Thunder.jpg)
+![Le Dream Cheeky Thunder, une petite tourelle USB qui tire des missiles en mousse](https://raw.githubusercontent.com/guillaumedelre/dream-cheeky-thunder/develop/docs/Dream-Cheeky-Thunder.jpg)
 
-## Pas de SDK, pas de docs, pas de problème
+## Un script de forum et une poignée d'octets
 
-Dream Cheeky n'a jamais publié de spec de protocole. Le lanceur parle USB HID brut, et le seul point de départ était un vieux script Python qui traînait dans des fils de forum. Vendor ID `0x2123`, product ID `0x1010`, et une poignée d'octets de contrôle que quelqu'un avait rétro-ingéniés des années auparavant.
+Dream Cheeky n'a jamais publié de spécification du protocole. Le lanceur parle USB HID brut, et le seul point de départ était un vieux script Python qui traînait dans des fils de forum. Vendor ID `0x2123`, product ID `0x1010`, et une poignée d'octets de contrôle que quelqu'un avait décodés par rétro-ingénierie des années auparavant.
 
-C'était suffisant. Le protocole est simple : envoyer une séquence d'octets pour bouger les moteurs, en envoyer une autre pour tirer. La partie délicate : le lanceur n'a aucun retour de position. Pas d'encodeurs, pas de fins de course en dehors des butées physiques aux extrémités. On le pilote à l'aveugle.
+C'était suffisant. Le protocole est simple : une séquence d'octets pour bouger les moteurs, une autre pour tirer. La difficulté, c'est que le lanceur n'a aucun retour de position : pas d'encodeurs, pas de fins de course en dehors des butées physiques aux extrémités, on le pilote donc à l'aveugle.
 
 ## De l'USB au HTTP
 
-Le pipeline CI devait déclencher le lanceur par le réseau. Un script local ne suffisait pas — le lanceur devait être accessible depuis n'importe quelle machine du cluster, y compris le serveur de build. Donc : une API REST.
+La CI devait déclencher le lanceur par le réseau. Un script local ne suffisait pas — le lanceur devait être accessible depuis n'importe quelle machine du cluster, y compris le serveur de build. Donc : une API REST.
 
-FastAPI était le choix évident. Le flux de ciblage côté CI se résume à trois appels HTTP :
+FastAPI était le choix évident. Côté CI, la séquence de visée se résume à trois appels HTTP :
 
 ```bash
 curl -X POST http://localhost:8000/park      # reset vers une position connue
@@ -37,40 +37,38 @@ curl -X POST http://localhost:8000/yaw/20    # rotation vers le bureau du coupab
 curl -X POST "http://localhost:8000/fire?shots=2"
 ```
 
-L'appel `/park` est plus important qu'il n'y paraît. Puisque le lanceur n'a pas de retour de position, le serveur estime l'angle courant en suivant le temps de rotation des moteurs. Cette estimation dérive. Un choc sur le hardware, une commande interrompue, ou simplement l'imprécision du tracking temporel — tout s'accumule. Le parking pousse le lanceur à gauche, puis en bas, contre les butées physiques, en balayage complet à chaque fois, ce qui garantit l'alignement quelle que soit la représentation interne du serveur. Sans ça, la visée est une approximation.
+L'appel `/park` est plus important qu'il n'y paraît. Comme le lanceur n'a pas de retour de position, le serveur estime l'angle courant à partir du temps de rotation des moteurs. Cette estimation dérive. Un choc sur le matériel, une commande interrompue, l'imprécision même d'un suivi au chronomètre — tout s'accumule. Le parking pousse le lanceur à gauche, puis en bas, contre les butées physiques, en balayage complet à chaque fois, ce qui garantit l'alignement quoi que le serveur croie savoir ; sans lui, la visée reste approximative.
 
-La référence complète de l'API est <a href="https://github.com/guillaumedelre/dream-cheeky-thunder/blob/develop/docs/api.md" target="_blank" rel="noopener noreferrer">dans le repo</a>. Il y a aussi une UI web si vous préférez cliquer plutôt que `curl`.
+La référence complète de l'API est [dans le dépôt][api]. Il y a aussi une interface web si vous préférez cliquer plutôt que lancer `curl`.
 
 ## Docker ne connaît pas l'USB
 
-Faire tourner ça dans un conteneur Docker sur le cluster, c'est là que les choses ont commencé à devenir intéressantes : les conteneurs ne voient pas les périphériques USB par défaut.
+Faire tourner ça dans un conteneur Docker sur le cluster, c'est là que les choses se sont corsées : les conteneurs ne voient pas les périphériques USB par défaut.
 
-Le mount `devices` dans `compose.yaml` expose le bus USB au conteneur :
+La directive `devices` dans `compose.yaml` expose le bus USB au conteneur :
 
 ```yaml
 devices:
   - /dev/bus/usb:/dev/bus/usb
 ```
 
-Pas suffisant. Première exécution : `USBError: [Errno 13] Access denied`. Le nœud de device est bien là dans le conteneur, mais il hérite des permissions du host, et sur le host seul root peut l'ouvrir par défaut.
+Pas suffisant. Première exécution : `USBError: [Errno 13] Access denied`. Le nœud de périphérique est bien là dans le conteneur, mais il hérite des permissions de l'hôte, et sur l'hôte seul root peut l'ouvrir par défaut.
 
-La solution : une règle udev. Déposer un fichier dans `/etc/udev/rules.d/`, et udev l'applique quand le device se branche : mode `0666`, groupe `plugdev`. Le device n'est plus réservé à root. La règle est fournie avec le projet, les instructions d'installation sont <a href="https://github.com/guillaumedelre/dream-cheeky-thunder/blob/develop/docs/setup-linux.md" target="_blank" rel="noopener noreferrer">dans la doc</a>.
+La solution : une règle udev. Il suffit de déposer un fichier dans `/etc/udev/rules.d/` pour qu'udev l'applique au branchement du périphérique : mode `0666`, groupe `plugdev`. Le périphérique n'est plus réservé à root. La règle est fournie avec le projet, et les instructions d'installation sont [dans la doc][setup-linux].
 
-## WSL2 a rendu ça intéressant
+## Quand WSL2 s'en est mêlé
 
-La moitié de l'équipe tourne sous Windows avec Docker Desktop sur WSL2. C'est là que ça devient créatif.
+La moitié de l'équipe est sous Windows avec Docker Desktop sur WSL2, ce qui ajoute une couche de plus entre le lanceur et le conteneur.
 
-WSL2 n'a pas accès aux périphériques USB par défaut : le kernel Windows les détient, et le mount `devices` seul ne fait rien parce que WSL2 ne voit simplement pas le hardware. La solution est <a href="https://github.com/dorssel/usbipd-win" target="_blank" rel="noopener noreferrer">usbipd-win</a>, qui transfère le périphérique USB de Windows vers le kernel WSL2 par IP. Une fois ça fait, le chemin Linux fonctionne à l'identique : règle udev, mount `devices`, terminé.
+WSL2 n'a pas accès aux périphériques USB par défaut : c'est le noyau Windows qui les détient, et la directive `devices` seule ne sert à rien puisque WSL2 ne voit pas le matériel. La solution est [usbipd-win][usbipd-win], qui transfère le périphérique USB de Windows vers le noyau WSL2 par IP. Une fois ça fait, le chemin Linux fonctionne à l'identique : règle udev, directive `devices`, terminé.
 
-L'attachement ne survit pas aux redémarrages, cependant. usbipd v4.2+ peut partager automatiquement le périphérique grâce à une règle de policy, et `usbipd attach --wsl --auto-attach` le rattache à chaque reconnexion. À eux deux, ils ont mis fin au mystère du « ça marchait hier » qui nous agaçait depuis des jours.
+L'attachement ne survit pas aux redémarrages, en revanche. Depuis la v4.2, usbipd peut partager automatiquement le périphérique grâce à une règle `policy`, et `usbipd attach --wsl --auto-attach` le rattache à chaque reconnexion. À eux deux, ils ont mis fin au mystère du « ça marchait hier » qui nous agaçait depuis des jours.
 
-## Ce qui nous a vraiment surpris
+## Ce qui nous a surpris
 
-**Le positionnement temporel fonctionne suffisamment bien.** Sans encodeurs, on s'attendait à ce que le tracking d'angle soit quasi inutilisable. En pratique, le parking avant chaque séquence le maintenait assez précis pour viser un bureau spécifique de manière fiable. Pas au millimètre, mais la précision missile en mousse, ça convient.
+Le positionnement au temps fonctionne suffisamment bien. Sans encodeurs, on s'attendait à un suivi d'angle quasi inutilisable ; en pratique, parquer le lanceur avant chaque séquence le gardait assez précis pour viser un bureau donné de façon fiable. Pas au millimètre, mais pour des missiles en mousse, ça suffit largement.
 
-**Le mount `devices` est nécessaire mais pas suffisant.** L'erreur de permission était déroutante précisément parce que le device était clairement visible dans le conteneur. La règle udev est la partie que la plupart des tutoriels passent discrètement sous silence.
-
-**La règle café n'a plus jamais été la même après ça.** Une fois le lanceur câblé au pipeline, les builds cassés sont devenus beaucoup plus motivants à corriger.
+L'autre surprise, c'est l'erreur de permission. La directive `devices` est nécessaire mais pas suffisante, et l'erreur était déroutante justement parce que le périphérique était bien visible dans le conteneur. La règle udev est l'étape que la plupart des tutoriels passent sous silence. Quant à la règle du café, elle ne s'en est jamais remise : une fois le lanceur relié au pipeline, les builds cassés sont devenus beaucoup plus motivants à corriger.
 
 <a class="gh-card" href="https://github.com/guillaumedelre/dream-cheeky-thunder" target="_blank" rel="noopener noreferrer">
   <span class="gh-card__head">
@@ -79,3 +77,9 @@ L'attachement ne survit pas aux redémarrages, cependant. usbipd v4.2+ peut part
   </span>
   <span class="gh-card__desc">FastAPI + Docker + PyUSB — contrôle HTTP pour le lance-missiles USB Dream Cheeky Thunder. Pull requests bienvenues, surtout si vous avez une meilleure approche de calibration d'angle.</span>
 </a>
+
+[dct]: https://web.archive.org/web/20171216061329/http://dreamcheeky.com/thunder-missile-launcher
+[repo]: https://github.com/guillaumedelre/dream-cheeky-thunder
+[api]: https://github.com/guillaumedelre/dream-cheeky-thunder/blob/develop/docs/api.md
+[setup-linux]: https://github.com/guillaumedelre/dream-cheeky-thunder/blob/develop/docs/setup-linux.md
+[usbipd-win]: https://github.com/dorssel/usbipd-win

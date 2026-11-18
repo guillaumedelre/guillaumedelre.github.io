@@ -77,7 +77,7 @@ Quant à la découverte MQTT, je la trouve sous-estimée. Déclarer manuellement
 
 La pièce est maintenant à 21,4 °C et 47 % d'humidité. Je le sais sans rien ouvrir.
 
-{{< github repo="guillaumedelre/bme280" showThumbnail=false >}}
+{{< github repo="guillaumedelre/bme280" >}}
 
 [datasheet]: https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme280-ds002.pdf
 [rpi-spy]: https://www.raspberrypi-spy.co.uk/

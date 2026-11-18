@@ -104,7 +104,7 @@ Les hooks ne remontent pas tout non plus. Pas de messages intermédiaires du mod
 
 Rien de tout ça ne me gêne pour ce qu'il est censé être : un onglet sur lequel je jette un œil pour savoir si quelque chose a besoin de moi. Il tourne comme une stack de plus à côté des autres dans le [homelab]({{< relref "2026-05-17-homelab-docker-compose-traefik.md" >}}), derrière Traefik, sur un nom en [sslip.io]({{< relref "2025-04-17-traefik-local-https-mkcert-sslip.md" >}}). Les captures ci-dessus viennent d'une instance de démonstration alimentée par des sessions fictives.
 
-{{< github repo="guillaumedelre/claude-agents-board" showThumbnail=false >}}
+{{< github repo="guillaumedelre/claude-agents-board" >}}
 
 [repo]: https://github.com/guillaumedelre/claude-agents-board
 [hooks]: https://code.claude.com/docs/en/hooks

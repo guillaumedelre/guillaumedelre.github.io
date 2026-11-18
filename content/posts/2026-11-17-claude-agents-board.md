@@ -1,5 +1,8 @@
 ---
 title: "Garder un œil sur plusieurs sessions Claude Code à la fois"
+aliases:
+  - "/fr/2026/11/17/garder-un-oeil-sur-plusieurs-sessions-claude-code-a-la-fois/"
+  - "/2026/11/17/keeping-an-eye-on-several-claude-code-sessions-at-once/"
 date: 2026-11-17
 tags: [claude-code, homelab, docker]
 format: showcase
@@ -7,7 +10,6 @@ featureimage: "images/claude-agents-board/home-tree.png"
 featureimagecaption: "Accueil : le nœud « Toi » en haut, les sessions groupées par machine au milieu, les stations partagées en bas"
 images: ["/images/claude-agents-board/home-tree.png"]
 description: "Un petit tableau de bord auto-hébergé pour voir en temps réel ce que font toutes vos sessions Claude Code et leurs sous-agents."
-translationKey: "claude-agents-board"
 lastmod: 2026-11-18
 slug: "garder-un-oeil-sur-plusieurs-sessions-claude-code-a-la-fois"
 ---
@@ -102,7 +104,7 @@ Les hooks ne remontent pas tout non plus. Pas de messages intermédiaires du mod
 
 Rien de tout ça ne me gêne pour ce qu'il est censé être : un onglet sur lequel je jette un œil pour savoir si quelque chose a besoin de moi. Il tourne comme une stack de plus à côté des autres dans le [homelab]({{< relref "2026-05-17-homelab-docker-compose-traefik.md" >}}), derrière Traefik, sur un nom en [sslip.io]({{< relref "2025-04-17-traefik-local-https-mkcert-sslip.md" >}}). Les captures ci-dessus viennent d'une instance de démonstration alimentée par des sessions fictives.
 
-{{< github repo="guillaumedelre/claude-agents-board" showThumbnail=true >}}
+{{< github repo="guillaumedelre/claude-agents-board" showThumbnail=false >}}
 
 [repo]: https://github.com/guillaumedelre/claude-agents-board
 [hooks]: https://code.claude.com/docs/en/hooks

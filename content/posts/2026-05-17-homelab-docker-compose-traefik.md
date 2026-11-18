@@ -1,6 +1,10 @@
 ---
 title: "Construire un homelab auto-hébergé avec Docker Compose et Traefik"
-aliases: ["/2026/02/17/construire-un-homelab-self-hosted-avec-docker-compose-et-traefik/"]
+aliases:
+  - "/fr/2026/05/17/construire-un-homelab-self-hosted-avec-docker-compose-et-traefik/"
+  - "/2026/05/17/building-a-self-hosted-homelab-with-docker-compose-and-traefik/"
+  - "/fr/2026/02/17/construire-un-homelab-self-hosted-avec-docker-compose-et-traefik/"
+  - "/2026/02/17/building-a-self-hosted-homelab-with-docker-compose-and-traefik/"
 date: 2026-05-17
 lastmod: 2026-11-18
 tags: [homelab, docker, traefik]
@@ -492,7 +496,7 @@ J'ai bien conscience que ce tuto ne couvre pas tout. On aurait pu ajouter de l'a
 
 Pour le HTTPS, la suite est dans [HTTPS local avec Traefik]({{< relref "2025-04-17-traefik-local-https-mkcert-sslip.md" >}}) : les mêmes noms en sslip.io, avec des certificats générés en local par mkcert.
 
-{{< github repo="guillaumedelre/homelab" showThumbnail=true >}}
+{{< github repo="guillaumedelre/homelab" showThumbnail=false >}}
 
 ## Références
 

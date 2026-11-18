@@ -1,6 +1,10 @@
 ---
 title: "D'un capteur à 10 € à un tableau de bord Home Assistant avec Raspberry Pi et MQTT"
-aliases: ["/2019/11/17/dun-capteur-à-10-à-un-tableau-de-bord-home-assistant-avec-raspberry-pi-et-mqtt/"]
+aliases:
+  - "/fr/2026/05/14/dun-capteur-à-10-à-un-tableau-de-bord-home-assistant-avec-raspberry-pi-et-mqtt/"
+  - "/2026/05/14/from-a-10-sensor-to-a-home-assistant-dashboard-with-a-raspberry-pi-and-mqtt/"
+  - "/fr/2019/11/17/dun-capteur-à-10-à-un-tableau-de-bord-home-assistant-avec-raspberry-pi-et-mqtt/"
+  - "/2019/11/17/from-a-10-sensor-to-a-home-assistant-dashboard-with-a-raspberry-pi-and-mqtt/"
 date: 2026-05-14
 lastmod: 2026-11-18
 tags: [python, raspberry-pi, home-assistant]
@@ -73,7 +77,7 @@ Quant à la découverte MQTT, je la trouve sous-estimée. Déclarer manuellement
 
 La pièce est maintenant à 21,4 °C et 47 % d'humidité. Je le sais sans rien ouvrir.
 
-{{< github repo="guillaumedelre/bme280" showThumbnail=true >}}
+{{< github repo="guillaumedelre/bme280" showThumbnail=false >}}
 
 [datasheet]: https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme280-ds002.pdf
 [rpi-spy]: https://www.raspberrypi-spy.co.uk/

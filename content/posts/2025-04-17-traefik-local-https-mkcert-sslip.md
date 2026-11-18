@@ -1,5 +1,8 @@
 ---
 title: "HTTPS local avec Traefik : traefik.me est mort, vive sslip.io"
+aliases:
+  - "/fr/2025/04/17/https-local-avec-traefik-traefik.me-est-mort-vive-sslip.io/"
+  - "/2025/04/17/local-https-with-traefik-traefik.me-is-dead-long-live-sslip.io/"
 date: 2025-04-17
 lastmod: 2026-11-18
 tags: [traefik, docker, homelab]

@@ -1,7 +1,7 @@
 # Blowfish site configuration — https://blowfish.page/docs/configuration/
 baseURL = "https://guillaumedelre.github.io/"
 theme = "blowfish"
-defaultContentLanguage = "en"
+defaultContentLanguage = "fr"
 defaultContentLanguageInSubdir = false
 enableRobotsTXT = false   # static/robots.txt is used as is
 summaryLength = 0

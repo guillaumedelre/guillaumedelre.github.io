@@ -9,31 +9,35 @@ This repository is a personal tech article publication site hosted on GitHub Pag
 ## Documentation
 
 - [Hugo](https://gohugo.io/documentation/)
-- [Risotto theme](https://github.com/joeroe/risotto)
+- [Blowfish theme](https://blowfish.page/docs/) — in particular [configuration](https://blowfish.page/docs/configuration/), [front matter](https://blowfish.page/docs/front-matter/) and [shortcodes](https://blowfish.page/docs/shortcodes/). The same docs ship with the theme in `themes/blowfish/exampleSite/content/docs/`.
 
 ## Stack
 
-Hugo blog hosted on GitHub Pages. Theme: Risotto (git submodule at `themes/risotto`), a minimal terminal-style theme, with the `tokyo-night-dark` palette. Site-specific styles live in `static/css/custom.css` (e.g. the `.gh-card` GitHub cards).
+Hugo blog hosted on GitHub Pages, written in French only and served at the site root (no `/fr/` prefix).
 
-Hugo features active: RSS at `/index.xml`, sitemap at `/sitemap.xml`. There is no search index.
+Theme: Blowfish (git submodule at `themes/blowfish`, v3.10.0). It requires Hugo 0.166–0.169 extended; newer versions build with a compatibility warning. Configuration lives in `config/_default/`: `hugo.toml` (site, taxonomies, permalinks, outputs), `languages.fr.toml` (title, description, author), `menus.fr.toml`, `params.toml` (theme features) and `markup.toml` (required by the theme).
 
-Risotto itself only provides the page shell (header, sidebar, footer with the language switcher). Everything else comes from the overrides in `layouts/` (see Layout overrides): date and reading time, series navigation, tags and series in the sidebar, the last-modified date when it differs from the publication date, and a sidebar table of contents for posts with `toc: true` in their frontmatter.
+There are no template overrides: everything comes from Blowfish and its configuration. Before changing how something looks or behaves, look for a parameter in `params.toml` or a front matter field. If nothing fits, discuss it with the user before adding anything under `layouts/` or `assets/css/custom.css`.
 
-Taxonomies: `tags`, `series` (native Hugo taxonomy — no registration step needed).
+Features enabled in `params.toml`: profile home page with recent posts as cards, search (`/index.json`), sticky table of contents on every post, reading progress bar, reading time and word count, last-updated date, breadcrumbs, related posts, previous/next links, sharing links, "edit on GitHub" link, author box, code copy button, zen mode, light/dark switcher.
+
+Also generated: RSS at `/index.xml`, sitemap at `/sitemap.xml`. Google Analytics is configured in `hugo.toml`.
+
+Taxonomies: `tags`, `series`. There are no categories.
 
 Deployment: `.github/workflows/hugo-deploy.yml` builds with `hugo --minify` and deploys to GitHub Pages via the Pages environment. Push to `main` triggers the workflow.
 
 ## Local development
 
-Requires Docker. No local Hugo install needed.
+Requires Docker. No local Hugo install needed. The official image is used because Blowfish needs a recent Hugo.
 
 ```bash
-docker run --rm -v "$(pwd):/src" -u "$(id -u):$(id -g)" \
-  -p 1313:1313 hugomods/hugo:exts \
-  hugo server --bind 0.0.0.0 --buildDrafts
+docker run --rm --name hugo-blog -v "$(pwd):/project" -u "$(id -u):$(id -g)" -e HOME=/tmp \
+  -p 1313:1313 ghcr.io/gohugoio/hugo:latest \
+  server --bind 0.0.0.0 --buildDrafts
 ```
 
-The site is served at `http://localhost:1313` with live reload.
+The site is served at `http://localhost:1313` with live reload. To open it from another machine on the LAN, add `--baseURL http://<LAN IP>/ --port 1313`.
 
 ## Writing a post
 
@@ -47,17 +51,15 @@ Required frontmatter:
 
 ```yaml
 ---
-title: "Post title"
+title: "Titre de l'article"
 date: YYYY-MM-DD
 tags: [tag1, tag2]
 format: experiment   # experiment | showcase | guide — see Writing style
-description: "One-sentence summary (50-160 characters)."
+description: "Résumé en une phrase (50 à 160 caractères)."
 ---
 ```
 
-Optional: `images: ["/images/<slug>/<file>.png"]` sets the Open Graph / Twitter card image used when the post is shared (it is not displayed on the page). Use it whenever the post has a representative screenshot or photo; otherwise the site default applies. There are no categories: tags cover the topics.
-
-Permalink format is `/:year/:month/:day/:slug/` as configured in `hugo.yaml`.
+Permalink format is `/:year/:month/:day/:slug/` (`config/_default/hugo.toml`). The slug is derived from the title, so **changing the title of a published post changes its URL**: add the old path to `aliases` in the same edit, otherwise existing links break. Check the live URL before renaming.
 
 When making a significant update to an existing post (content change, not a typo fix), add or update the `lastmod` field in the frontmatter:
 
@@ -67,23 +69,49 @@ lastmod: YYYY-MM-DD
 
 Without this field, Hugo falls back to the file's modification date, which changes on every `git checkout` and produces an unreliable freshness signal in the sitemap.
 
+### Feature image
+
+Not every post has a feature image, and that is expected: Blowfish simply shows no hero when there is none.
+
+- Set one only when a real photo or screenshot of the project represents the post. Never use stock photos, generated images or decorative pictures to fill the slot.
+- When there is one, set both fields: `featureimage` (hero at the top of the post, plus `featureimagecaption` describing what the reader sees) and `images` (the picture used when the post is shared, read by Hugo's Open Graph template).
+- Local images go in `assets/images/<slug>/` so Blowfish can resize them; `featureimage` takes the path without a leading slash (`images/<slug>/file.png`), `images` with one (`/images/<slug>/file.png`). A remote URL works for both.
+- Do not repeat the feature image in the body of the post.
+
+Posts without a feature image use the site default (the author photo) when shared.
+
+## Shortcodes
+
+Use Blowfish shortcodes where they serve the reader, not to decorate. Full list and parameters: [shortcodes](https://blowfish.page/docs/shortcodes/).
+
+| Shortcode | Use it for |
+|---|---|
+| `lead` | The first paragraph of every post |
+| `alert` | Prerequisites, warnings, security limits, deprecated tools (`icon="list-check"`, `"check"`, default triangle) |
+| `tabs` / `tab` | Alternatives the reader picks from (two domains, two OSes, several probes) |
+| `mermaid` | Diagrams; never ASCII art |
+| `figure` | Screenshots and photos in the body, with a `caption` that says what to look at |
+| `github` | Repository card for the project the post is about |
+| `icon` | Inline brand or UI icons (`{{< icon "github" >}}`), from the theme's icon set |
+
+Inside a shortcode, Markdown reference links (`[text][ref]`) do not resolve: use inline links there.
+
 ## Before writing a new post
 
 Before drafting any article, always ask the user for:
 
 1. **Date** — publication date in `YYYY-MM-DD` format (used in both the filename and the frontmatter).
-2. **Tags** — propose a list based on existing tags already used across posts. Check `content/posts/` frontmatter to build the suggestion. Prefer reusing existing tags over creating new ones; only propose new tags when no existing tag covers the concept. Keep EN and FR tags identical. When a new tag is created, add `content/en/tags/<slug>/_index.md` and `content/fr/tags/<slug>/_index.md` with its display name as `title` (e.g. `Claude Code`, `BME280`), otherwise Hugo shows the capitalized slug.
-3. **Description** — write a one-sentence summary (50-160 characters) for the `description` frontmatter field. Used for the meta description (`layouts/partials/head.html`), Open Graph and Twitter cards (Hugo built-in templates), post lists and the post sidebar.
-4. **Language** — ask whether the article will have a French translation. If yes, create both `slug.md` and `slug.fr.md` with a shared `translationKey`.
-5. **Series** — ask whether the post belongs to an existing series or starts a new one (see the Series section below).
-6. **Format** — propose `experiment`, `showcase` or `guide` based on the topic (see Writing style) and set it in the `format` frontmatter field. The format drives structure, tone and length.
-7. **Share image** — propose a screenshot or photo for `images` if one exists.
+2. **Tags** — propose a list based on existing tags already used across posts. Prefer reusing existing tags over creating new ones; only propose new tags when no existing tag covers the concept. When a new tag is created, add `content/tags/<slug>/_index.md` with its display name as `title` (e.g. `Claude Code`, `BME280`), otherwise Hugo shows the capitalized slug.
+3. **Description** — write a one-sentence summary (50-160 characters) for the `description` frontmatter field. Used for the meta description, Open Graph, Twitter cards, post cards and search.
+4. **Series** — ask whether the post belongs to an existing series or starts a new one (see the Series section below).
+5. **Format** — propose `experiment`, `showcase` or `guide` based on the topic (see Writing style) and set it in the `format` frontmatter field. The format drives structure, tone and length.
+6. **Feature image** — ask whether a real photo or screenshot represents the post (see Feature image). No image is a valid answer.
 
 After publishing a new post, check `static/robots.txt`: if you added a path that should be blocked from indexing (e.g. a draft or admin page), add a `Disallow` rule. Standard posts need no change.
 
 ## Series
 
-A series is a group of thematically linked articles published under a shared title. Hugo handles series as a native taxonomy — no registration file or custom layout needed.
+A series is a group of thematically linked articles published under a shared title. Blowfish shows a series box at the top of each post in the series, listing the other parts.
 
 ### Adding an article to a series
 
@@ -91,10 +119,10 @@ Add two fields to the post frontmatter:
 
 ```yaml
 series: ["kubernetes-migration"]
-part: 1
+series_order: 1
 ```
 
-`series` is an array containing the series slug. `part` is the article's position in the series (integer). `layouts/partials/series_nav.html` uses `part` to show "part X of Y" with previous/next links at the bottom of each post, and `layouts/_default/taxonomy.html` uses it to order the series listing.
+`series` is an array containing the series name (one series per post). `series_order` is the article's position in the series (integer); Blowfish uses it to order the series box.
 
 ### Creating a new series
 
@@ -104,86 +132,20 @@ To add a title and description to the series index page, create `content/series/
 
 ```yaml
 ---
-title: "Human-readable series title"
-description: "One sentence describing the series."
+title: "Titre lisible de la série"
+description: "Une phrase qui décrit la série."
 ---
 
-One paragraph introducing the series.
+Un paragraphe qui présente la série.
 ```
-
-### Before writing a new post in a series
-
-- Add `series` and `part` to the frontmatter
-- Do not add a manual series footer — `series_nav.html` generates it automatically
-- If the series is new, optionally create the `_index.md` page above for a richer series listing
-
-## Layout overrides
-
-Custom templates live in `layouts/` and take precedence over the Risotto theme (`themes/risotto/layouts/`). When creating or modifying an override:
-
-- Read the theme template it replaces in full before writing the override, including all partials it calls, and keep its `main` / `aside` blocks and CSS classes so the palette still applies
-- For each partial in the reference template, explicitly decide: include it, replace it with contextually appropriate data, or omit it with a reason
-- Reuse the existing partials (`post_meta.html`, `post_list.html`, `terms.html`, `series_nav.html`) instead of re-implementing them
-- Metadata that makes no sense in the new context should be replaced, not dropped silently (e.g., reading time on a series listing becomes article count)
-- Styles go in `static/css/custom.css` using the palette's CSS variables (e.g. `var(--link)`), never inline
-
-Current overrides:
-- `_default/single.html` — post page: date and reading time, content, series navigation; sidebar with description, last-modified date, tags, series and the optional table of contents
-- `_default/taxonomy.html` / `_default/terms.html` — a term's post list (series sorted by `part`) and the term index with post counts
-- `_default/archives.html` — posts grouped by year
-- `_default/rss.xml` — RSS feed with series-aware descriptions
-- `_default/_markup/render-link.html` — external links open in a new tab (see External links)
-- `index.html` / `posts/list.html` — home page with the five latest posts, paginated post list
-- `partials/head.html` — meta description, canonical, hreflang, Open Graph / Twitter / schema.org, Google Analytics in production only
 
 ## External links
 
-Markdown links to external domains automatically open in a new tab — a render hook at `layouts/_default/_markup/render-link.html` adds `target="_blank" rel="noopener noreferrer"` to any link whose destination starts with `http`.
-
-Use standard Markdown syntax for all links:
-
-```markdown
-[link text](https://example.com)
-```
-
-Internal links (relative paths) are rendered normally with no `target` attribute.
+Use standard Markdown links. Blowfish opens external links in a new tab (`article.externalLinkForceNewTab`), so no HTML `<a target>` is needed. Prefer reference-style links with the definitions at the bottom of the post, except inside shortcodes (see Shortcodes).
 
 ## Language
 
-Posts are primarily written in English. A French translation is optional for any article.
-
-### Keeping translations in sync
-
-When an article is modified — content, frontmatter, or both — always propagate the changes to all its translated versions:
-
-- Update the translated prose to reflect the modified content.
-- Mirror any frontmatter change: `title`, `description`, `date`, `tags`, `format`, `images`, `series`, `part`. Translate `title` and `description`; copy the other fields verbatim.
-- If a section is added or removed in EN, add or remove the equivalent in FR.
-- If a code block or technical example changes, update it identically in all translations (code is not translated).
-
-Check for a matching file in `content/fr/posts/` with the same filename before saving any edit to a file in `content/en/posts/`.
-
-To add a French version of an existing post:
-
-1. Create `content/posts/YYYY-MM-DD-slug.fr.md` with the translated content.
-2. Add `translationKey: "slug"` to the frontmatter of both the EN and FR files.
-
-Hugo automatically generates `/fr/YYYY/MM/DD/slug-fr/`, adds `hreflang` tags for SEO, and Risotto shows a language switcher in the footer.
-
-Articles without a French version remain available in English only — no placeholder or stub needed.
-
-## Icons
-
-When an icon is needed, use one of these two sources:
-
-- [Simple Icons](https://simpleicons.org) for brand and tech icons (GitHub, PHP, Symfony, Docker, Redis, etc.)
-  CDN: `https://cdn.simpleicons.org/{icon-name}`
-- [Flaticon](https://flaticon.com) for general icons not covered by Simple Icons (LinkedIn, etc.)
-  CDN: `https://cdn-icons-png.flaticon.com/{size}/{pack}/{id}.png`
-
-Embed with `width="16"` and `style="vertical-align: middle"` for inline icons.
-
-For social links, use standard Markdown or HTML with the appropriate CDN icon.
+The blog is written in French only. There are no translations and no `translationKey`. The English versions were removed in November 2026; their URLs, and the former `/fr/...` URLs, are kept as `aliases` on the French posts so old links redirect.
 
 ## Anonymization
 
@@ -278,11 +240,11 @@ Articles in the `php-releases` series cover one minor or major release per post.
 
 ```yaml
 series: ["php-releases"]
-part: <integer matching release order, 7.0=1>
+series_order: <integer matching release order, 7.0=1>
 tags: [php, ...]
 ```
 
-The `part` field follows the chronological release order across the full series (7.0 = part 1, 7.1 = part 2, etc.).
+The `series_order` field follows the chronological release order across the full series (7.0 = part 1, 7.1 = part 2, etc.).
 
 ## Symfony releases series
 
@@ -327,11 +289,11 @@ Articles in the `symfony-releases` series cover one minor or major release per p
 
 ```yaml
 series: ["symfony-releases"]
-part: <integer matching release order, 3.3=1>
+series_order: <integer matching release order, 3.3=1>
 tags: [symfony, ...]
 ```
 
-The `part` field follows the chronological release order across the full series starting from the first article (3.3 = part 1).
+The `series_order` field follows the chronological release order across the full series starting from the first article (3.3 = part 1).
 
 ## Writing style
 
@@ -342,12 +304,12 @@ The common thread: these are posts by someone who built and ran the thing, not d
 ### Voice (all types)
 
 - First person, direct, casual. Write like explaining to a curious colleague over coffee, not like writing a README.
-- Address the reader consistently. English: "you". French: always "vous" — never "tu", "ton", "ta", "toi", "t'". "On" is fine for general statements, not as a way to dodge addressing the reader.
+- Address the reader as "vous" — never "tu", "ton", "ta", "toi", "t'". "On" is fine for general statements, not as a way to dodge addressing the reader.
 - Give opinions in the body, not only at the end. If something is bad, awkward or overrated, say so and say why.
 - Specifics beat adjectives: the time lost, the exact error message, the number, the hardware model. "It took a while" is weaker than "three evenings".
 - Vary sentence length. A long explanatory sentence followed by a short blunt one creates pacing. Avoid stacks of three uniform paragraphs in a row — they read as documentation regardless of pronoun choice.
 - Humor only when it comes from the situation itself. No forced jokes, no decorative emoji in headers.
-- Avoid: "In this post we will...", "As you can see...", bullet-point summaries of what was just said, superlatives ("revolutionary", "powerful", "game changer").
+- Avoid: « Dans cet article, nous allons… », « Comme vous pouvez le voir… », bullet-point summaries of what was just said, superlatives (« révolutionnaire », « puissant », « game changer »).
 
 ### Experiment
 
@@ -386,7 +348,7 @@ A step-by-step reference the reader follows with a terminal open, and comes back
 
 - Say it's a guide in the `description` and in the first paragraphs. State the prerequisites and the end result (what the reader will have running at the end).
 - Keep the story for the intro (why I set it up this way, one or two paragraphs) and for the pitfalls, which should be told as things that actually happened.
-- Topic headers and numbered steps are allowed here — and only here. Above ~1500 words, set `toc: true` in the frontmatter to get the sidebar table of contents; never write one by hand in the post.
+- Topic headers and numbered steps are allowed here — and only here. Blowfish shows a table of contents on every post; never write one by hand.
 - Each step: what to do, how to check that it worked, the most common failure. Commands are complete, copy-pastable and tested; versions are pinned or stated.
 - "Why X and not Y" justifications: one opinionated paragraph each, not a feature comparison.
 - Pitfalls follow the shape *symptom → cause → fix*, with the exact error message when there is one.
@@ -406,7 +368,7 @@ When a post mixes types (e.g. `traefik-local-https`: news analysis then a setup 
 
 ## Review
 
-Run this review whenever the user asks for one, and on every draft before presenting it as finished. Review both language versions when they exist.
+Run this review whenever the user asks for one, and on every draft before presenting it as finished.
 
 Report findings as a list, each with: the rule, the quoted passage (with line number), and a suggested fix. Fix mechanical issues directly (typos, agreement, typography, reader address). Propose — don't apply — changes to structure, voice or content, and let the user decide.
 
@@ -431,7 +393,7 @@ Each pattern is fine once. A post that stacks them reads as machine-polished, an
 - [ ] Takeaway lists with a bolded lead sentence ("**X is not optional.** explanation") — at most one per post, never by default.
 - [ ] Groups of exactly three items or adjectives used for rhythm rather than because there are three things.
 - [ ] Paragraphs ending on a short punchline sentence — no more than about one paragraph in four.
-- [ ] Filler intensifiers: "vraiment", "simplement", "essentiellement", "really", "just", "actually", "basically" — delete unless they change the meaning.
+- [ ] Filler intensifiers: « vraiment », « simplement », « essentiellement », « juste », « en fait » — delete unless they change the meaning.
 
 ### 4. Specificity and voice
 
@@ -442,12 +404,11 @@ Each pattern is fine once. A post that stacks them reads as machine-polished, an
 
 ### 5. Reader address
 
-- [ ] English: "you" throughout.
-- [ ] French: "vous" throughout. `grep -nwE "tu|ton|ta|tes|toi" <file>` and check for `t'` before a verb.
+- [ ] "Vous" throughout. `grep -nwE "tu|ton|ta|tes|toi" <file>` and check for `t'` before a verb.
 
-### 6. French posts
+### 6. French
 
-The French text must read as written in French, not translated from English. Read it aloud: a sentence you wouldn't say to a French colleague gets rewritten.
+The text must read as written in French, not translated from English. Read it aloud: a sentence you wouldn't say to a French colleague gets rewritten.
 
 - [ ] No calques from English. Known offenders and replacements:
 
@@ -472,11 +433,12 @@ The French text must read as written in French, not translated from English. Rea
 - [ ] Versions, dates, numbers and quoted behaviours are verified against a primary source (release page, changelog, source code), not memory.
 - [ ] Commands and config snippets were run, or are explicitly marked as untested.
 - [ ] External links point to stable or versioned URLs; internal links use `relref`.
-- [ ] Every image has alt text describing what the reader should see.
+- [ ] Every image has alt text describing what the reader should see; body screenshots use `figure` with a caption.
 
 ### 8. Frontmatter
 
-- [ ] `format` is set; `images` is set when the post has a representative image.
+- [ ] `format` is set. `featureimage`, `featureimagecaption` and `images` are all set, or none of them (see Feature image).
+- [ ] If the title changed on a published post, the old URL is in `aliases`.
 - [ ] `description` is 50–160 characters and matches the type (a guide says it's a guide).
 - [ ] `lastmod` is updated if the content changed significantly.
-- [ ] Tags reuse existing ones and are identical in EN and FR.
+- [ ] Tags reuse existing ones.

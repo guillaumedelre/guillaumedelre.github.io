@@ -1,8 +1,7 @@
 disabled = false
 locale = "fr"
 label = "Français"
-weight = 2
-contentDir = "content/fr"
+weight = 1
 title = "Guillaume Delré"
 
 [params]
@@ -14,7 +13,7 @@ title = "Guillaume Delré"
   copyright = "© Guillaume Delré"
 
 [params.article]
-  editURL = "https://github.com/guillaumedelre/guillaumedelre.github.io/blob/main/content/fr/"
+  editURL = "https://github.com/guillaumedelre/guillaumedelre.github.io/blob/main/content/"
 
 [params.author]
   name = "Guillaume Delré"

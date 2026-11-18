@@ -1,6 +1,10 @@
 ---
 title: "Contrôler un lance-missiles USB en HTTP avec FastAPI et Docker"
-aliases: ["/2017/02/21/contrôler-un-lance-missiles-usb-en-http-avec-fastapi-et-docker/"]
+aliases:
+  - "/fr/2026/05/14/contrôler-un-lance-missiles-usb-en-http-avec-fastapi-et-docker/"
+  - "/2026/05/14/controlling-a-usb-missile-launcher-over-http-with-fastapi-and-docker/"
+  - "/fr/2017/02/21/contrôler-un-lance-missiles-usb-en-http-avec-fastapi-et-docker/"
+  - "/2017/02/21/controlling-a-usb-missile-launcher-over-http-with-fastapi-and-docker/"
 date: 2026-05-14
 lastmod: 2026-11-18
 tags: [python, docker]
@@ -72,7 +76,7 @@ Le positionnement au temps fonctionne suffisamment bien. Sans encodeurs, on s'at
 
 L'autre surprise, c'est l'erreur de permission. La directive `devices` est nécessaire mais pas suffisante, et l'erreur était déroutante justement parce que le périphérique était bien visible dans le conteneur. La règle udev est l'étape que la plupart des tutoriels passent sous silence. Quant à la règle du café, elle ne s'en est jamais remise : une fois le lanceur relié au pipeline, les builds cassés sont devenus beaucoup plus motivants à corriger.
 
-{{< github repo="guillaumedelre/dream-cheeky-thunder" showThumbnail=true >}}
+{{< github repo="guillaumedelre/dream-cheeky-thunder" showThumbnail=false >}}
 
 [dct]: https://web.archive.org/web/20171216061329/http://dreamcheeky.com/thunder-missile-launcher
 [repo]: https://github.com/guillaumedelre/dream-cheeky-thunder

@@ -15,7 +15,7 @@ This repository is a personal tech article publication site hosted on GitHub Pag
 
 Hugo blog hosted on GitHub Pages, written in French only and served at the site root (no `/fr/` prefix).
 
-Theme: Blowfish (git submodule at `themes/blowfish`, v3.10.0). It requires Hugo 0.166–0.169 extended; newer versions build with a compatibility warning. Configuration lives in `config/_default/`: `hugo.toml` (site, taxonomies, permalinks, outputs), `languages.fr.toml` (title, description, author), `menus.fr.toml`, `params.toml` (theme features) and `markup.toml` (required by the theme).
+Theme: Blowfish (git submodule at `themes/blowfish`, v3.10.0). It requires Hugo 0.166–0.169 extended; the site is pinned to 0.169.0, locally and in the deployment workflow. Configuration lives in `config/_default/`: `hugo.toml` (site, taxonomies, permalinks, outputs), `languages.fr.toml` (title, description, author), `menus.fr.toml`, `params.toml` (theme features) and `markup.toml` (required by the theme).
 
 There are no template overrides: everything comes from Blowfish and its configuration. Before changing how something looks or behaves, look for a parameter in `params.toml` or a front matter field. If nothing fits, discuss it with the user before adding anything under `layouts/` or `assets/css/custom.css`.
 
@@ -29,11 +29,11 @@ Deployment: `.github/workflows/hugo-deploy.yml` builds with `hugo --minify` and 
 
 ## Local development
 
-Requires Docker. No local Hugo install needed. The official image is used because Blowfish needs a recent Hugo.
+Requires Docker. No local Hugo install needed. Use the same Hugo version as the deployment workflow (`hugo-version` in `.github/workflows/hugo-deploy.yml`), within the range Blowfish supports (`[module.hugoVersion]` in `themes/blowfish/config.toml`); upgrade both together.
 
 ```bash
 docker run --rm --name hugo-blog -v "$(pwd):/project" -u "$(id -u):$(id -g)" -e HOME=/tmp \
-  -p 1313:1313 ghcr.io/gohugoio/hugo:latest \
+  -p 1313:1313 ghcr.io/gohugoio/hugo:v0.169.0 \
   server --bind 0.0.0.0 --buildDrafts
 ```
 

@@ -26,7 +26,8 @@ jobs:
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@v3
         with:
-          hugo-version: latest
+          # Pinned: Blowfish v3.10 supports Hugo 0.166 to 0.169 (themes/blowfish/config.toml)
+          hugo-version: '0.169.0'
           extended: true
 
       - name: Setup Pages

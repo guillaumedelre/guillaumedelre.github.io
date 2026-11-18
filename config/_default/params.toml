@@ -16,7 +16,7 @@ images = ["/assets/images/og-default.jpg"]   # default Open Graph image (Hugo bu
 hotlinkFeatureImage = false
 highlightCurrentMenuArea = true
 smartTOC = true
-smartTOCHideUnfocusedChildren = false
+smartTOCHideUnfocusedChildren = true   # long TOCs only unfold the section being read
 fingerprintAlgorithm = "sha512"
 
 [header]

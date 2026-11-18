@@ -31,9 +31,19 @@ Le problème tient dans les fichiers eux-mêmes : une clé privée que n'importe
 
 Les règles qui s'imposent à toutes les autorités de certification (les Baseline Requirements du CA/Browser Forum, section 9.6.3) obligent chaque titulaire d'un certificat à garder sa clé privée confidentielle. La publier sur une URL, c'est exactement l'inverse.
 
-Le 24 mars 2025, un membre de l'équipe Let's Encrypt [l'a écrit sur le dépôt du projet][le-post] : la clé publiée était bloquée, les certificats associés révoqués, et le domaine pourrait être interdit d'émission si ça continuait. Le lendemain, pyrou [a pris acte][pyrou-reply] : il arrêtait de distribuer le certificat, recommandait [mkcert][mkcert] à la place et gardait traefik.me comme simple service DNS.
+Ce n'était pas une surprise, et la fin s'est jouée en deux jours :
 
-Ce n'était pas une surprise. En 2022, pyrou expliquait déjà dans [une issue][issue-1] que le certificat avait été révoqué deux fois, et prévenait que si quelqu'un s'acharnait à le faire révoquer dès sa publication, il arrêterait de distribuer la clé. Trois ans plus tard, c'est Let's Encrypt lui-même qui a fait la démarche.
+{{< timeline >}}
+{{< timelineItem icon="triangle-exclamation" header="Deux révocations déjà" badge="2022" md=true >}}
+Dans [une issue du projet](https://github.com/pyrou/traefik.me/issues/1), pyrou indique que le certificat a déjà été révoqué deux fois. Il prévient : si quelqu'un s'acharne à le faire révoquer dès sa publication, il arrêtera de distribuer la clé privée.
+{{< /timelineItem >}}
+{{< timelineItem icon="lock" header="Let's Encrypt révoque le certificat" badge="24 mars 2025" md=true >}}
+Un membre de l'équipe Let's Encrypt [l'écrit sur le dépôt du projet](https://github.com/pyrou/traefik.me/discussions/14) : la clé publiée est bloquée, les certificats associés révoqués, et le domaine pourrait être interdit d'émission si ça continue.
+{{< /timelineItem >}}
+{{< timelineItem icon="xmark" header="Fin du certificat partagé" badge="25 mars 2025" md=true >}}
+Pyrou [prend acte](https://github.com/pyrou/traefik.me/discussions/15) : il arrête de distribuer le certificat, recommande mkcert et garde traefik.me comme simple service DNS.
+{{< /timelineItem >}}
+{{< /timeline >}}
 
 ## Ce que j'ai remplacé tout de suite
 
@@ -131,8 +141,5 @@ La clé de l'autorité mkcert (`rootCA-key.pem`) permet d'émettre un certificat
 Avec le recul, traefik.me était confortable parce qu'il supprimait une frontière de sécurité sans le dire : le certificat était valide partout parce que sa clé était à tout le monde. mkcert demande plus de travail, mais la confiance repose sur une clé que je suis le seul à détenir. sslip.io règle la partie DNS, mkcert la partie TLS, et aucun des deux ne dépend de la bonne volonté d'un tiers pour continuer à fonctionner.
 
 [traefik-me]: https://github.com/pyrou/traefik.me
-[le-post]: https://github.com/pyrou/traefik.me/discussions/14
-[pyrou-reply]: https://github.com/pyrou/traefik.me/discussions/15
-[issue-1]: https://github.com/pyrou/traefik.me/issues/1
 [sslip]: https://sslip.io
 [mkcert]: https://github.com/FiloSottile/mkcert

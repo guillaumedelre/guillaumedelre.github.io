@@ -1,6 +1,6 @@
 # Blowfish theme options — https://blowfish.page/docs/configuration/#theme-parameters
-colorScheme = "blowfish"
-defaultAppearance = "dark"
+colorScheme = "slate"
+defaultAppearance = "light"   # with autoSwitchAppearance: follows the visitor's system setting both ways
 autoSwitchAppearance = true
 enableA11y = true
 enableSearch = true
@@ -71,6 +71,7 @@ fingerprintAlgorithm = "sha512"
 
 [list]
   showHero = false
+  featureImageHover = true
   showBreadcrumbs = true
   showSummary = true
   showViews = false
@@ -79,7 +80,7 @@ fingerprintAlgorithm = "sha512"
   showCards = true
   orderByWeight = false
   groupByYear = true
-  cardView = false
+  cardView = true
   cardViewScreenWidth = false
   constrainItemsWidth = false
 

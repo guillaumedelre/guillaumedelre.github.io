@@ -9,6 +9,9 @@ date: 2026-05-17
 lastmod: 2026-11-18
 tags: [homelab, docker, traefik]
 format: guide
+featureimage: "images/homelab/dashboard.png"
+featureimagecaption: "Le tableau de bord Homepage du homelab : chaque carte vient des labels d'un conteneur, les boutons d'action sont ajoutés par stacks"
+images: ["/images/homelab/dashboard.png"]
 description: "Guide de conception d'un homelab Docker : les principes qui permettent d'ajouter ou de retirer n'importe quel service sans toucher au reste."
 ---
 
@@ -151,9 +154,11 @@ La quatrième brique ne se voit pas, et c'est la plus importante : un health che
 
 ## 6. L'outil de pilotage est un détail
 
-Pour démarrer, arrêter ou mettre à jour une stack, `docker compose` dans son dossier suffit. Par-dessus, j'utilise un petit outil maison, `stacks`, qui liste les projets Compose de la machine et ajoute des boutons aux cartes de Homepage : logs en direct, redémarrage, reconstruction.
+Pour démarrer, arrêter ou mettre à jour une stack, `docker compose` dans son dossier suffit. Par-dessus, j'utilise un petit outil maison, [stacks][stacks], qui liste les projets Compose de la machine et ajoute des boutons aux cartes de Homepage : logs en direct, redémarrage, reconstruction. Ce sont les icônes visibles sur la capture en tête d'article.
 
 L'important n'est pas l'outil, c'est qu'il soit remplaçable. Comme chaque service est un projet Compose ordinaire, n'importe quel outil sait le piloter : la ligne de commande, [Dockge][dockge], Portainer ou le mien. Le jour où j'arrêterai `stacks`, rien ne cassera. Un outil qui stockerait la configuration des services dans sa propre base, au lieu des fichiers, poserait le problème inverse : il deviendrait impossible de s'en passer.
+
+{{< github repo="guillaumedelre/stacks" >}}
 
 ## 7. Choisir sa politique de mise à jour
 
@@ -193,4 +198,5 @@ Si votre réponse est plus longue, le problème n'est pas le service que vous es
 [dozzle]: https://github.com/amir20/dozzle
 [glances]: https://github.com/nicolargo/glances
 [dockge]: https://github.com/louislam/dockge
+[stacks]: https://github.com/guillaumedelre/stacks
 [watchtower]: https://github.com/containrrr/watchtower

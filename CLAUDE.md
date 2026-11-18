@@ -342,18 +342,31 @@ Presenting a tool I built (or adopted) so that readers try it. Example: `claude-
 
 ### Guide
 
-A step-by-step reference the reader follows with a terminal open, and comes back to later. Example: `homelab-docker-compose-traefik`.
+A reference the reader comes back to. It comes in two shapes:
 
-**Goal:** the reader reaches a working result without guessing.
+- **Procedure**: step-by-step, followed with a terminal open. Goal: the reader reaches a working result without guessing.
+- **Design**: the principles behind a setup, each one illustrated by how I apply it, so the reader can build their own whatever tools they pick. Goal: the reader knows what to decide and why. Example: `homelab-docker-compose-traefik`.
 
-- Say it's a guide in the `description` and in the first paragraphs. State the prerequisites and the end result (what the reader will have running at the end).
+Both shapes:
+
+- Say it's a guide in the `description` and in the first paragraphs, and state who it is for and what they need.
 - Keep the story for the intro (why I set it up this way, one or two paragraphs) and for the pitfalls, which should be told as things that actually happened.
-- Topic headers and numbered steps are allowed here — and only here. Blowfish shows a table of contents on every post; never write one by hand.
-- Each step: what to do, how to check that it worked, the most common failure. Commands are complete, copy-pastable and tested; versions are pinned or stated.
+- Topic headers and numbered sections are allowed here — and only here. Blowfish shows a table of contents on every post; never write one by hand.
 - "Why X and not Y" justifications: one opinionated paragraph each, not a feature comparison.
 - Pitfalls follow the shape *symptom → cause → fix*, with the exact error message when there is one.
 - End with what the guide doesn't cover and where to go next. No closing aphorism needed.
-- Length: as long as needed, but never longer than the steps require.
+- Length: as long as needed, but no longer.
+
+Procedure only:
+
+- State the end result up front (what the reader will have running at the end).
+- Each step: what to do, how to check that it worked, the most common failure. Commands are complete, copy-pastable and tested; versions are pinned or stated.
+
+Design only:
+
+- One section per principle. Each one says the principle, why it matters, and how my own setup applies it, with real configuration rather than an invented example.
+- Code only where it shows a principle at work (one representative file beats a full listing). No installation steps: link to the projects' docs instead.
+- Give the reader a way to check their own design against the principles (a test, a question to ask).
 
 ### Mixed posts
 
@@ -377,7 +390,8 @@ Report findings as a list, each with: the rule, the quoted passage (with line nu
 - [ ] The type set in `format` (experiment / showcase / guide) is identifiable from the first two paragraphs, and the structure follows that type's rules.
 - [ ] Experiment: at least one dead-end or wrong assumption is shown before a solution.
 - [ ] Showcase: a "What it doesn't do" section exists; no superlative; the alternatives are named.
-- [ ] Guide: prerequisites and end result are stated up front; every step can be verified; pitfalls have symptom, cause and fix.
+- [ ] Guide (procedure): prerequisites and end result are stated up front; every step can be verified; pitfalls have symptom, cause and fix.
+- [ ] Guide (design): one section per principle, each illustrated by the real setup; the reader gets a way to check their own design.
 
 ### 2. Opening and ending
 

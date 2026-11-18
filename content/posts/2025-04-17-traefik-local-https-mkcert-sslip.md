@@ -7,6 +7,9 @@ date: 2025-04-17
 lastmod: 2026-11-18
 tags: [traefik, docker, homelab]
 format: experiment
+featureimage: "images/traefik-local-https/whoami-https.png"
+featureimagecaption: "whoami servi en HTTPS par Traefik sur whoami.127-0-0-1.sslip.io, avec un certificat généré par mkcert"
+images: ["/images/traefik-local-https/whoami-https.png"]
 description: "Le certificat wildcard de traefik.me a été révoqué en 2025. Voici comment le remplacer avec sslip.io, mkcert et une configuration Traefik locale."
 ---
 
@@ -24,15 +27,15 @@ Le certificat était le bonus : un certificat wildcard pour `*.traefik.me` que p
 
 Partager une clé privée, c'est ce qui l'a tué.
 
-Les Baseline Requirements du CA/Browser Forum, section 9.6.3, imposent à chaque souscripteur de s'engager à « keep confidential, and properly protect at all times the Private Key », autrement dit à garder sa clé privée confidentielle et protégée en permanence. La distribuer à quiconque visite une URL, c'est exactement le contraire. Let's Encrypt [l'a dit publiquement][le-post] : la clé divulguée a été bloquée, les certificats associés révoqués, avec l'avertissement qu'un souscripteur qui ignore les règles verrait le domaine bloqué. Pyrou [a confirmé la situation][pyrou-reply] et recommandé mkcert comme alternative. Le projet survivra uniquement en tant que résolveur DNS.
+Les Baseline Requirements du CA/Browser Forum, section 9.6.3, imposent à chaque souscripteur de s'engager à « keep confidential, and properly protect at all times the Private Key », autrement dit à garder sa clé privée confidentielle et protégée en permanence. La distribuer à quiconque visite une URL, c'est exactement le contraire. Le 24 mars 2025, un membre de l'équipe Let's Encrypt [l'a annoncé sur le dépôt du projet][le-post] : la clé divulguée a été bloquée, les certificats associés révoqués, avec l'avertissement qu'un souscripteur qui ignore les règles verrait le domaine bloqué. Pyrou [a confirmé la situation][pyrou-reply] et recommandé mkcert comme alternative. Le projet survivra uniquement en tant que résolveur DNS.
 
-Ce n'était pas la première fois : la clé publiée avait déjà servi à faire révoquer le certificat plusieurs fois auparavant, mais cette fois, c'était Let's Encrypt, et c'était la dernière.
+Ce n'était pas la première fois. En 2022, pyrou expliquait dans [une issue][issue-1] que le certificat avait déjà été révoqué deux fois, et prévenait : si quelqu'un s'acharnait à le faire révoquer dès sa publication, il arrêterait de distribuer la clé privée. Cette fois, c'était Let's Encrypt lui-même, et c'était la dernière.
 
 ## sslip.io fait la même chose, différemment
 
 [sslip.io][sslip] est aussi un résolveur DNS wildcard. Comme avec traefik.me, l'IP est dans le hostname, avec des points ou des tirets ; contrairement à traefik.me, il n'y a pas de repli quand elle est absente. `10-0-0-1.sslip.io` pointe vers `10.0.0.1`. `myapp.192-168-1-10.sslip.io` pointe vers `192.168.1.10`. IPv6 fonctionne aussi.
 
-L'infrastructure derrière sslip.io est aussi plus visible : trois serveurs de noms à Singapour, aux États-Unis et en Pologne, traitant plus de 10 000 requêtes par seconde, avec un monitoring public. Environ 1 000 étoiles GitHub et une maintenance active sous licence Apache 2.0.
+L'infrastructure derrière sslip.io est aussi plus visible : trois serveurs de noms à Singapour, aux États-Unis et en Pologne, qui traitent plus de 20 000 requêtes par seconde selon le site du projet. Plus de 1 200 étoiles sur GitHub et une maintenance active, sous licence Apache 2.0 (chiffres de novembre 2026).
 
 En mettant de côté l'histoire des certificats, la comparaison est assez directe :
 
@@ -61,6 +64,8 @@ mkcert "*.127-0-0-1.sslip.io"
 # produit _wildcard.127-0-0-1.sslip.io.pem
 #         _wildcard.127-0-0-1.sslip.io-key.pem
 ```
+
+{{< figure src="images/traefik-local-https/verifie-par-mkcert.png" alt="Onglet Sécurité de Firefox pour whoami.127-0-0-1.sslip.io : vérifiée par mkcert development CA, connexion chiffrée en TLS 1.3" caption="Le navigateur fait confiance au certificat parce qu'il connaît l'autorité locale : « Vérifiée par : mkcert development CA »." >}}
 
 La limitation : la CA de mkcert est locale. Les autres machines du réseau ne lui feront pas confiance par défaut. Pour une configuration solo, c'est très bien. Pour un environnement d'équipe partagé, il faudrait distribuer la CA racine, ce qui revient au même problème opérationnel que traefik.me tentait d'éviter, à plus petite échelle.
 
@@ -186,5 +191,6 @@ sslip.io résout proprement la partie DNS. mkcert résout proprement la partie T
 
 [le-post]: https://github.com/pyrou/traefik.me/discussions/14
 [pyrou-reply]: https://github.com/pyrou/traefik.me/discussions/15
+[issue-1]: https://github.com/pyrou/traefik.me/issues/1
 [sslip]: https://sslip.io
 [mkcert]: https://github.com/FiloSottile/mkcert

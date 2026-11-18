@@ -19,7 +19,7 @@ description: "Guide de conception d'un homelab Docker : les principes qui permet
 Dans la première version de cet article, je présentais dix services. La plupart n'étaient là que pour l'exemple. Aujourd'hui, dix-huit stacks tournent sur ma machine : une IA locale, Home Assistant, un serveur de musique, des applis que j'ai écrites moi-même. Aucune n'a demandé de toucher à l'architecture.
 {{< /lead >}}
 
-C'est ce qui m'intéresse dans un homelab : pas la liste des services, qui change tous les trois mois, mais la structure qui les accueille. Une bonne structure rend l'ajout d'un service banal et sa suppression sans conséquence. Cet article décrit les huit principes qui tiennent la mienne, avec à chaque fois la manière dont je les applique.
+Ce qui compte dans un homelab, c'est la structure qui accueille les services, bien plus que leur liste. Une bonne structure rend l'ajout d'un service banal et sa suppression sans conséquence. Cet article décrit les huit principes qui tiennent la mienne, avec à chaque fois la manière dont je les applique.
 
 Il s'adresse à quelqu'un qui connaît Docker et veut faire tourner plusieurs services sur une machine du réseau local. Il faut une machine Linux et Docker avec Compose v2. Rien d'autre : ni nom de domaine, ni serveur DNS, ni VPS.
 
@@ -76,7 +76,7 @@ extra_hosts:
     - "host.docker.internal:host-gateway"
 ```
 
-Ces services gardent leurs labels habituels, mais sans la section `networks:` ni le label `traefik.docker.network`. C'est la seule exception de toute l'installation, et elle est écrite noir sur blanc dans les notes du homelab, avec la liste des services concernés.
+Ces services gardent leurs labels habituels, mais sans la section `networks:` ni le label `traefik.docker.network`. C'est la seule entorse au réseau commun, et elle est écrite noir sur blanc dans les notes du homelab, avec la liste des services concernés.
 
 ## 3. Des noms sans serveur DNS
 
@@ -89,7 +89,7 @@ IP=10.0.0.10
 DOMAIN=sslip.io
 ```
 
-Reste à construire le nom de chaque service. Docker Compose fournit `COMPOSE_PROJECT_NAME`, qui vaut par défaut le nom du dossier. Si le dossier porte le nom du sous-domaine, il n'y a rien à déclarer : le dossier `dozzle/` répond sur `dozzle.10.0.0.10.sslip.io`. Quand ce n'est pas possible, j'écris le nom en dur dans la règle Traefik, et c'est la seule exception.
+Reste à construire le nom de chaque service. Docker Compose fournit `COMPOSE_PROJECT_NAME`, qui vaut par défaut le nom du dossier. Si le dossier porte le nom du sous-domaine, il n'y a rien à déclarer : le dossier `dozzle/` répond sur `dozzle.10.0.0.10.sslip.io`. Quand le dossier ne peut pas porter le nom voulu, j'écris le nom en dur dans la règle Traefik.
 
 Pour vérifier ce que vaut la variable dans un dossier avant de s'en servir :
 

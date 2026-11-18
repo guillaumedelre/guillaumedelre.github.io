@@ -48,3 +48,9 @@ enableEmoji = true
     name = "fragmentrefs"
     type = "fragments"
     weight = 10
+
+# Remote resources (GitHub cards call api.github.com, limited to 60 unauthenticated
+# requests per hour per IP): keep them a day; the deploy workflow persists the cache
+[caches.getresource]
+  dir = ":cacheDir/:project"
+  maxAge = "24h"

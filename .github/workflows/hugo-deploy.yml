@@ -30,12 +30,21 @@ jobs:
           hugo-version: '0.169.0'
           extended: true
 
+      - name: Restore Hugo cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/hugo_cache
+          key: hugo-cache-${{ github.run_id }}
+          restore-keys: hugo-cache-
+
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v5
 
       - name: Build
         run: hugo --minify --baseURL "${{ steps.pages.outputs.base_url }}/"
+        env:
+          HUGO_CACHEDIR: ${{ runner.temp }}/hugo_cache
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

@@ -5,12 +5,12 @@ date: 2026-05-17
 lastmod: 2026-11-17
 tags: [homelab, docker, traefik]
 format: guide
-description: "Tuto complet pour monter un homelab Docker avec Traefik et sslip.io : stacks indépendants, dashboard auto-configuré, pièges documentés."
+description: "Tuto complet pour monter un homelab Docker avec Traefik et sslip.io : stacks indépendantes, dashboard auto-configuré, pièges documentés."
 ---
 
 Ça fait des années que j'avais envie d'un homelab à la maison. Un endroit à moi pour héberger mes outils de développement, surveiller mes machines, faire tourner de la domotique, tester des trucs sans risquer de casser quoi que ce soit d'important. L'idée est simple. La mise en place un peu moins.
 
-À l'époque, Kubernetes n'existait pas encore. Les options pour faire tourner plusieurs services sur une machine se résumaient à du scripting bash, des configurations Nginx écrites à la main, et beaucoup de café. Les tutoriels "homelab pour les humains" brillaient par leur absence.
+À l'époque, Kubernetes n'existait pas encore. Les options pour faire tourner plusieurs services sur une machine se résumaient à du scripting bash, des configurations Nginx écrites à la main, et beaucoup de café. Les tutoriels « homelab pour les humains » brillaient par leur absence.
 
 Ce tuto, c'est ce que j'aurais voulu trouver à l'époque. Ça tourne depuis plusieurs années maintenant. Pas sans évoluer : des services ajoutés, d'autres abandonnés, des choix revisités. Mais la base est là, stable, et c'est bien ça le succès en self-hosting.
 
@@ -49,7 +49,7 @@ Docker Compose est le bon niveau de complexité pour un homelab personnel. Kuber
 
 **[Traefik][traefik]** lit automatiquement les labels Docker des containers et génère sa configuration à la volée. Quand on démarre un container avec les bons labels, Traefik le découvre et crée la route immédiatement, sans redémarrage, sans UI à ouvrir.
 
-Ce comportement "configuration as code" a deux avantages majeurs :
+Ce comportement « configuration as code » a deux avantages majeurs :
 - La configuration d'un service est dans son `compose.yaml`, au même endroit que tout le reste.
 - Ajouter un service ne nécessite pas de toucher à Traefik.
 
@@ -61,7 +61,7 @@ Ce comportement "configuration as code" a deux avantages majeurs :
 
 ### Pourquoi sslip.io ?
 
-Les services web ont besoin d'un nom d'hôte (ex: `dozzle.monserveur.local`) pour que Traefik puisse les router correctement. Les options habituelles :
+Les services web ont besoin d'un nom d'hôte (ex. : `dozzle.monserveur.local`) pour que Traefik puisse les router correctement. Les options habituelles :
 - Modifier `/etc/hosts` sur chaque machine : fastidieux, non partageable.
 - Configurer un vrai DNS local (Pi-hole, AdGuard) : nécessite une infrastructure supplémentaire.
 - Acheter un domaine et configurer les DNS : coûte de l'argent et du temps.
@@ -88,7 +88,7 @@ networks:
         external: true
 ```
 
-Pourquoi externe plutôt qu'interne à un Compose ? Parce que plusieurs stacks indépendants doivent tous y être connectés. Un réseau interne à un Compose n'est accessible qu'aux services de ce Compose.
+Pourquoi externe plutôt qu'interne à un Compose ? Parce que plusieurs stacks indépendantes doivent toutes y être connectées. Un réseau interne à un Compose n'est accessible qu'aux services de ce Compose.
 
 ### Traefik : le reverse proxy
 
@@ -305,7 +305,7 @@ Pour trouver des services à ajouter, [selfh.st][selfhst] est une excellente res
 
 ### La variable `${COMPOSE_PROJECT_NAME}`
 
-Docker Compose valorise automatiquement `COMPOSE_PROJECT_NAME` avec le nom du dossier qui contient le `compose.yaml`, ici le dossier du stack. On l'utilise pour construire dynamiquement les URLs :
+Docker Compose valorise automatiquement `COMPOSE_PROJECT_NAME` avec le nom du dossier qui contient le `compose.yaml`, ici le dossier de la stack. On l'utilise pour construire dynamiquement les URLs :
 
 ```yaml
 traefik.http.routers.dozzle.rule: Host(`${COMPOSE_PROJECT_NAME}.${IP}.${DOMAIN}`)
@@ -344,7 +344,7 @@ test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/ || exit 1"]
 
 **2. Images sans shell (`scratch`-based)**
 
-Les images basées sur `scratch` (ex: Dozzle) ne contiennent pas `/bin/sh`. `CMD-SHELL` échoue. Utiliser le binaire embarqué :
+Les images basées sur `scratch` (ex. : Dozzle) ne contiennent pas `/bin/sh`. `CMD-SHELL` échoue. Utiliser le binaire embarqué :
 
 ```yaml
 test: ["CMD", "/dozzle", "healthcheck"]
@@ -366,7 +366,7 @@ volumes:
     - ./docker/data:/chemin/dans/container
 ```
 
-Le dossier `./docker/` est dans le dossier du stack et peut être versionné, à l'exception des données runtime qui vont dans `.gitignore`.
+Le dossier `./docker/` est dans le dossier de la stack et peut être versionné, à l'exception des données runtime qui vont dans `.gitignore`.
 
 **Règle** : ajouter `stacks/<service>/docker/` dans `.gitignore` si le dossier contient des données qui ne doivent pas être committées (base SQLite, uploads...).
 
@@ -386,7 +386,7 @@ Ce n'est pas une contrainte technique de Traefik, juste une convention de lisibi
 
 ### Dockge : Stop puis Start, pas Restart
 
-Quand on modifie un `compose.yaml` depuis l'IDE et qu'on veut appliquer les changements, il faut faire **Stop + Start** depuis Dockge, pas "Restart". Le Restart redémarre le container existant sans relire le `compose.yaml`. Le Stop + Start recrée le container avec la nouvelle configuration.
+Quand on modifie un `compose.yaml` depuis l'IDE et qu'on veut appliquer les changements, il faut faire **Stop + Start** depuis Dockge, pas « Restart ». Le Restart redémarre le container existant sans relire le `compose.yaml`. Le Stop + Start recrée le container avec la nouvelle configuration.
 
 ### Les labels modifiés n'apparaissent pas dans Homepage
 
@@ -423,7 +423,7 @@ environment:
     DOCKER_API_VERSION: "1.40"
 ```
 
-La valeur à mettre est le minimum indiqué dans le message d'erreur, pas ta version exacte. `1.40` suffisait quand le repo a été écrit, mais [Docker 29 a relevé le minimum à 1.44][watchtower-api] : à partir de Docker 29, mettre `1.44`. Pour vérifier la version d'API réelle de ton daemon :
+La valeur à mettre est le minimum indiqué dans le message d'erreur, pas votre version exacte. `1.40` suffisait quand le repo a été écrit, mais [Docker 29 a relevé le minimum à 1.44][watchtower-api] : à partir de Docker 29, mettre `1.44`. Pour vérifier la version d'API réelle de votre daemon :
 
 ```bash
 docker version --format '{{.Server.APIVersion}}'
@@ -452,7 +452,7 @@ Le homelab parfait n'existe pas. Celui qui tourne, si.
     <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
     <span class="gh-card__repo">guillaumedelre/homelab</span>
   </span>
-  <span class="gh-card__desc">Homelab Docker Compose avec Traefik — stacks indépendants, dashboard auto-configuré, et zéro configuration DNS grâce à sslip.io.</span>
+  <span class="gh-card__desc">Homelab Docker Compose avec Traefik — stacks indépendantes, dashboard auto-configuré, et zéro configuration DNS grâce à sslip.io.</span>
 </a>
 
 ## Références

@@ -8,9 +8,9 @@ format: experiment
 description: "Un capteur BME280 à 10€, un Raspberry Pi, et un broker MQTT : construire un moniteur de climat de pièce qui alimente Home Assistant."
 ---
 
-La question était simple : quelle est la température et l'humidité dans mon bureau à domicile en ce moment ? Pas la météo dehors, pas une moyenne de ville — les conditions réelles dans la pièce où je passe la majeure partie de ma journée. Ouvrir une application météo pour ça semblait mal.
+La question était simple : quelles sont la température et l'humidité dans mon bureau à domicile en ce moment ? Pas la météo dehors, pas une moyenne de ville — les conditions réelles dans la pièce où je passe la majeure partie de ma journée. Ouvrir une application météo pour ça semblait mal.
 
-Un Raspberry Pi tournait déjà sur l'étagère. Un capteur BME280 coûte environ 10€. Ça aurait dû être un projet de week-end.
+Un Raspberry Pi tournait déjà sur l'étagère. Un capteur BME280 coûte environ 10 €. Ça aurait dû être un projet de week-end.
 
 C'était globalement le cas, à l'exception de la partie où j'ai supposé que lire un capteur de température signifiait lire un registre.
 
@@ -52,13 +52,13 @@ Le guide d'installation complet est <a href="https://github.com/guillaumedelre/b
 
 ## Ce à quoi je ne m'attendais pas
 
-**La calibration Bosch n'est pas négociable.** J'ai commencé par lire le registre de température brute directement et le scaler naïvement. Le résultat était des nombres qui avaient l'air presque plausibles et qui étaient complètement faux. L'algorithme de compensation n'est pas une décoration optionnelle, c'est ce qui rend la sortie significative.
+**La calibration Bosch n'est pas négociable.** J'ai commencé par lire le registre de température brut directement et le scaler naïvement. Le résultat était des nombres qui avaient l'air presque plausibles et qui étaient complètement faux. L'algorithme de compensation n'est pas une décoration optionnelle, c'est ce qui rend la sortie significative.
 
 **Le polling bat les événements ici.** Le capteur ne pousse pas de données, on lui demande une lecture. Un cron job toutes les minutes est tout ce dont on a besoin pour surveiller une pièce. Mesurer beaucoup plus souvent serait excessif, et chaufferait assez la puce pour fausser la température.
 
 **La découverte MQTT est sous-estimée.** Déclarer manuellement les capteurs dans `configuration.yaml` fonctionne, mais l'auto-découverte semble simplement juste. Publier un payload de config une fois, et Home Assistant s'en occupe. Ajouter un nouveau type de capteur plus tard prend environ trente secondes.
 
-La pièce est maintenant à 21,4°C et 47% d'humidité. Je le sais sans rien ouvrir.
+La pièce est maintenant à 21,4 °C et 47 % d'humidité. Je le sais sans rien ouvrir.
 
 ## Une note sur le SensorAPI officiel Bosch
 

@@ -10,71 +10,66 @@ format: experiment
 featureimage: "images/traefik-local-https/whoami-https.png"
 featureimagecaption: "whoami servi en HTTPS par Traefik sur whoami.127-0-0-1.sslip.io, avec un certificat généré par mkcert"
 images: ["/images/traefik-local-https/whoami-https.png"]
-description: "Le certificat wildcard de traefik.me a été révoqué en 2025. Voici comment le remplacer avec sslip.io, mkcert et une configuration Traefik locale."
+description: "J'utilisais le certificat partagé de traefik.me jusqu'à sa révocation en 2025. sslip.io a remplacé le DNS, mkcert remplacera le HTTPS."
 ---
 
 {{< lead >}}
-La configuration semblait parfaite. Pointer `*.traefik.me` sur 127.0.0.1, télécharger un certificat wildcard depuis le même domaine, le déposer dans Traefik, et chaque service local obtient une URL HTTPS propre sans IP dans la barre d'adresse. Pas de limites de débit Let's Encrypt, pas de `mkcert` à expliquer aux collègues, pas d'avertissements de certificat auto-signé à contourner. Rien que `https://myapp.traefik.me` et un cadenas vert.
+Le dossier qui contient mon homelab s'appelle toujours `traefik.me`. C'est le dernier vestige d'une époque où chacun de mes services avait une adresse en HTTPS sans que j'aie rien à faire. Depuis mars 2025, ils sont tous en HTTP, et mon Traefik publie un port 443 que plus personne n'écoute.
 {{< /lead >}}
 
-Puis en mars 2025, Let's Encrypt a révoqué le certificat wildcard de traefik.me, et il a disparu pour de bon.
+Cet article raconte ce qui a cassé, ce que j'ai remplacé tout de suite, et ce qu'il faut pour remettre le HTTPS, testé de bout en bout pour l'occasion.
 
-## Ce que traefik.me vendait
+## Un certificat que tout le monde pouvait télécharger
 
-traefik.me est un résolveur DNS wildcard. Tapez `anything.traefik.me` et ça pointe vers 127.0.0.1. Tapez `anything.10.0.0.1.traefik.me` et ça pointe vers 10.0.0.1. Aucun compte, rien à configurer ni à maintenir. La partie DNS fonctionne toujours bien, soit dit en passant.
+[traefik.me][traefik-me] fait deux choses. La première, c'est un DNS joker : `anything.traefik.me` pointe vers `127.0.0.1`, et `anything.10.0.0.1.traefik.me` vers `10.0.0.1`. Aucun compte, rien à configurer. Cette partie fonctionne toujours.
 
-Le certificat était le bonus : un certificat wildcard pour `*.traefik.me` que pyrou, le mainteneur, avait généré avec Let's Encrypt et distribué sur `https://traefik.me/cert.pem` et `https://traefik.me/privkey.pem`. C'était pratique précisément parce que c'était partagé : télécharger, déposer dans Traefik, terminé.
+La seconde, c'était le certificat. Pyrou, le mainteneur, générait avec Let's Encrypt un certificat wildcard pour `*.traefik.me` et le publiait, clé privée comprise, sur `https://traefik.me/cert.pem` et `https://traefik.me/privkey.pem`. On téléchargeait les deux fichiers, on les déposait dans Traefik, et tous les services avaient un cadenas, y compris ceux qui ne tournaient que sur le réseau de la maison. C'est ce que je faisais.
 
-Partager une clé privée, c'est ce qui l'a tué.
+Le problème tient dans les fichiers eux-mêmes : une clé privée que n'importe qui peut télécharger n'a plus rien de privé.
 
-Les Baseline Requirements du CA/Browser Forum, section 9.6.3, imposent à chaque souscripteur de s'engager à « keep confidential, and properly protect at all times the Private Key », autrement dit à garder sa clé privée confidentielle et protégée en permanence. La distribuer à quiconque visite une URL, c'est exactement le contraire. Le 24 mars 2025, un membre de l'équipe Let's Encrypt [l'a annoncé sur le dépôt du projet][le-post] : la clé divulguée a été bloquée, les certificats associés révoqués, avec l'avertissement qu'un souscripteur qui ignore les règles verrait le domaine bloqué. Pyrou [a confirmé la situation][pyrou-reply] et recommandé mkcert comme alternative. Le projet survivra uniquement en tant que résolveur DNS.
+## La révocation
 
-Ce n'était pas la première fois. En 2022, pyrou expliquait dans [une issue][issue-1] que le certificat avait déjà été révoqué deux fois, et prévenait : si quelqu'un s'acharnait à le faire révoquer dès sa publication, il arrêterait de distribuer la clé privée. Cette fois, c'était Let's Encrypt lui-même, et c'était la dernière.
+Les règles qui s'imposent à toutes les autorités de certification (les Baseline Requirements du CA/Browser Forum, section 9.6.3) obligent chaque titulaire d'un certificat à garder sa clé privée confidentielle. La publier sur une URL, c'est exactement l'inverse.
 
-## sslip.io fait la même chose, différemment
+Le 24 mars 2025, un membre de l'équipe Let's Encrypt [l'a écrit sur le dépôt du projet][le-post] : la clé publiée était bloquée, les certificats associés révoqués, et le domaine pourrait être interdit d'émission si ça continuait. Le lendemain, pyrou [a pris acte][pyrou-reply] : il arrêtait de distribuer le certificat, recommandait [mkcert][mkcert] à la place et gardait traefik.me comme simple service DNS.
 
-[sslip.io][sslip] est aussi un résolveur DNS wildcard. Comme avec traefik.me, l'IP est dans le hostname, avec des points ou des tirets ; contrairement à traefik.me, il n'y a pas de repli quand elle est absente. `10-0-0-1.sslip.io` pointe vers `10.0.0.1`. `myapp.192-168-1-10.sslip.io` pointe vers `192.168.1.10`. IPv6 fonctionne aussi.
+Ce n'était pas une surprise. En 2022, pyrou expliquait déjà dans [une issue][issue-1] que le certificat avait été révoqué deux fois, et prévenait que si quelqu'un s'acharnait à le faire révoquer dès sa publication, il arrêterait de distribuer la clé. Trois ans plus tard, c'est Let's Encrypt lui-même qui a fait la démarche.
 
-L'infrastructure derrière sslip.io est aussi plus visible : trois serveurs de noms à Singapour, aux États-Unis et en Pologne, qui traitent plus de 20 000 requêtes par seconde selon le site du projet. Plus de 1 200 étoiles sur GitHub et une maintenance active, sous licence Apache 2.0 (chiffres de novembre 2026).
+## Ce que j'ai remplacé tout de suite
 
-En mettant de côté l'histoire des certificats, la comparaison est assez directe :
+Un homelab sur traefik.me dépend de lui pour deux choses : les noms et le certificat. Les noms se remplacent facilement, parce que d'autres services font la même chose.
+
+J'ai pris [sslip.io][sslip]. Le principe est identique : l'adresse IP est écrite dans le nom, avec des points ou des tirets. `dozzle.10.0.0.10.sslip.io` pointe vers `10.0.0.10`, et `myapp.192-168-1-10.sslip.io` vers `192.168.1.10`. Dans mon homelab, chaque stack lit l'adresse et le domaine dans son propre `.env` ([le principe 3 de cet article]({{< relref "2026-05-17-homelab-docker-compose-traefik.md" >}}) explique comment). Changer de domaine revient à modifier une ligne par stack.
+
+sslip.io a aussi l'avantage d'être plus transparent sur son fonctionnement : trois serveurs de noms à Singapour, aux États-Unis et en Pologne, plus de 20 000 requêtes par seconde selon le site du projet, plus de 1 200 étoiles sur GitHub et une maintenance active sous licence Apache 2.0 (chiffres de novembre 2026). Les deux services diffèrent sur trois points :
 
 | | traefik.me | sslip.io |
 |---|---|---|
-| DNS wildcard | oui | oui |
-| Fallback vers 127.0.0.1 | oui | non |
-| Certificat wildcard | ~~oui~~ révoqué | non |
-| Infrastructure | opaque | documentée |
+| Nom sans adresse IP (`myapp.traefik.me`) | oui, vers `127.0.0.1` | non, l'IP est obligatoire |
+| Certificat fourni | ~~oui~~ révoqué | non |
 | Activité du projet | faible | active |
 
-Le seul avantage restant de traefik.me est le repli vers 127.0.0.1 : des URLs sans segment IP. C'est important si vous tenez à `myapp.traefik.me` plutôt que `myapp.127-0-0-1.sslip.io`. Savoir si cette différence vaut l'incertitude sur l'infrastructure, c'est une discussion qui tourne court.
+Le premier point m'importe peu : mes services tournent sur `10.0.0.10`, pas sur `127.0.0.1`, et l'IP figurait déjà dans mes noms. Si vous ne travaillez qu'en local sur votre propre machine, `myapp.traefik.me` reste plus court, et la partie DNS de traefik.me fonctionne toujours.
 
-## mkcert comble le vide
+Le certificat, en revanche, aucun service DNS ne le remplace. C'est là que j'en suis resté : les noms ont changé, les services sont passés en HTTP, et le port 443 est resté publié dans le `compose.yaml` de Traefik, avec une ligne `443:443/udp` et son commentaire « HTTP/3 nécessite UDP ».
 
-[mkcert][mkcert] crée une autorité de certification locale, l'installe dans le magasin de certificats du système et dans les navigateurs qu'il trouve, puis émet des certificats signés par cette CA. Les navigateurs voient une chaîne de confiance valide et ne protestent plus.
+## Remettre le HTTPS avec mkcert
 
-```bash
-mkcert -install
-```
-
-C'est la configuration unique. Ensuite, générer un certificat se fait en une commande :
+La solution recommandée par pyrou, c'est [mkcert][mkcert]. Au lieu d'un certificat public partagé, on crée sa propre autorité de certification, on la déclare de confiance sur ses machines, et on émet ses certificats avec. Personne d'autre n'a la clé, et personne ne peut la faire révoquer.
 
 ```bash
-mkcert "*.127-0-0-1.sslip.io"
-# produit _wildcard.127-0-0-1.sslip.io.pem
-#         _wildcard.127-0-0-1.sslip.io-key.pem
+mkcert -install                    # crée l'autorité locale et l'ajoute aux magasins de certificats
+mkcert "*.127-0-0-1.sslip.io"      # émet un certificat wildcard signé par cette autorité
 ```
 
-{{< figure src="images/traefik-local-https/verifie-par-mkcert.png" alt="Onglet Sécurité de Firefox pour whoami.127-0-0-1.sslip.io : vérifiée par mkcert development CA, connexion chiffrée en TLS 1.3" caption="Le navigateur fait confiance au certificat parce qu'il connaît l'autorité locale : « Vérifiée par : mkcert development CA »." >}}
+Pour cet article, j'ai monté l'ensemble de bout en bout dans des conteneurs jetables : mkcert, Traefik et un service `whoami`, ouvert dans un vrai Firefox. C'est de là que viennent l'image en tête de l'article et celle-ci :
 
-La limitation : la CA de mkcert est locale. Les autres machines du réseau ne lui feront pas confiance par défaut. Pour une configuration solo, c'est très bien. Pour un environnement d'équipe partagé, il faudrait distribuer la CA racine, ce qui revient au même problème opérationnel que traefik.me tentait d'éviter, à plus petite échelle.
+{{< figure src="images/traefik-local-https/verifie-par-mkcert.png" alt="Onglet Sécurité de Firefox pour whoami.127-0-0-1.sslip.io : vérifiée par mkcert development CA, connexion chiffrée en TLS 1.3" caption="Le navigateur accepte le certificat parce qu'il connaît l'autorité locale : « Vérifiée par : mkcert development CA », connexion en TLS 1.3." >}}
 
-## La configuration Traefik
-
-La configuration est la même quelle que soit la solution DNS choisie. Traefik a besoin du certificat monté en volume et d'un file provider, déclaré dans la configuration statique, qui charge un fichier de configuration TLS dynamique.
+Côté Traefik, trois choses changent par rapport à une installation en HTTP. D'abord, un fichier de configuration dynamique qui déclare le certificat, chargé par le provider `file` :
 
 ```yaml
-# traefik/config/tls.yml
+# config/tls.yml
 tls:
   certificates:
     - certFile: /certs/cert.pem
@@ -86,77 +81,14 @@ tls:
         keyFile: /certs/key.pem
 ```
 
-La bonne pratique : faire tourner Traefik dans son propre projet Compose, séparé des services qu'il route. Chaque projet de service se connecte à Traefik via un réseau externe partagé. Vous démarrez et arrêtez les services indépendamment sans toucher au reverse proxy.
-
-Commencez par créer le réseau externe une seule fois :
-
-```bash
-docker network create traefik-public
-```
-
-**`traefik/compose.yml`** - Traefik seul, rattaché au réseau partagé :
+Ensuite, un point d'entrée sur le port 443 dans la configuration statique (`--entrypoints.websecure.address=:443`), avec les dossiers `config/` et `certs/` montés dans le conteneur. Enfin, deux labels sur chaque service, pour qu'il réponde sur ce point d'entrée en TLS :
 
 ```yaml
-services:
-  traefik:
-    image: traefik:v3
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./config:/etc/traefik/config
-      - ./certs:/certs
-    command:
-      - --entrypoints.web.address=:80
-      - --entrypoints.websecure.address=:443
-      - --providers.docker=true
-      - --providers.docker.network=traefik-public
-      - --providers.file.directory=/etc/traefik/config
-    networks:
-      - traefik-public
-
-networks:
-  traefik-public:
-    external: true
+traefik.http.routers.whoami.entrypoints: websecure
+traefik.http.routers.whoami.tls: true
 ```
 
-Copiez la sortie de mkcert dans `./certs/`, renommez les fichiers en `cert.pem` et `key.pem`, puis :
-
-```bash
-docker compose -f traefik/compose.yml up -d
-```
-
-Traefik est lancé, il écoute sur les ports 80 et 443, et surveille Docker pour les nouveaux containers. Aucune route n'est encore configurée.
-
-**`whoami/compose.yml`** - un service qui rejoint le même réseau :
-
-```yaml
-services:
-  whoami:
-    image: traefik/whoami
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.whoami.rule=Host(`whoami.127-0-0-1.sslip.io`)"
-      - "traefik.http.routers.whoami.tls=true"
-      - "traefik.http.routers.whoami.entrypoints=websecure"
-    networks:
-      - traefik-public
-
-networks:
-  traefik-public:
-    external: true
-```
-
-```bash
-docker compose -f whoami/compose.yml up -d
-```
-
-Traefik détecte le nouveau container via le Docker provider, lit ses labels, et ajoute la route. `https://whoami.127-0-0-1.sslip.io` répond immédiatement. Arrêtez `whoami` : la route disparaît, et Traefik continue de tourner sans s'en apercevoir.
-
-La déclaration `external: true` est la ligne qui fait tout le travail. Sans elle, Compose crée un réseau limité au périmètre du projet : Traefik et `whoami` se retrouvent sur des réseaux différents et ne peuvent pas communiquer, même s'ils tournent tous les deux. Le réseau externe est le bus partagé auquel chaque projet de service doit explicitement adhérer.
-
-Si vous préférez les URLs traefik.me, il suffit de remplacer la commande mkcert et le label de host :
+Le reste, le réseau partagé et les labels de routage, ne change pas. Il est décrit dans [l'article sur la conception du homelab]({{< relref "2026-05-17-homelab-docker-compose-traefik.md" >}}). Et le certificat ne dépend pas du DNS choisi : seul le nom passé à mkcert et la règle `Host` changent.
 
 {{< tabs >}}
 {{< tab label="sslip.io" >}}
@@ -165,7 +97,7 @@ mkcert "*.127-0-0-1.sslip.io"
 ```
 
 ```yaml
-- "traefik.http.routers.whoami.rule=Host(`whoami.127-0-0-1.sslip.io`)"
+traefik.http.routers.whoami.rule: Host(`whoami.127-0-0-1.sslip.io`)
 ```
 {{< /tab >}}
 {{< tab label="traefik.me" >}}
@@ -174,21 +106,31 @@ mkcert "*.traefik.me"
 ```
 
 ```yaml
-- "traefik.http.routers.whoami.rule=Host(`whoami.traefik.me`)"
+traefik.http.routers.whoami.rule: Host(`whoami.traefik.me`)
 ```
 {{< /tab >}}
 {{< /tabs >}}
 
-Le repli DNS vers 127.0.0.1 gère le reste.
+## Ce qui reste à faire chez moi
 
-## Ce que l'histoire traefik.me enseigne vraiment
+mkcert a une limite, et elle pèse plus lourd dans un homelab que sur un poste de développeur : l'autorité n'est connue que des machines sur lesquelles on l'installe. `mkcert -install` s'occupe de la machine où on le lance. Pour toutes les autres, ordinateurs, téléphones, tablettes, il faut copier le fichier `rootCA.pem` (son emplacement est donné par `mkcert -CAROOT`) et l'importer à la main dans chaque appareil et parfois dans chaque navigateur. Un appareil oublié affiche un avertissement de sécurité à chaque visite.
 
-Le modèle de distribution de certificats a toujours été fragile. Une « paire clé publique-clé privée » est une contradiction dans les termes. Chaque révocation était un avertissement que la suivante pourrait être définitive. Finalement, ça l'a été.
+Pour mon homelab, la liste est donc courte, mais elle touche toute la maison :
 
-La leçon ne se limite pas à traefik.me. Tout service qui apporte de la commodité en supprimant discrètement une frontière de sécurité finira par se heurter à cette frontière. mkcert est le bon outil pour ce problème parce qu'il opère entièrement dans votre propre domaine de confiance : vous générez la CA, vous l'installez, vous émettez les certificats. Rien ne dépend de la volonté continue d'un tiers de contourner les règles d'émission de certificats.
+1. générer un certificat pour `*.10.0.0.10.sslip.io` ;
+2. ajouter le point d'entrée `websecure` et le fichier `tls.yml` à Traefik, qui publie déjà le port 443 ;
+3. passer les labels des services sur `websecure` ;
+4. installer l'autorité sur chaque appareil qui consulte le homelab.
 
-sslip.io résout proprement la partie DNS. mkcert résout proprement la partie TLS. Ils se combinent bien. La configuration traefik.me était plus simple, pendant un temps. Jusqu'à ce que ce ne soit plus le cas.
+Les trois premières étapes tiennent dans un dossier, la quatrième dans chaque appareil de la maison.
 
+{{< alert >}}
+La clé de l'autorité mkcert (`rootCA-key.pem`) permet d'émettre un certificat valide pour n'importe quel site sur toutes les machines qui lui font confiance. Elle ne doit jamais quitter la machine où elle a été créée, ni être versionnée. C'est l'erreur de traefik.me, à l'échelle d'une maison.
+{{< /alert >}}
+
+Avec le recul, traefik.me était confortable parce qu'il supprimait une frontière de sécurité sans le dire : le certificat était valide partout parce que sa clé était à tout le monde. mkcert demande plus de travail, mais la confiance repose sur une clé que je suis le seul à détenir. sslip.io règle la partie DNS, mkcert la partie TLS, et aucun des deux ne dépend de la bonne volonté d'un tiers pour continuer à fonctionner.
+
+[traefik-me]: https://github.com/pyrou/traefik.me
 [le-post]: https://github.com/pyrou/traefik.me/discussions/14
 [pyrou-reply]: https://github.com/pyrou/traefik.me/discussions/15
 [issue-1]: https://github.com/pyrou/traefik.me/issues/1

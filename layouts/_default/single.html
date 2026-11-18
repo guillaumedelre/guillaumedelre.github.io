@@ -19,7 +19,6 @@
     {{ if and .Lastmod (ne (.Lastmod.Format "2006-01-02") (.Date.Format "2006-01-02")) }}
       <p>{{ i18n "lastmod" }} : {{ .Lastmod | time.Format ":date_long" }}</p>
     {{ end }}
-    {{ partial "terms.html" (dict "page" . "taxonomy" "categories" "label" "cat") }}
     {{ partial "terms.html" (dict "page" . "taxonomy" "tags" "label" "tags") }}
     {{ partial "terms.html" (dict "page" . "taxonomy" "series" "label" "series") }}
   {{ end }}

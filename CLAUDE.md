@@ -19,7 +19,7 @@ Hugo features active: RSS at `/index.xml`, sitemap at `/sitemap.xml`, JSON searc
 
 PaperMod features enabled: `ShowSeriesNavigation`, `ShowReadingTime`, `ShowCodeCopyButtons`, `ShowBreadCrumbs`.
 
-Taxonomies: `categories`, `tags`, `series` (native Hugo taxonomy — no registration step needed).
+Taxonomies: `tags`, `series` (native Hugo taxonomy — no registration step needed).
 
 Deployment: `.github/workflows/hugo-deploy.yml` builds with `hugo --minify` and deploys to GitHub Pages via the Pages environment. Push to `main` triggers the workflow.
 
@@ -49,11 +49,13 @@ Required frontmatter:
 ---
 title: "Post title"
 date: YYYY-MM-DD
-categories: [cat1]
 tags: [tag1, tag2]
+format: experiment   # experiment | showcase | guide — see Writing style
 description: "One-sentence summary (50-160 characters)."
 ---
 ```
+
+Optional: `images: ["/images/<slug>/<file>.png"]` sets the Open Graph / Twitter card image used when the post is shared (it is not displayed on the page). Use it whenever the post has a representative screenshot or photo; otherwise the site default applies. There are no categories: tags cover the topics.
 
 Permalink format is `/:year/:month/:day/:slug/` as configured in `hugo.yaml`.
 
@@ -70,12 +72,12 @@ Without this field, Hugo falls back to the file's modification date, which chang
 Before drafting any article, always ask the user for:
 
 1. **Date** — publication date in `YYYY-MM-DD` format (used in both the filename and the frontmatter).
-2. **Category** — propose from the existing categories: `development`, `iot`, `devops`. Suggest the most relevant one based on the topic.
-3. **Tags** — propose a list based on existing tags already used across posts. Check `content/posts/` frontmatter to build the suggestion. Prefer reusing existing tags over creating new ones; only propose new tags when no existing tag covers the concept. Never reuse a category name as a tag, and keep EN and FR tags identical. When a new tag is created, add `content/en/tags/<slug>/_index.md` and `content/fr/tags/<slug>/_index.md` with its display name as `title` (e.g. `Claude Code`, `BME280`), otherwise Hugo shows the capitalized slug.
-4. **Description** — write a one-sentence summary (50-160 characters) for the `description` frontmatter field. Used by PaperMod for meta description, Open Graph, and Twitter cards.
-5. **Language** — ask whether the article will have a French translation. If yes, create both `slug.md` and `slug.fr.md` with a shared `translationKey`.
-6. **Series** — ask whether the post belongs to an existing series or starts a new one (see the Series section below).
-7. **Type** — propose `experiment`, `showcase` or `guide` based on the topic (see Writing style). The type drives structure, tone and length.
+2. **Tags** — propose a list based on existing tags already used across posts. Check `content/posts/` frontmatter to build the suggestion. Prefer reusing existing tags over creating new ones; only propose new tags when no existing tag covers the concept. Keep EN and FR tags identical. When a new tag is created, add `content/en/tags/<slug>/_index.md` and `content/fr/tags/<slug>/_index.md` with its display name as `title` (e.g. `Claude Code`, `BME280`), otherwise Hugo shows the capitalized slug.
+3. **Description** — write a one-sentence summary (50-160 characters) for the `description` frontmatter field. Used by PaperMod for meta description, Open Graph, and Twitter cards.
+4. **Language** — ask whether the article will have a French translation. If yes, create both `slug.md` and `slug.fr.md` with a shared `translationKey`.
+5. **Series** — ask whether the post belongs to an existing series or starts a new one (see the Series section below).
+6. **Format** — propose `experiment`, `showcase` or `guide` based on the topic (see Writing style) and set it in the `format` frontmatter field. The format drives structure, tone and length.
+7. **Share image** — propose a screenshot or photo for `images` if one exists.
 
 After publishing a new post, check `static/robots.txt`: if you added a path that should be blocked from indexing (e.g. a draft or admin page), add a `Disallow` rule. Standard posts need no change.
 
@@ -148,7 +150,7 @@ Posts are primarily written in English. A French translation is optional for any
 When an article is modified — content, frontmatter, or both — always propagate the changes to all its translated versions:
 
 - Update the translated prose to reflect the modified content.
-- Mirror any frontmatter change: `title`, `description`, `date`, `categories`, `tags`, `series`, `part`. Translate `title` and `description`; copy the other fields verbatim.
+- Mirror any frontmatter change: `title`, `description`, `date`, `tags`, `format`, `images`, `series`, `part`. Translate `title` and `description`; copy the other fields verbatim.
 - If a section is added or removed in EN, add or remove the equivalent in FR.
 - If a code block or technical example changes, update it identically in all translations (code is not translated).
 
@@ -403,7 +405,7 @@ Report findings as a list, each with: the rule, the quoted passage (with line nu
 
 ### 1. Type fit
 
-- [ ] The type (experiment / showcase / guide) is identifiable from the first two paragraphs, and the structure follows that type's rules.
+- [ ] The type set in `format` (experiment / showcase / guide) is identifiable from the first two paragraphs, and the structure follows that type's rules.
 - [ ] Experiment: at least one dead-end or wrong assumption is shown before a solution.
 - [ ] Showcase: a "What it doesn't do" section exists; no superlative; the alternatives are named.
 - [ ] Guide: prerequisites and end result are stated up front; every step can be verified; pitfalls have symptom, cause and fix.
@@ -467,6 +469,7 @@ The French text must read as written in French, not translated from English. Rea
 
 ### 8. Frontmatter
 
+- [ ] `format` is set; `images` is set when the post has a representative image.
 - [ ] `description` is 50–160 characters and matches the type (a guide says it's a guide).
 - [ ] `lastmod` is updated if the content changed significantly.
 - [ ] Tags reuse existing ones and are identical in EN and FR.

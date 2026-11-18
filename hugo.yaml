@@ -21,9 +21,6 @@ languages:
         - name: Blog
           url: /posts/
           weight: 5
-        - name: Categories
-          url: /categories/
-          weight: 20
         - name: Tags
           url: /tags/
           weight: 25
@@ -45,9 +42,6 @@ languages:
         - name: Blog
           url: /fr/posts/
           weight: 5
-        - name: Catégories
-          url: /fr/categories/
-          weight: 20
         - name: Tags
           url: /fr/tags/
           weight: 25
@@ -62,7 +56,6 @@ services:
     id: G-KJ5HF5SY3R
 
 taxonomies:
-  category: categories
   tag: tags
   series: series
 

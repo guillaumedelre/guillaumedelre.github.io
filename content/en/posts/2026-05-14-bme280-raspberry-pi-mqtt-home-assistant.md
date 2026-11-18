@@ -3,8 +3,8 @@ title: "From a €10 sensor to a Home Assistant dashboard with a Raspberry Pi an
 aliases: ["/2019/11/17/from-a-10-sensor-to-a-home-assistant-dashboard-with-a-raspberry-pi-and-mqtt/"]
 date: 2026-05-14
 lastmod: 2026-11-17
-categories: [iot]
 tags: [python, raspberry-pi, home-assistant]
+format: experiment
 description: "A €10 BME280 sensor, a Raspberry Pi, and an MQTT broker: building a room climate monitor that feeds Home Assistant."
 ---
 

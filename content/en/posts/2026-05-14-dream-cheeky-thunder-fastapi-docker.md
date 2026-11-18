@@ -3,8 +3,9 @@ title: "Controlling a USB missile launcher over HTTP with FastAPI and Docker"
 aliases: ["/2017/02/21/controlling-a-usb-missile-launcher-over-http-with-fastapi-and-docker/"]
 date: 2026-05-14
 lastmod: 2026-11-17
-categories: [iot]
 tags: [python, docker]
+format: experiment
+images: ["https://raw.githubusercontent.com/guillaumedelre/dream-cheeky-thunder/develop/docs/Dream-Cheeky-Thunder.jpg"]
 description: "How we wired a USB foam missile launcher to the CI pipeline — and what Docker, udev, and WSL2 had to say about it."
 ---
 

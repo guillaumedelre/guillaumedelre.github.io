@@ -3,8 +3,8 @@ title: "D'un capteur à 10€ à un tableau de bord Home Assistant avec Raspberr
 aliases: ["/fr/2019/11/17/dun-capteur-à-10-à-un-tableau-de-bord-home-assistant-avec-raspberry-pi-et-mqtt/"]
 date: 2026-05-14
 lastmod: 2026-11-17
-categories: [iot]
 tags: [python, raspberry-pi, home-assistant]
+format: experiment
 description: "Un capteur BME280 à 10€, un Raspberry Pi, et un broker MQTT : construire un moniteur de climat de pièce qui alimente Home Assistant."
 ---
 

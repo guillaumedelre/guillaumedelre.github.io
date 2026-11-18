@@ -1,15 +1,16 @@
 ---
 title: "Construire un homelab auto-hébergé avec Docker Compose et Traefik"
-aliases: ["/fr/2026/02/17/construire-un-homelab-self-hosted-avec-docker-compose-et-traefik/"]
+aliases: ["/2026/02/17/construire-un-homelab-self-hosted-avec-docker-compose-et-traefik/"]
 date: 2026-05-17
 lastmod: 2026-11-18
 tags: [homelab, docker, traefik]
 format: guide
-toc: true
 description: "Tuto complet pour monter un homelab Docker avec Traefik et sslip.io : stacks indépendantes, dashboard auto-configuré, pièges documentés."
 ---
 
+{{< lead >}}
 Ça fait des années que j'avais envie d'un homelab à la maison. Un endroit à moi pour héberger mes outils de développement, surveiller mes machines, faire tourner de la domotique, tester des trucs sans risquer de casser quoi que ce soit d'important. L'idée est simple. La mise en place un peu moins.
+{{< /lead >}}
 
 À l'époque, Kubernetes n'existait pas encore. Les options pour faire tourner plusieurs services sur une machine se résumaient à du scripting bash, des configurations Nginx écrites à la main, et beaucoup de café. Les tutoriels « homelab pour les humains » brillaient par leur absence.
 
@@ -19,9 +20,13 @@ Le principe : dix services auto-hébergés sur une machine locale, accessibles d
 
 Ce tutoriel s'adresse à quelqu'un qui connaît Docker mais qui part de zéro sur l'orchestration de services auto-hébergés.
 
+{{< alert icon="list-check" >}}
 **Prérequis** : une machine Linux ou WSL2, Docker avec Compose v2 (la commande `docker compose`), et git. Toutes les commandes ont été testées sur Ubuntu/WSL2 avec Docker Desktop.
+{{< /alert >}}
 
+{{< alert icon="check" >}}
 **Résultat** : Dockge sur `http://<IP>:5001`, et les dix services listés dans [Les groupes Homepage](#les-groupes-homepage) (Traefik, Dockge, Watchtower, Homepage, Dozzle, Glances, Uptime Kuma, FileBrowser, IT-Tools, Stirling PDF), chacun joignable sur `http://<nom>.<IP>.sslip.io`, où `<nom>` est le dossier de la stack (`dockge` pour Dockge). Homepage sert de dashboard et les affiche tous. Seule exception, Watchtower : il n'a pas d'interface web et met à jour les autres containers en arrière-plan.
+{{< /alert >}}
 
 ---
 
@@ -365,10 +370,19 @@ test: ["CMD", "/dozzle", "healthcheck"]
 
 **3. Images sans `wget` ni `curl`**
 
-Certaines images Node.js ou JVM n'ont ni wget ni curl. Solutions possibles :
-- Si Node.js est disponible : `node -e "require('http').get('http://localhost:PORT', r => process.exit(r.statusCode < 400 ? 0 : 1)).on('error', () => process.exit(1))"`
-- Si curl est disponible : `curl -fs http://127.0.0.1:PORT/`
-- Si le binaire de l'app expose une sous-commande healthcheck : l'utiliser directement.
+Certaines images Node.js ou JVM n'ont ni wget ni curl. Choisissez la sonde selon ce que contient l'image :
+
+{{< tabs >}}
+{{< tab label="Node.js" >}}
+`node -e "require('http').get('http://localhost:PORT', r => process.exit(r.statusCode < 400 ? 0 : 1)).on('error', () => process.exit(1))"`
+{{< /tab >}}
+{{< tab label="curl" >}}
+`curl -fs http://127.0.0.1:PORT/`
+{{< /tab >}}
+{{< tab label="Binaire" >}}
+L'utiliser directement.
+{{< /tab >}}
+{{< /tabs >}}
 
 ### Persistance des données
 
@@ -458,7 +472,9 @@ La valeur à mettre est le minimum indiqué dans le message d'erreur, pas votre 
 docker version --format '{{.Server.APIVersion}}'
 ```
 
-À noter : le dépôt de Watchtower [a été archivé][watchtower] en décembre 2025. L'image fonctionne toujours, mais elle ne reçoit plus de correctifs. À garder en tête avant de lui confier les mises à jour automatiques.
+{{< alert >}}
+À noter : le dépôt de Watchtower [a été archivé](https://github.com/containrrr/watchtower) en décembre 2025. L'image fonctionne toujours, mais elle ne reçoit plus de correctifs. À garder en tête avant de lui confier les mises à jour automatiques.
+{{< /alert >}}
 
 ### `${PWD}` dans le compose de Dockge
 
@@ -476,13 +492,7 @@ J'ai bien conscience que ce tuto ne couvre pas tout. On aurait pu ajouter de l'a
 
 Pour le HTTPS, la suite est dans [HTTPS local avec Traefik]({{< relref "2025-04-17-traefik-local-https-mkcert-sslip.md" >}}) : les mêmes noms en sslip.io, avec des certificats générés en local par mkcert.
 
-<a class="gh-card" href="https://github.com/guillaumedelre/homelab" target="_blank" rel="noopener noreferrer">
-  <span class="gh-card__head">
-    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
-    <span class="gh-card__repo">guillaumedelre/homelab</span>
-  </span>
-  <span class="gh-card__desc">Homelab Docker Compose avec Traefik — stacks indépendantes, dashboard auto-configuré, et zéro configuration DNS grâce à sslip.io.</span>
-</a>
+{{< github repo="guillaumedelre/homelab" showThumbnail=true >}}
 
 ## Références
 

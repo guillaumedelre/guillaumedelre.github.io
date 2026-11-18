@@ -1,0 +1,50 @@
+# Blowfish site configuration — https://blowfish.page/docs/configuration/
+baseURL = "https://guillaumedelre.github.io/"
+theme = "blowfish"
+defaultContentLanguage = "en"
+defaultContentLanguageInSubdir = false
+enableRobotsTXT = false   # static/robots.txt is used as is
+summaryLength = 0
+enableEmoji = true
+
+[services.googleAnalytics]
+  id = "G-KJ5HF5SY3R"
+
+[pagination]
+  pagerSize = 20
+
+[imaging]
+  anchor = "Center"
+
+[taxonomies]
+  tag = "tags"
+  series = "series"
+
+[permalinks]
+  posts = "/:year/:month/:day/:slug/"
+
+[sitemap]
+  changefreq = "weekly"
+  filename = "sitemap.xml"
+  priority = 0.5
+
+[outputs]
+  home = ["HTML", "RSS", "JSON"]   # JSON = search index
+
+[related]
+  threshold = 0
+  toLower = false
+  [[related.indices]]
+    name = "tags"
+    weight = 100
+  [[related.indices]]
+    name = "series"
+    weight = 50
+  [[related.indices]]
+    name = "date"
+    weight = 10
+  [[related.indices]]
+    applyFilter = false
+    name = "fragmentrefs"
+    type = "fragments"
+    weight = 10

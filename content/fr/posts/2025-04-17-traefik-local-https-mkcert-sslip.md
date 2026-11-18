@@ -7,7 +7,9 @@ format: experiment
 description: "Le certificat wildcard de traefik.me a été révoqué en 2025. Voici comment le remplacer avec sslip.io, mkcert et une configuration Traefik locale."
 ---
 
+{{< lead >}}
 La configuration semblait parfaite. Pointer `*.traefik.me` sur 127.0.0.1, télécharger un certificat wildcard depuis le même domaine, le déposer dans Traefik, et chaque service local obtient une URL HTTPS propre sans IP dans la barre d'adresse. Pas de limites de débit Let's Encrypt, pas de `mkcert` à expliquer aux collègues, pas d'avertissements de certificat auto-signé à contourner. Rien que `https://myapp.traefik.me` et un cadenas vert.
+{{< /lead >}}
 
 Puis en mars 2025, Let's Encrypt a révoqué le certificat wildcard de traefik.me, et il a disparu pour de bon.
 
@@ -148,6 +150,17 @@ La déclaration `external: true` est la ligne qui fait tout le travail. Sans ell
 
 Si vous préférez les URLs traefik.me, il suffit de remplacer la commande mkcert et le label de host :
 
+{{< tabs >}}
+{{< tab label="sslip.io" >}}
+```bash
+mkcert "*.127-0-0-1.sslip.io"
+```
+
+```yaml
+- "traefik.http.routers.whoami.rule=Host(`whoami.127-0-0-1.sslip.io`)"
+```
+{{< /tab >}}
+{{< tab label="traefik.me" >}}
 ```bash
 mkcert "*.traefik.me"
 ```
@@ -155,6 +168,8 @@ mkcert "*.traefik.me"
 ```yaml
 - "traefik.http.routers.whoami.rule=Host(`whoami.traefik.me`)"
 ```
+{{< /tab >}}
+{{< /tabs >}}
 
 Le repli DNS vers 127.0.0.1 gère le reste.
 

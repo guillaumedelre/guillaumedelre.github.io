@@ -1,6 +1,0 @@
-{{- $page := .page -}}
-{{- with $page.GetTerms .taxonomy }}
-<p class="terms">{{ $.label }} :
-  {{- range $i, $t := . }}{{ if $i }},{{ end }} <a href="{{ $t.Permalink }}">{{ $t.LinkTitle }}</a>{{ end }}
-</p>
-{{- end }}

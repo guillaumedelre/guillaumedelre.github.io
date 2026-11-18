@@ -1,0 +1,27 @@
+disabled = false
+locale = "fr"
+label = "Français"
+weight = 2
+contentDir = "content/fr"
+title = "Guillaume Delré"
+
+[params]
+  displayName = "FR"
+  isoCode = "fr"
+  rtl = false
+  dateFormat = "2 January 2006"
+  description = "Expérimentations homelab, Docker, IoT et outils de dev, racontées comme des histoires."
+  copyright = "© Guillaume Delré"
+
+[params.article]
+  editURL = "https://github.com/guillaumedelre/guillaumedelre.github.io/blob/main/content/fr/"
+
+[params.author]
+  name = "Guillaume Delré"
+  image = "img/author.jpg"
+  headline = "Développeur. J'écris sur ce que je construis, casse et répare."
+  links = [
+    { github = "https://github.com/guillaumedelre" },
+    { linkedin = "https://www.linkedin.com/in/guillaumedelre/" },
+    { email = "mailto:delre.guillaume@gmail.com" },
+  ]

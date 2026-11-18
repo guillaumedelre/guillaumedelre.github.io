@@ -1,6 +1,6 @@
 ---
 title: "D'un capteur à 10 € à un tableau de bord Home Assistant avec Raspberry Pi et MQTT"
-aliases: ["/fr/2019/11/17/dun-capteur-à-10-à-un-tableau-de-bord-home-assistant-avec-raspberry-pi-et-mqtt/"]
+aliases: ["/2019/11/17/dun-capteur-à-10-à-un-tableau-de-bord-home-assistant-avec-raspberry-pi-et-mqtt/"]
 date: 2026-05-14
 lastmod: 2026-11-18
 tags: [python, raspberry-pi, home-assistant]
@@ -8,7 +8,9 @@ format: experiment
 description: "Un capteur BME280 à 10 €, un Raspberry Pi et un broker MQTT : une sonde de température et d'humidité pour une pièce, qui alimente Home Assistant."
 ---
 
+{{< lead >}}
 La question était simple : quelles sont la température et l'humidité dans mon bureau à domicile en ce moment ? Pas la météo dehors, pas une moyenne de ville — les conditions réelles dans la pièce où je passe la majeure partie de ma journée. Ouvrir une appli météo pour ça me paraissait absurde.
+{{< /lead >}}
 
 Un Raspberry Pi tournait déjà sur l'étagère. Un capteur BME280 coûte environ 10 €. Ça aurait dû être un projet de week-end.
 
@@ -44,9 +46,10 @@ Une fois le driver fonctionnel, la question suivante était de savoir comment am
 
 Le mécanisme de découverte MQTT a rendu la partie Home Assistant presque sans friction. Une commande `mosquitto_pub` par type de capteur — publier une charge utile JSON de configuration vers le bon topic — et les entités apparaissent automatiquement dans l'interface. Pas d'édition de `configuration.yaml`, pas de redémarrage requis.
 
-```
-BME280  ──I²C──►  bme280.py  ──►  Flask API  ──MQTT──►  Home Assistant
-```
+{{< mermaid >}}
+flowchart LR
+  S[BME280] -- I²C --> D[bme280.py] --> A[Flask API] -- MQTT --> H[Home Assistant]
+{{< /mermaid >}}
 
 Le guide d'installation complet est [dans le repo][repo].
 
@@ -70,13 +73,7 @@ Quant à la découverte MQTT, je la trouve sous-estimée. Déclarer manuellement
 
 La pièce est maintenant à 21,4 °C et 47 % d'humidité. Je le sais sans rien ouvrir.
 
-<a class="gh-card" href="https://github.com/guillaumedelre/bme280" target="_blank" rel="noopener noreferrer">
-  <span class="gh-card__head">
-    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
-    <span class="gh-card__repo">guillaumedelre/bme280</span>
-  </span>
-  <span class="gh-card__desc">Driver Python pour le capteur BME280 — température, humidité et pression par I²C, avec publication MQTT et intégration Home Assistant.</span>
-</a>
+{{< github repo="guillaumedelre/bme280" showThumbnail=true >}}
 
 [datasheet]: https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme280-ds002.pdf
 [rpi-spy]: https://www.raspberrypi-spy.co.uk/

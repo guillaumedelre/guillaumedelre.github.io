@@ -4,7 +4,7 @@ theme = "blowfish"
 defaultContentLanguage = "fr"
 defaultContentLanguageInSubdir = false
 enableRobotsTXT = false   # static/robots.txt is used as is
-summaryLength = 0
+summaryLength = 60   # words; used by the RSS feed and post lists
 enableEmoji = true
 
 [services.googleAnalytics]

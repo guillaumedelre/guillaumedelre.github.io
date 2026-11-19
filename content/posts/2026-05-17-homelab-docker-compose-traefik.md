@@ -84,7 +84,7 @@ Pour router selon le nom, il faut des noms. Modifier `/etc/hosts` sur chaque mac
 
 Pendant longtemps, j'ai utilisé [sslip.io][sslip], un DNS public qui renvoie l'adresse IP écrite dans le nom : `dozzle.10.0.0.10.sslip.io` pointe vers `10.0.0.10`. Ça fonctionne depuis n'importe quel appareil du réseau, sans rien configurer, et c'est toujours par là que je conseillerais de commencer.
 
-Aujourd'hui, j'utilise un domaine à moi. Sa zone publique pointe vers l'adresse privée du homelab, et [Pi-hole][pihole], le DNS filtrant de la maison, répond localement pour tout le domaine, même quand Internet est coupé. Le domaine m'a surtout permis d'avoir un certificat Let's Encrypt valide sur tous les appareils, sans rien exposer : c'est raconté dans [Pourquoi je n'ai jamais installé mkcert dans mon homelab]({{< relref "2026-11-19-homelab-domaine-letsencrypt-pihole.md" >}}).
+Aujourd'hui, j'utilise un domaine à moi. Sa zone publique pointe vers l'adresse privée du homelab, et [Pi-hole][pihole], le DNS filtrant de la maison, répond localement pour tout le domaine, même quand Internet est coupé. Le domaine m'a surtout permis d'avoir un certificat Let's Encrypt valide sur tous les appareils, sans rien exposer : la mise en place est décrite dans le guide [HTTPS dans un homelab : domaine, challenge DNS et Pi-hole]({{< relref "2026-11-19-homelab-domaine-letsencrypt-pihole.md" >}}).
 
 Dans les deux cas, l'adresse de la machine et le domaine sont dans le `.env` de chaque stack, et changer de domaine revient à modifier une ligne par stack :
 

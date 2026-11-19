@@ -141,7 +141,7 @@ La clé de l'autorité mkcert (`rootCA-key.pem`) permet d'émettre un certificat
 Avec le recul, traefik.me était confortable parce qu'il supprimait une frontière de sécurité sans le dire : le certificat était valide partout parce que sa clé était à tout le monde. mkcert demande plus de travail, mais la confiance repose sur une clé que je suis le seul à détenir. sslip.io règle la partie DNS, mkcert la partie TLS, et aucun des deux ne dépend de la bonne volonté d'un tiers pour continuer à fonctionner.
 
 {{< alert icon="check" >}}
-**La suite.** Je n'ai finalement jamais utilisé mkcert : la perspective d'installer l'autorité sur chaque téléphone et chaque tablette de la maison m'a fait changer de plan. Mon homelab utilise maintenant un vrai nom de domaine et un certificat Let's Encrypt obtenu par challenge DNS, toujours sans rien exposer sur Internet. C'est raconté dans [Pourquoi je n'ai jamais installé mkcert dans mon homelab]({{< relref "2026-11-19-homelab-domaine-letsencrypt-pihole.md" >}}). mkcert reste le bon choix sur un poste de développement.
+**La suite.** Je n'ai finalement jamais utilisé mkcert : la perspective d'installer l'autorité sur chaque téléphone et chaque tablette de la maison m'a fait changer de plan. Mon homelab utilise maintenant un vrai nom de domaine et un certificat Let's Encrypt obtenu par challenge DNS, toujours sans rien exposer sur Internet. La mise en place est décrite dans [HTTPS dans un homelab : domaine, challenge DNS et Pi-hole]({{< relref "2026-11-19-homelab-domaine-letsencrypt-pihole.md" >}}). mkcert reste le bon choix sur un poste de développement.
 {{< /alert >}}
 
 [traefik-me]: https://github.com/pyrou/traefik.me

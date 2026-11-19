@@ -6,7 +6,7 @@ aliases:
   - "/fr/2026/02/17/construire-un-homelab-self-hosted-avec-docker-compose-et-traefik/"
   - "/2026/02/17/building-a-self-hosted-homelab-with-docker-compose-and-traefik/"
 date: 2026-05-17
-lastmod: 2026-11-18
+lastmod: 2026-11-19
 tags: [homelab, docker, traefik]
 format: guide
 featureimage: "images/homelab/dashboard.png"
@@ -16,12 +16,12 @@ description: "Guide de conception d'un homelab Docker : les principes qui permet
 ---
 
 {{< lead >}}
-Dans la première version de cet article, je présentais dix services. La plupart n'étaient là que pour l'exemple. Aujourd'hui, dix-huit stacks tournent sur ma machine : une IA locale, Home Assistant, un serveur de musique, des applis que j'ai écrites moi-même. Aucune n'a demandé de toucher à l'architecture.
+Dans la première version de cet article, je présentais dix services. La plupart n'étaient là que pour l'exemple. Aujourd'hui, quinze stacks tournent sur ma machine : Home Assistant, un serveur de musique, un DNS filtrant pour la maison, des applis que j'ai écrites moi-même. D'autres sont venues et reparties. Aucune n'a demandé de toucher à l'architecture.
 {{< /lead >}}
 
 Ce qui compte dans un homelab, c'est la structure qui accueille les services, bien plus que leur liste. Une bonne structure rend l'ajout d'un service banal et sa suppression sans conséquence. Cet article décrit les huit principes qui tiennent la mienne, avec à chaque fois la manière dont je les applique.
 
-Il s'adresse à quelqu'un qui connaît Docker et veut faire tourner plusieurs services sur une machine du réseau local. Il faut une machine Linux et Docker avec Compose v2. Rien d'autre : ni nom de domaine, ni serveur DNS, ni VPS.
+Il s'adresse à quelqu'un qui connaît Docker et veut faire tourner plusieurs services sur une machine du réseau local. Il faut une machine Linux et Docker avec Compose v2. Rien d'autre pour commencer : ni nom de domaine, ni serveur DNS, ni VPS. J'ai fini par prendre un domaine, mais la structure ne l'impose pas.
 
 ## 1. Un service, un dossier
 
@@ -36,7 +36,7 @@ Chaque service vit dans son propre dossier, avec son propre `compose.yaml` et so
 └── …
 ```
 
-Ça paraît évident, mais c'est le principe dont découlent tous les autres. Un dossier par service, c'est un service qu'on démarre, qu'on arrête, qu'on met à jour ou qu'on supprime sans risquer d'emporter le voisin. Le jour où j'ai ajouté une stack IA de quatre conteneurs (Ollama, Open WebUI, ChromaDB, Docling), je n'ai rien modifié ailleurs. Et retirer un service se résume à un `docker compose down` suivi de la suppression d'un dossier.
+Ça paraît évident, mais c'est le principe dont découlent tous les autres. Un dossier par service, c'est un service qu'on démarre, qu'on arrête, qu'on met à jour ou qu'on supprime sans risquer d'emporter le voisin. Le jour où j'ai ajouté une stack IA de quatre conteneurs (Ollama, Open WebUI, ChromaDB, Docling), je n'ai rien modifié ailleurs. Le jour où je l'ai retirée, faute de m'en servir, il a suffi d'un `docker compose down` et de la suppression d'un dossier.
 
 Un seul gros `compose.yaml` pour tout le homelab marche aussi, au début. Puis un `docker compose up -d` pour un service en redémarre trois autres, une erreur de syntaxe bloque tout, et l'historique git mélange tout.
 
@@ -44,11 +44,11 @@ Les secrets restent dans le `.env` de chaque dossier, jamais versionné. Quand u
 
 ## 2. Une seule porte d'entrée
 
-Aucun service ne publie de port sur la machine. Un seul conteneur le fait : le reverse proxy, [Traefik][traefik], qui écoute sur le port 80 et route chaque requête vers le bon conteneur selon le nom demandé.
+Aucun service ne publie de port sur la machine. Un seul conteneur le fait : le reverse proxy, [Traefik][traefik], qui écoute sur les ports 80 et 443 et route chaque requête vers le bon conteneur selon le nom demandé.
 
 {{< mermaid >}}
 flowchart LR
-  B[Navigateur] -->|dozzle.10.0.0.10.sslip.io| T[Traefik :80]
+  B[Navigateur] -->|dozzle.example.com| T[Traefik :443]
   T -->|réseau traefik| D[Dozzle]
   T -->|réseau traefik| H[Homepage]
   T -->|réseau traefik| A[Home Assistant]
@@ -78,18 +78,22 @@ extra_hosts:
 
 Ces services gardent leurs labels habituels, mais sans la section `networks:` ni le label `traefik.docker.network`. C'est la seule entorse au réseau commun, et elle est écrite noir sur blanc dans les notes du homelab, avec la liste des services concernés.
 
-## 3. Des noms sans serveur DNS
+## 3. Des noms qui marchent sur tous les appareils
 
-Pour router selon le nom, il faut des noms. Modifier `/etc/hosts` sur chaque machine ne tient pas dès qu'il y a un téléphone dans la maison, et monter un DNS local, c'est un service de plus à maintenir.
+Pour router selon le nom, il faut des noms. Modifier `/etc/hosts` sur chaque machine ne tient pas dès qu'il y a un téléphone dans la maison.
 
-J'utilise [sslip.io][sslip], un DNS public qui renvoie l'adresse IP écrite dans le nom : `dozzle.10.0.0.10.sslip.io` pointe vers `10.0.0.10`. Ça fonctionne depuis n'importe quel appareil du réseau, sans rien configurer. L'adresse de la machine et le domaine sont dans le `.env` de chaque stack :
+Pendant longtemps, j'ai utilisé [sslip.io][sslip], un DNS public qui renvoie l'adresse IP écrite dans le nom : `dozzle.10.0.0.10.sslip.io` pointe vers `10.0.0.10`. Ça fonctionne depuis n'importe quel appareil du réseau, sans rien configurer, et c'est toujours par là que je conseillerais de commencer.
+
+Aujourd'hui, j'utilise un domaine à moi. Sa zone publique pointe vers l'adresse privée du homelab, et [Pi-hole][pihole], le DNS filtrant de la maison, répond localement pour tout le domaine, même quand Internet est coupé. Le domaine m'a surtout permis d'avoir un certificat Let's Encrypt valide sur tous les appareils, sans rien exposer : c'est raconté dans [Pourquoi je n'ai jamais installé mkcert dans mon homelab]({{< relref "2026-11-19-homelab-domaine-letsencrypt-pihole.md" >}}).
+
+Dans les deux cas, l'adresse de la machine et le domaine sont dans le `.env` de chaque stack, et changer de domaine revient à modifier une ligne par stack :
 
 ```dotenv
 IP=10.0.0.10
-DOMAIN=sslip.io
+DOMAIN=example.com
 ```
 
-Reste à construire le nom de chaque service. Docker Compose fournit `COMPOSE_PROJECT_NAME`, qui vaut par défaut le nom du dossier. Si le dossier porte le nom du sous-domaine, il n'y a rien à déclarer : le dossier `dozzle/` répond sur `dozzle.10.0.0.10.sslip.io`. Quand le dossier ne peut pas porter le nom voulu, j'écris le nom en dur dans la règle Traefik.
+Reste à construire le nom de chaque service. Docker Compose fournit `COMPOSE_PROJECT_NAME`, qui vaut par défaut le nom du dossier. Si le dossier porte le nom du sous-domaine, il n'y a rien à déclarer : le dossier `dozzle/` répond sur `dozzle.example.com`. Quand le dossier ne peut pas porter le nom voulu, j'écris le nom en dur dans la règle Traefik.
 
 Pour vérifier ce que vaut la variable dans un dossier avant de s'en servir :
 
@@ -125,11 +129,11 @@ services:
             homepage.group: Supervision
             homepage.name: Dozzle
             homepage.icon: https://cdn.jsdelivr.net/gh/selfhst/icons/webp/dozzle.webp
-            homepage.href: http://${COMPOSE_PROJECT_NAME}.${IP}.${DOMAIN}
+            homepage.href: https://${COMPOSE_PROJECT_NAME}.${DOMAIN}
 
             traefik.enable: true
-            traefik.http.routers.dozzle.entrypoints: web
-            traefik.http.routers.dozzle.rule: Host(`${COMPOSE_PROJECT_NAME}.${IP}.${DOMAIN}`)
+            traefik.http.routers.dozzle.entrypoints: websecure
+            traefik.http.routers.dozzle.rule: Host(`${COMPOSE_PROJECT_NAME}.${DOMAIN}`)
             traefik.http.services.dozzle.loadbalancer.server.port: 8080
 
 networks:
@@ -137,11 +141,11 @@ networks:
         external: true
 ```
 
-Les groupes de Homepage disent beaucoup de ce que devient un homelab avec le temps. Les miens s'appellent Famille, Maison, Loisirs, IA, Médias, Supervision et Infrastructure : l'infrastructure n'en est plus qu'un parmi d'autres. L'ordre des groupes, lui, se règle une fois dans la configuration de Homepage, et c'est le seul endroit à toucher quand on crée un nouveau groupe.
+Les groupes de Homepage disent beaucoup de ce que devient un homelab avec le temps. Les miens s'appellent Famille, Loisirs, Maison, IA, Supervision et Infrastructure : l'infrastructure n'en est plus qu'un parmi d'autres. L'ordre des groupes, lui, se règle une fois dans la configuration de Homepage, et c'est le seul endroit à toucher quand on crée un nouveau groupe.
 
 ## 5. Voir ce qui tourne
 
-Avec dix-huit stacks, on ne se souvient plus de ce qui tourne. Trois briques répondent à trois questions différentes :
+Avec quinze stacks, on ne se souvient plus de ce qui tourne. Trois briques répondent à trois questions différentes :
 
 - **Qu'est-ce qui existe ?** Homepage, qui se remplit tout seul grâce aux labels.
 - **Que se passe-t-il ?** [Dozzle][dozzle], pour lire les logs de n'importe quel conteneur dans le navigateur.
@@ -167,7 +171,7 @@ Toutes mes images sont en `:latest`, et [Watchtower][watchtower] les met à jour
 Ce choix a une date de péremption que je surveille :
 
 {{< alert >}}
-Le dépôt de Watchtower [a été archivé](https://github.com/containrrr/watchtower) en décembre 2025. L'image fonctionne toujours, mais elle ne reçoit plus de correctifs. Si Docker change encore son API minimale, il faudra le remplacer.
+Le dépôt de Watchtower [a été archivé](https://github.com/containrrr/watchtower) en décembre 2025 et ne reçoit plus de correctifs. Je suis passé au fork maintenu [nickfedor/watchtower](https://github.com/nicholas-fedor/watchtower), qui reprend la même configuration. Seule différence rencontrée : il refuse le redémarrage progressif pour les stacks qui utilisent `depends_on`, je l'ai donc désactivé.
 {{< /alert >}}
 
 L'autre politique possible, c'est d'épingler chaque version et de mettre à jour à la main. Elle est plus sûre, et beaucoup plus lente. L'essentiel est d'en choisir une consciemment : la pire politique, c'est des versions épinglées qu'on ne met jamais à jour.
@@ -176,7 +180,7 @@ L'autre politique possible, c'est d'épingler chaque version et de mettre à jou
 
 Mon homelab est conçu pour le réseau local, et seulement pour lui. Les limites sont assumées, mais je préfère les écrire :
 
-- **Pas de HTTPS.** Tout passe en HTTP sur le port 80. Pour avoir des certificats sans domaine, j'ai décrit une solution avec mkcert dans [HTTPS local avec Traefik]({{< relref "2025-04-17-traefik-local-https-mkcert-sslip.md" >}}).
+- **Le HTTPS chiffre, il n'authentifie personne.** Tous les services sont en HTTPS avec un certificat Let's Encrypt, mais le cadenas ne dit rien de qui se connecte.
 - **Pas d'authentification.** Plusieurs interfaces, comme le tableau de bord de Traefik ou [claude-agents-board]({{< relref "2026-11-17-claude-agents-board.md" >}}), sont ouvertes à tout appareil du réseau.
 - **Le socket Docker est monté dans plusieurs conteneurs.** Traefik, Dozzle, Watchtower et `stacks` y ont accès. Un accès au socket équivaut à un accès root à la machine.
 
@@ -191,6 +195,7 @@ Pour savoir si une architecture de homelab tient, j'ai un test simple : combien 
 Si votre réponse est plus longue, le problème n'est pas le service que vous essayez d'ajouter. Pour trouver de quoi remplir le vôtre, [selfh.st][selfhst] recense les logiciels auto-hébergés par catégorie, et [selfhst/icons][selfhst-icons] fournit les icônes utilisées dans les labels Homepage.
 
 [sslip]: https://sslip.io
+[pihole]: https://github.com/pi-hole/pi-hole
 [selfhst]: https://selfh.st
 [selfhst-icons]: https://github.com/selfhst/icons
 [traefik]: https://github.com/traefik/traefik

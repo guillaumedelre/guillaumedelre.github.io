@@ -79,8 +79,8 @@ fingerprintAlgorithm = "sha512"
   showTableOfContents = false
   showCards = true
   orderByWeight = false
-  groupByYear = true
-  cardView = true
+  groupByYear = false
+  cardView = false
   cardViewScreenWidth = false
   constrainItemsWidth = false
 
@@ -94,14 +94,14 @@ fingerprintAlgorithm = "sha512"
   showViews = false
   showLikes = false
   showTableOfContents = false
-  cardView = true
+  cardView = false
 
 [term]
   showHero = false
   showBreadcrumbs = true
   showViews = false
   showLikes = false
-  showTableOfContents = true
+  showTableOfContents = false
   groupByYear = false
-  cardView = true
+  cardView = false
   cardViewScreenWidth = false

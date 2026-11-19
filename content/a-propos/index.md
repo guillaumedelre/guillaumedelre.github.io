@@ -22,7 +22,7 @@ Je programme depuis que je suis gamin, et j'en ai fait mon métier il y a plus d
 
 ## Le métier
 
-Je suis développeur PHP depuis 2004. Aujourd'hui, mon quotidien, c'est Symfony et API Platform, sur une plateforme découpée en microservices. Quand je tombe sur un bug ou un manque dans ces outils, j'essaie de le corriger à la source : j'ai contribué à [Symfony](https://github.com/symfony/symfony) et à [API Platform](https://github.com/api-platform/core).
+Je suis développeur PHP depuis 2004. Aujourd'hui, mon quotidien, c'est Symfony et API Platform, sur une plateforme découpée en microservices. Quand je tombe sur un bug ou un manque dans ces outils, j'essaie de le corriger à la source : j'ai contribué à [Symfony](https://github.com/symfony/symfony), à [API Platform](https://github.com/api-platform/core) et à quelques autres projets open source.
 
 PHP n'a jamais été le seul langage. Python, C++, Go et quelques autres sont passés par là, parce qu'un problème s'y prêtait mieux ou par curiosité.
 

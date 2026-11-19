@@ -6,6 +6,10 @@
   name = "Tags"
   pageRef = "tags"
   weight = 20
+[[main]]
+  name = "À propos"
+  pageRef = "a-propos"
+  weight = 30
 
 [[subnavigation]]
   name = "Homelab"
